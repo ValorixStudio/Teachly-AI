@@ -1,0 +1,700 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+/* ════════════════════════════════════════
+   CSS Variables
+   ════════════════════════════════════════ */
+
+:root {
+  --orange:        #FF9F1C;
+  --yellow:        #FFD93D;
+  --blue:          #4CC9F0;
+  --pink:          #FF6B9D;
+  --green:         #6EE7B7;
+  --purple:        #9B5DE5;
+  --coral:         #FF6B6B;
+  --teal:          #0D9488;
+
+  --bg:            #FFF8E7;
+  --card-bg:       #FFFFFF;
+  --text:          #2D3748;
+  --muted:         #6B7280;
+  --border:        #FFE08A;
+
+  --font-body:     'Nunito', 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  --font-mono:     'Space Mono', monospace;
+
+  --radius-pill:   999px;
+  --radius-card:   30px;
+
+  --shadow-card:   0 12px 30px rgba(255, 170, 0, 0.15);
+  --shadow-hover:  0 16px 35px rgba(255, 170, 0, 0.25);
+  --shadow-active: 0 6px 20px rgba(155, 93, 229, 0.35);
+}
+
+/* ════════════════════════════════════════
+   Reset
+   ════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at top left, #FFF4C2, #FFF8E7 35%),
+    linear-gradient(180deg, #FFF8E7, #FFE8A3);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════
+   Layout Shell
+   ════════════════════════════════════════ */
+
+.lab-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh;
+}
+
+/* Animated rainbow top stripe */
+.lab-shell::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    #FF9F1C, #FFD93D, #FF6B9D, #9B5DE5, #4CC9F0, #6EE7B7, #FF9F1C
+  );
+  background-size: 300% 100%;
+  animation: rainbowSlide 5s linear infinite;
+}
+
+@keyframes rainbowSlide {
+  from { background-position: 0% 50%; }
+  to   { background-position: 300% 50%; }
+}
+
+main {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+}
+
+/* ════════════════════════════════════════
+   Hero
+   ════════════════════════════════════════ */
+
+.gradient-text {
+  display: block;
+  background: linear-gradient(90deg, #FF9F1C, #FF6B6B, #9B5DE5, #4CC9F0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-align: center;
+  animation: rainbowShift 5s linear infinite;
+}
+
+@keyframes rainbowShift {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
+.helper-text {
+  color: #555;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ════════════════════════════════════════
+   Section Titles
+   ════════════════════════════════════════ */
+
+.section-title {
+  font-weight: 900;
+  color: #FF7B00;
+  text-align: center;
+}
+
+.card-title {
+  font-weight: 800;
+  color: #FF7B00;
+}
+
+.label-text {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* ════════════════════════════════════════
+   Progress Bar
+   ════════════════════════════════════════ */
+
+.progress-track {
+  width: 100%;
+  height: 18px;
+  background: #fff;
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--orange), var(--yellow));
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ════════════════════════════════════════
+   Step Tabs
+   ════════════════════════════════════════ */
+
+.step-tab {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 11px 26px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.step-tab.active-orange {
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  color: #fff;
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(255, 159, 28, 0.4);
+}
+
+.step-tab.active-blue {
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  color: #fff;
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(155, 93, 229, 0.4);
+}
+
+/* ════════════════════════════════════════
+   Cards
+   ════════════════════════════════════════ */
+
+.glass-card {
+  background: #fff;
+  border: 5px solid #FFE08A;
+  border-radius: var(--radius-card);
+  padding: 24px;
+  width: 100%;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Info cards — FormulaCard / PropertiesCard */
+.info-card {
+  background: #fff;
+  border: 5px solid #FFE08A;
+  border-radius: var(--radius-card);
+  padding: 1.75rem 2rem;
+  width: 100%;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.info-card-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.75rem;
+}
+
+.info-card-formula {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.info-card-prop {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  font-size: 0.92rem;
+  border-bottom: 1px solid #FFF4C2;
+}
+
+.info-card-prop:last-child {
+  border-bottom: none;
+}
+
+.info-card-prop-label {
+  flex-shrink: 0;
+  min-width: 90px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.info-card-prop-value {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ════════════════════════════════════════
+   Activation Selector Pills
+   ════════════════════════════════════════ */
+
+.activation-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: 0.75rem;
+}
+
+.act-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 3px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.act-pill:hover {
+  border-color: var(--purple);
+  background: #F5F0FF;
+  color: var(--purple);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(155, 93, 229, 0.2);
+}
+
+.act-pill.selected {
+  background: linear-gradient(135deg, var(--purple), var(--blue));
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-active);
+}
+
+.act-pill-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ════════════════════════════════════════
+   Inputs
+   ════════════════════════════════════════ */
+
+.input-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+input[type="number"],
+input[type="text"],
+input,
+select {
+  width: 100%;
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  background: #fff;
+  border: 3px solid var(--yellow);
+  border-radius: 18px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+input:focus,
+select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.25);
+}
+
+/* ════════════════════════════════════════
+   Output Values
+   ════════════════════════════════════════ */
+
+.linear-value {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  color: #FF6B6B;
+  transition: color 0.3s;
+}
+
+.activation-value {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  color: #4CC9F0;
+  transition: color 0.3s;
+}
+
+.glow-line {
+  width: 100%;
+  height: 6px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #FF9F1C, #FFD93D, #4CC9F0);
+}
+
+/* ════════════════════════════════════════
+   Neuron Flow Diagram — Step 1
+   Input / Weight / Bias wire into Σ,
+   then into the activation function, then out.
+   ════════════════════════════════════════ */
+
+.neuron-flow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 0.5rem 0 1rem;
+  
+}
+
+.flow-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.flow-input-box {
+  background: #FFFBF0;
+  border: 3px solid var(--yellow);
+  border-radius: 16px;
+  padding: 6px 12px;
+  height: 64px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flow-input-box .input-label {
+  margin-bottom: 2px;
+}
+
+.flow-input-box input {
+  border: none;
+  padding: 2px 0;
+  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 0;
+}
+
+.flow-input-box input:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.flow-connector {
+  flex-shrink: 0;
+}
+
+.flow-connector line {
+  stroke: var(--border);
+  stroke-width: 3;
+  fill: none;
+}
+
+.flow-connector path {
+  fill: var(--border);
+}
+
+.flow-node {
+  flex-shrink: 0;
+  border-radius: 22px;
+  border: 4px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.flow-node-sum {
+  width: 70px;
+  min-height: 70px;
+  border-color: var(--coral);
+  background: #FFF1EE;
+  color: var(--coral);
+}
+
+.flow-node-activation {
+  width: 120px;
+  min-height: 76px;
+  border-color: var(--blue);
+  background: #EAFAFF;
+  color: #1E8FB0;
+}
+
+.flow-node-output {
+  width: 110px;
+  min-height: 70px;
+  border-color: var(--purple);
+  background: #F5EEFF;
+  color: var(--purple);
+}
+
+.flow-node-symbol {
+  font-size: 1 rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+}
+
+.flow-node-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.flow-node-value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
+
+.flow-arrow {
+  font-size: 1.6rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.flow-formula {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+/* ════════════════════════════════════════
+   Recharts — CRITICAL
+   min-height on responsive container ensures
+   the comparison graph never collapses to 0px
+   ════════════════════════════════════════ */
+
+.recharts-wrapper {
+  min-width: 0 !important;
+}
+
+.recharts-responsive-container {
+  min-height: 450px !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 159, 28, 0.15);
+}
+
+.recharts-text {
+  font-family: var(--font-body) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  fill: var(--muted) !important;
+}
+
+/* ════════════════════════════════════════
+   Buttons
+   ════════════════════════════════════════ */
+
+button {
+  font-family: var(--font-body);
+  font-weight: 700;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.btn-next {
+  padding: 13px 30px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, var(--orange), var(--yellow));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 20px rgba(255, 159, 28, 0.35);
+}
+
+.btn-next:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(255, 159, 28, 0.45);
+}
+
+.btn-back {
+  padding: 13px 30px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--yellow), #FFE566);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 14px rgba(255, 211, 61, 0.35);
+}
+
+.btn-back:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(255, 211, 61, 0.45);
+}
+
+/* ════════════════════════════════════════
+   Animations
+   ════════════════════════════════════════ */
+
+.floaty {
+  animation: floaty 3s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+.neuron-character,
+.neuron-bounce {
+  display: inline-block;
+  font-size: 70px;
+  text-align: center;
+  animation: bounceNeuron 2s ease-in-out infinite;
+}
+
+@keyframes bounceNeuron {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+/* ════════════════════════════════════════
+   Scrollbar / Focus / Selection
+   ════════════════════════════════════════ */
+
+::-webkit-scrollbar       { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--orange), var(--yellow));
+  border-radius: 4px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+::selection {
+  background: #FFF4C2;
+  color: var(--orange);
+}
+
+/* ════════════════════════════════════════
+   Responsive — mobile
+   ════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  main {
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .gradient-text {
+    font-size: 2rem !important;
+  }
+
+  .section-title {
+    font-size: 1.5rem !important;
+  }
+
+  .step-tab {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+  }
+
+  .activation-grid {
+    gap: 8px;
+  }
+
+  .info-card {
+    padding: 1.25rem;
+  }
+
+  .recharts-responsive-container {
+    min-height: 300px !important;
+  }
+
+  .neuron-flow {
+    gap: 8px;
+  }
+
+  .flow-inputs {
+    width: 120px;
+  }
+
+  .flow-node-activation {
+    width: 96px;
+  }
+}
