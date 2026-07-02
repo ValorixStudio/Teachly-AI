@@ -586,9 +586,7 @@ export default function Home() {
 
           {inputs.length > 1 && (
             <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-700">
-              <strong>📊 Note:</strong> Graphs sweep x₁ across −10 → 10 while
-              x₂{inputs.length > 2 ? "…" : ""} and bias are fixed at their
-              current values.
+              <strong>📊 Note:</strong> The graph is drawn by varying x₁ from −10 to 10 while keeping x₂ and the bias fixed. This changes the neuron's linear output (z), and the graph shows how the activation function transforms z into the activated output (a).
             </div>
           )}
 

@@ -17,5 +17,6 @@ export const formulas: Record<
   elu: "f(z) = z if z >= 0, else e^z - 1",
   swish: "f(z) = z * sigmoid(z)",
   gelu: "f(z) = 0.5 * z * (1 + tanh(sqrt(2/pi) * (z + 0.044715 * z^3)))",
+ 
   
 };
