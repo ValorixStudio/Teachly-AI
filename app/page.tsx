@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
-// -----------------------------------------------------------------------
-// Curriculum data — everything lives in this one file.
-// Add labPath to a topic to make it jump straight into a real lab page.
-// Leave labPath out and clicking the topic just expands a "coming soon" note.
-// -----------------------------------------------------------------------
+
 
 interface Topic {
   title: string;
@@ -37,6 +34,7 @@ const curriculum: Level[] = [
           { title: "AI Around Us" },
           { title: "History of AI" },
           { title: "Types of AI" },
+          { title: "AI Intro Lab", isHandsOn: true, labPath: "/level1-module1" },
         ],
       },
       {
@@ -46,6 +44,7 @@ const curriculum: Level[] = [
           { title: "How Machines Learn" },
           { title: "Training vs Testing" },
           { title: "Examples" },
+          { title: "ML Without Math Lab", isHandsOn: true, labPath: "/level1-module2" },
         ],
       },
       {
@@ -55,6 +54,7 @@ const curriculum: Level[] = [
           { title: "Self-driving Cars" },
           { title: "Image Classification" },
           { title: "OCR" },
+           { title: "Computer Vision Lab", isHandsOn: true, labPath: "/level1-module3" },
         ],
       },
       {
@@ -117,7 +117,7 @@ const curriculum: Level[] = [
           { title: "Layers" },
           { title: "Forward Propagation" },
           // Hands-on: this is the one that jumps into the real lab
-          { title: "Activation Functions", isHandsOn: true, labPath: "/activation-lab" },
+          { title: "Activation Functions", isHandsOn: true, labPath: "/level2-module4" },
         ],
       },
       {
@@ -227,7 +227,7 @@ const curriculum: Level[] = [
           { title: "Backpropagation" },
           { title: "Gradient Descent" },
           { title: "Optimizers" },
-          { title: "Activation Functions", labPath: "/activation-lab" },
+          { title: "Activation Functions", labPath: "/level2-module4" },
           { title: "Loss Functions" },
           { title: "Regularization" },
           { title: "Batch Normalization" },
@@ -261,6 +261,79 @@ const curriculum: Level[] = [
 ];
 
 // -----------------------------------------------------------------------
+// Level theming — a cool → warm spectrum that maps to difficulty.
+// Index lines up 1:1 with `curriculum` above.
+// -----------------------------------------------------------------------
+
+const levelThemes = [
+  { accent: "#2D7DD2", name: "Explorer" },
+  { accent: "#12A594", name: "Foundations" },
+  { accent: "#7C5CFC", name: "Engineer" },
+  { accent: "#E8590C", name: "Advanced" },
+];
+
+// -----------------------------------------------------------------------
+// Small inline icons (no extra dependency)
+// -----------------------------------------------------------------------
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className="al-chevron"
+      style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      className="al-arrow"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h13" />
+      <path d="M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function FlaskIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 2v6.3L4.2 17a2 2 0 0 0 1.8 3h12a2 2 0 0 0 1.8-3L15 8.3V2" />
+      <path d="M8.5 2h7" />
+      <path d="M7.5 14.5h9" />
+    </svg>
+  );
+}
+
+// -----------------------------------------------------------------------
 // Page
 // -----------------------------------------------------------------------
 
@@ -270,120 +343,501 @@ export default function Home() {
   const [openTopic, setOpenTopic] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen py-12 px-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-5xl font-bold text-center mb-2">AI Labs</h1>
-        <p className="text-center text-lg text-gray-500 mb-10">
-          Pick a level, open a module, and jump straight into a topic or hands-on lab.
-        </p>
+    <div className="al-page">
+      <div className="al-wrap">
+        <header className="al-header">
+          <h1 className="al-title">AI Labs</h1>
+          <p className="al-sub">
+            Pick a level, open a module, and jump straight into a topic or hands-on lab.
+          </p>
 
-        <div className="space-y-4">
-          {curriculum.map((level) => {
+          <ul className="al-legend">
+            {levelThemes.map((t, i) => (
+              <li key={t.name} className="al-legend-item">
+                <span className="al-legend-dot" style={{ background: t.accent }} />
+                <span className="al-legend-label">
+                  L{i + 1} · {t.name}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </header>
+
+        <div className="al-levels">
+          {curriculum.map((level, levelIndex) => {
             const levelOpen = openLevel === level.title;
+            const theme = levelThemes[levelIndex] ?? levelThemes[0];
+            const accentStyle = { "--accent": theme.accent } as CSSProperties;
+
             return (
-              <div key={level.title} className="border rounded-xl overflow-hidden">
+              <section key={level.title} className="al-level" style={accentStyle} data-open={levelOpen}>
                 <button
                   onClick={() => {
                     setOpenLevel(levelOpen ? null : level.title);
                     setOpenModule(null);
                     setOpenTopic(null);
                   }}
-                  className="w-full flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  className="al-level-header"
+                  aria-expanded={levelOpen}
                 >
-                  <span className="text-xl font-semibold">{level.title}</span>
-                  <span className="text-gray-400">{levelOpen ? "−" : "+"}</span>
+                  <span className="al-level-heading">
+                    <span className="al-tag al-tag-level">L{levelIndex + 1}</span>
+                    <span className="al-level-title">{level.title}</span>
+                  </span>
+                  <ChevronIcon open={levelOpen} />
                 </button>
 
-                {levelOpen && (
-                  <div className="divide-y">
-                    {level.modules.map((mod) => {
-                      const moduleKey = `${level.title}/${mod.title}`;
-                      const moduleOpen = openModule === moduleKey;
-                      return (
-                        <div key={mod.title}>
-                          <button
-                            onClick={() => {
-                              setOpenModule(moduleOpen ? null : moduleKey);
-                              setOpenTopic(null);
-                            }}
-                            className="w-full flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors text-left"
-                          >
-                            <span className="font-medium">{mod.title}</span>
-                            <span className="text-gray-400">{moduleOpen ? "−" : "+"}</span>
-                          </button>
+                <div className={`al-collapsible ${levelOpen ? "al-open" : ""}`}>
+                  <div className="al-collapsible-inner">
+                    <div className="al-modules">
+                      {level.modules.map((mod, modIndex) => {
+                        const moduleKey = `${level.title}/${mod.title}`;
+                        const moduleOpen = openModule === moduleKey;
 
-                          {moduleOpen && (
-                            <ul className="px-6 pb-4">
-                              {mod.topics.length === 0 && (
-                                <li className="py-2 text-sm text-gray-400 italic">
-                                  Topics coming soon
-                                </li>
-                              )}
-                              {mod.topics.map((t, i) => {
-                                const topicKey = `${moduleKey}/${t.title}/${i}`;
-                                const topicOpen = openTopic === topicKey;
+                        return (
+                          <div key={mod.title} className="al-module">
+                            <button
+                              onClick={() => {
+                                setOpenModule(moduleOpen ? null : moduleKey);
+                                setOpenTopic(null);
+                              }}
+                              className="al-module-header"
+                              aria-expanded={moduleOpen}
+                            >
+                              <span className="al-module-heading">
+                                <span className="al-tag al-tag-module">M{modIndex + 1}</span>
+                                <span className="al-module-title">{mod.title}</span>
+                              </span>
+                              <ChevronIcon open={moduleOpen} />
+                            </button>
 
-                                // Real lab -> just a normal link, no extra page needed.
-                                if (t.labPath) {
-                                  return (
-                                    <li key={topicKey}>
-                                      <Link
-                                        href={t.labPath}
-                                        className="flex items-center justify-between py-2 text-sm hover:text-blue-600 group"
-                                      >
-                                        <span>
-                                          {t.title}
-                                          {t.isHandsOn && (
-                                            <span className="ml-2 text-xs uppercase tracking-wide text-emerald-600 font-semibold">
-                                              Hands-on
+                            <div className={`al-collapsible ${moduleOpen ? "al-open" : ""}`}>
+                              <div className="al-collapsible-inner">
+                                <ul className="al-topics">
+                                  {mod.topics.length === 0 && (
+                                    <li className="al-empty">Content in progress</li>
+                                  )}
+                                  {mod.topics.map((t, i) => {
+                                    const topicKey = `${moduleKey}/${t.title}/${i}`;
+                                    const topicOpen = openTopic === topicKey;
+
+                                    // Real lab -> just a normal link, no extra page needed.
+                                    if (t.labPath) {
+                                      return (
+                                        <li key={topicKey} className="al-topic">
+                                          <Link href={t.labPath} className="al-topic-row al-topic-link">
+                                            <span className="al-topic-text">
+                                              {t.title}
+                                              {t.isHandsOn && (
+                                                <span className="al-badge">
+                                                  <FlaskIcon />
+                                                  Hands-on
+                                                </span>
+                                              )}
                                             </span>
-                                          )}
-                                        </span>
-                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                          →
-                                        </span>
-                                      </Link>
-                                    </li>
-                                  );
-                                }
+                                            <ArrowIcon />
+                                          </Link>
+                                        </li>
+                                      );
+                                    }
 
-                                // No lab yet -> expand inline instead of navigating anywhere.
-                                return (
-                                  <li key={topicKey}>
-                                    <button
-                                      onClick={() => setOpenTopic(topicOpen ? null : topicKey)}
-                                      className="w-full flex items-center justify-between py-2 text-sm text-left hover:text-blue-600"
-                                    >
-                                      <span>
-                                        {t.title}
-                                        {t.isHandsOn && (
-                                          <span className="ml-2 text-xs uppercase tracking-wide text-emerald-600 font-semibold">
-                                            Hands-on
+                                    // No lab yet -> expand inline instead of navigating anywhere.
+                                    return (
+                                      <li key={topicKey} className="al-topic">
+                                        <button
+                                          onClick={() => setOpenTopic(topicOpen ? null : topicKey)}
+                                          className="al-topic-row al-topic-button"
+                                          aria-expanded={topicOpen}
+                                        >
+                                          <span className="al-topic-text">
+                                            {t.title}
+                                            {t.isHandsOn && (
+                                              <span className="al-badge">
+                                                <FlaskIcon />
+                                                Hands-on
+                                              </span>
+                                            )}
                                           </span>
-                                        )}
-                                      </span>
-                                      <span className="text-gray-300">{topicOpen ? "−" : "+"}</span>
-                                    </button>
-                                    {topicOpen && (
-                                      <p className="pb-2 pl-1 text-xs text-gray-400 italic">
-                                        Lesson content coming soon.
-                                      </p>
-                                    )}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </div>
-                      );
-                    })}
+                                         
+                                        </button>
+                                        <div className={`al-collapsible ${topicOpen ? "al-open" : ""}`}>
+                                          
+                                        </div>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              </section>
             );
           })}
         </div>
       </div>
+
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap");
+
+        .al-page {
+          --ink: #12141c;
+          --ink-soft: #5b6072;
+          --paper: #f5f6f8;
+          --surface: #ffffff;
+          --line: #e3e5ea;
+
+          min-height: 100vh;
+          padding: 4rem 1.5rem 6rem;
+          background-color: var(--paper);
+          background-image: radial-gradient(circle, #dfe2e8 1px, transparent 1px);
+          background-size: 22px 22px;
+          color: var(--ink);
+          font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .al-wrap {
+          max-width: 46rem;
+          margin: 0 auto;
+        }
+
+        /* ---------- Header ---------- */
+
+        .al-header {
+          text-align: center;
+          margin-bottom: 3rem;
+        }
+
+        .al-title {
+          font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(2.75rem, 6vw, 3.75rem);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          margin-bottom: 0.5rem;
+          background: linear-gradient(90deg, #2d7dd2, #12a594, #7c5cfc, #e8590c);
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+
+        .al-sub {
+          font-size: 1.05rem;
+          color: var(--ink-soft);
+          margin-bottom: 1.75rem;
+        }
+
+        .al-legend {
+          list-style: none;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 0.5rem 1.1rem;
+          padding: 0;
+          margin: 0;
+        }
+
+        .al-legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+
+        .al-legend-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .al-legend-label {
+          font-family: "JetBrains Mono", ui-monospace, monospace;
+          font-size: 0.72rem;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+          color: var(--ink-soft);
+        }
+
+        /* ---------- Levels ---------- */
+
+        .al-levels {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .al-level {
+          background: var(--surface);
+          border: 1px solid var(--line);
+          border-left: 3px solid var(--accent);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 1px 2px rgba(18, 20, 28, 0.04);
+          transition: box-shadow 220ms ease, transform 220ms ease;
+        }
+
+        .al-level[data-open="true"] {
+          box-shadow: 0 10px 28px rgba(18, 20, 28, 0.08);
+        }
+
+        .al-level-header {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 1.15rem 1.4rem;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          color: var(--ink);
+        }
+
+        .al-level-header:hover {
+          background: color-mix(in srgb, var(--accent) 6%, transparent);
+        }
+
+        .al-level-heading {
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          min-width: 0;
+        }
+
+        .al-level-title {
+          font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+          font-size: 1.2rem;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+        }
+
+        .al-chevron {
+          flex-shrink: 0;
+          color: var(--ink-soft);
+          transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ---------- Tags (mono badges) ---------- */
+
+        .al-tag {
+          flex-shrink: 0;
+          font-family: "JetBrains Mono", ui-monospace, monospace;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          border-radius: 6px;
+          text-align: center;
+        }
+
+        .al-tag-level {
+          font-size: 0.75rem;
+          padding: 0.28rem 0.5rem;
+          color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 14%, transparent);
+        }
+
+        .al-tag-module {
+          font-size: 0.68rem;
+          padding: 0.2rem 0.42rem;
+          color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        /* ---------- Collapsible (animated height) ---------- */
+
+        .al-collapsible {
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .al-collapsible.al-open {
+          grid-template-rows: 1fr;
+        }
+
+        .al-collapsible-inner {
+          overflow: hidden;
+        }
+
+        /* ---------- Modules ---------- */
+
+        .al-modules {
+          border-top: 1px solid var(--line);
+        }
+
+        .al-module {
+          border-bottom: 1px solid var(--line);
+        }
+
+        .al-module:last-child {
+          border-bottom: none;
+        }
+
+        .al-module-header {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.85rem 1.4rem;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          color: var(--ink);
+        }
+
+        .al-module-header:hover {
+          background: color-mix(in srgb, var(--accent) 5%, transparent);
+        }
+
+        .al-module-heading {
+          display: flex;
+          align-items: center;
+          gap: 0.7rem;
+          min-width: 0;
+        }
+
+        .al-module-title {
+          font-weight: 500;
+          font-size: 0.95rem;
+        }
+
+        /* ---------- Topics ---------- */
+
+        .al-topics {
+          list-style: none;
+          margin: 0;
+          padding: 0.25rem 1.4rem 1rem 2.5rem;
+        }
+
+        .al-topic {
+          border-bottom: 1px dashed var(--line);
+        }
+
+        .al-topic:last-child {
+          border-bottom: none;
+        }
+
+        .al-topic-row {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: 0.6rem 0.25rem;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          font-size: 0.9rem;
+          color: var(--ink);
+        }
+
+        .al-topic-link {
+          text-decoration: none;
+        }
+
+        .al-topic-row:hover {
+          color: var(--accent);
+        }
+
+        .al-topic-text {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+          flex-wrap: wrap;
+        }
+
+        .al-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-family: "JetBrains Mono", ui-monospace, monospace;
+          font-size: 0.65rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 12%, transparent);
+          padding: 0.18rem 0.45rem;
+          border-radius: 999px;
+        }
+
+        .al-arrow {
+          flex-shrink: 0;
+          opacity: 0;
+          transform: translateX(-4px);
+          transition: opacity 200ms ease, transform 200ms ease;
+        }
+
+        .al-topic-link:hover .al-arrow,
+        .al-topic-link:focus-visible .al-arrow {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .al-topic-plus {
+          flex-shrink: 0;
+          color: var(--ink-soft);
+          font-size: 0.95rem;
+        }
+
+        .al-topic-note {
+          padding: 0 0.25rem 0.75rem;
+          font-size: 0.8rem;
+          font-style: italic;
+          color: var(--ink-soft);
+        }
+
+        .al-empty {
+          padding: 0.7rem 0.75rem;
+          margin: 0.25rem 0;
+          font-family: "JetBrains Mono", ui-monospace, monospace;
+          font-size: 0.72rem;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+          color: var(--ink-soft);
+          border: 1px dashed var(--line);
+          border-radius: 8px;
+        }
+
+        /* ---------- Accessibility ---------- */
+
+        .al-level-header:focus-visible,
+        .al-module-header:focus-visible,
+        .al-topic-row:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: -2px;
+          border-radius: 8px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .al-collapsible,
+          .al-chevron,
+          .al-arrow,
+          .al-level {
+            transition: none !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .al-page {
+            padding: 2.5rem 1rem 4rem;
+          }
+          .al-level-header,
+          .al-module-header {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+          .al-topics {
+            padding-left: 1.75rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }
