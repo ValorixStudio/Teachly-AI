@@ -22,6 +22,16 @@ interface Level {
   modules: Module[];
 }
 
+// Utility function to convert topic titles to URL-safe slugs
+function titleToSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[&/\\#,+()$~%.'":*?<>{}]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .trim();
+}
+
 const curriculum: Level[] = [
   {
     title: "Level 1 - AI Explorer",
@@ -420,6 +430,7 @@ export default function Home() {
                                   {mod.topics.map((t, i) => {
                                     const topicKey = `${moduleKey}/${t.title}/${i}`;
                                     const topicOpen = openTopic === topicKey;
+                                    const topicSlug = titleToSlug(t.title);
 
                                     // Real lab -> just a normal link, no extra page needed.
                                     if (t.labPath) {
@@ -441,13 +452,12 @@ export default function Home() {
                                       );
                                     }
 
-                                    // No lab yet -> expand inline instead of navigating anywhere.
+                                    // Topics without lab -> route through [slug]
                                     return (
                                       <li key={topicKey} className="al-topic">
-                                        <button
-                                          onClick={() => setOpenTopic(topicOpen ? null : topicKey)}
-                                          className="al-topic-row al-topic-button"
-                                          aria-expanded={topicOpen}
+                                        <Link 
+                                          href={`/${topicSlug}`} 
+                                          className="al-topic-row al-topic-link"
                                         >
                                           <span className="al-topic-text">
                                             {t.title}
@@ -458,11 +468,8 @@ export default function Home() {
                                               </span>
                                             )}
                                           </span>
-                                         
-                                        </button>
-                                        <div className={`al-collapsible ${topicOpen ? "al-open" : ""}`}>
-                                          
-                                        </div>
+                                          <ArrowIcon />
+                                        </Link>
                                       </li>
                                     );
                                   })}
