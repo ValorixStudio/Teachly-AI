@@ -13,6 +13,7 @@ import {
   Sparkles,
   Award,
   RotateCcw,
+  LucideIcon,
 } from "lucide-react";
 
 const colors = {
@@ -200,33 +201,84 @@ const STYLES = `
   }
 `;
 
+/* ---------------------------- TYPES ---------------------------- */
+
+type SpotAnswer = "learning" | "rules";
+type SplitAnswer = "training" | "testing";
+type SpamAnswer = "spam" | "not_spam";
+
+interface StageMetaItem {
+  key: string;
+  title: string;
+  icon: LucideIcon;
+  tag: string;
+}
+
+interface SpotItem {
+  id: string;
+  text: string;
+  answer: SpotAnswer;
+  explain: string;
+}
+
+interface PipelineStep {
+  id: string;
+  year: string;
+  title: string;
+  text: string;
+}
+
+interface SplitItem {
+  id: string;
+  label: string;
+  answer: SplitAnswer;
+}
+
+interface SplitCategory {
+  id: SplitAnswer;
+  label: string;
+  hint: string;
+}
+
+interface SpamItem {
+  id: string;
+  text: string;
+  answer: SpamAnswer;
+  explain: string;
+}
+
+type SpotAnswerMap = Record<string, SpotAnswer>;
+type VisitedMap = Record<string, boolean>;
+type SplitAnswerMap = Record<string, SplitAnswer>;
+type SpamAnswerMap = Record<string, SpamAnswer>;
+
 /* ---------------------------- CONTENT DATA ---------------------------- */
 
-const STAGE_META = [
-  { key: "what-is-learning", title: "What Is Learning?", icon: Brain, tag: "Stage 1 · Spot the Pattern" },
-  { key: "how-machines-learn", title: "How Machines Learn", icon: RefreshCw, tag: "Stage 2 · Dig the Pipeline" },
-  { key: "training-vs-testing", title: "Training vs Testing", icon: GitBranch, tag: "Stage 3 · Sort the Data" },
-  { key: "example", title: "Worked Example", icon: Mail, tag: "Stage 4 · Train a Spam Filter" },
+const STAGE_META: StageMetaItem[] = [
+  { key: "what-is-learning", title: "What Is Learning?", icon: Brain, tag: "Stage 1 - Spot the Pattern" },
+  { key: "how-machines-learn", title: "How Machines Learn", icon: RefreshCw, tag: "Stage 2 - Dig the Pipeline" },
+  { key: "training-vs-testing", title: "Training vs Testing", icon: GitBranch, tag: "Stage 3 - Sort the Data" },
+  { key: "example", title: "Worked Example", icon: Mail, tag: "Stage 4 - Train a Spam Filter" },
 ];
 
-const SPOT_ITEMS = [
-  { id: "s1", text: "A parrot squawks 'Hello!' every time the doorbell rings — it has no idea what the word means.", answer: "rules", explain: "Pure repetition with no understanding. Nothing is being adjusted or improved." },
-  { id: "s2", text: "After solving a few algebra problems, a student can now solve a brand-new one using the same idea.", answer: "learning", explain: "The knowledge generalized to something never seen before — the core of real learning." },
+const SPOT_ITEMS: SpotItem[] = [
+  { id: "s1", text: "A parrot squawks 'Hello!' every time the doorbell rings - it has no idea what the word means.", answer: "rules", explain: "Pure repetition with no understanding. Nothing is being adjusted or improved." },
+  { id: "s2", text: "After solving a few algebra problems, a student can now solve a brand-new one using the same idea.", answer: "learning", explain: "The knowledge generalized to something never seen before - the core of real learning." },
   { id: "s3", text: "A vending machine dispenses a soda every time button B3 is pressed.", answer: "rules", explain: "One fixed instruction, forever. There's no adjustment based on experience." },
-  { id: "s4", text: "After burning her hand once, a child now blows on hot food before taking a bite.", answer: "learning", explain: "Behavior changed permanently because of a single experience — that's learning." },
+  { id: "s4", text: "After burning her hand once, a child now blows on hot food before taking a bite.", answer: "learning", explain: "Behavior changed permanently because of a single experience - that's learning." },
   { id: "s5", text: "A factory robot repeats the exact same welding motion on every car that passes by.", answer: "rules", explain: "Identical action every time, regardless of what's actually in front of it." },
-  { id: "s6", text: "A dog that used to fear the vacuum cleaner slowly relaxes after hearing it safely many times.", answer: "learning", explain: "Repeated experience gradually changed the dog's response — a textbook example of learning." },
+  { id: "s6", text: "A dog that used to fear the vacuum cleaner slowly relaxes after hearing it safely many times.", answer: "learning", explain: "Repeated experience gradually changed the dog's response - a textbook example of learning." },
 ];
 
-const PIPELINE_STEPS = [
-  { id: "p1", year: "STEP 01", title: "Collect Data", text: "Gather lots of real examples — photos, prices, sentences, clicks — anything that shows the pattern you want the machine to notice." },
+const PIPELINE_STEPS: PipelineStep[] = [
+  { id: "p1", year: "STEP 01", title: "Collect Data", text: "Gather lots of real examples - photos, prices, sentences, clicks - anything that shows the pattern you want the machine to notice." },
   { id: "p2", year: "STEP 02", title: "Find Patterns", text: "An algorithm studies the data and looks for regularities: which features tend to show up together, and which lead to which outcomes." },
-  { id: "p3", year: "STEP 03", title: "Build a Model", text: "Those patterns get turned into a compact set of internal rules — a 'model' — that can take a new input and produce a guess." },
+  { id: "p3", year: "STEP 03", title: "Build a Model", text: "Those patterns get turned into a compact set of internal rules - a 'model' - that can take a new input and produce a guess." },
   { id: "p4", year: "STEP 04", title: "Make Predictions", text: "The model is shown something it has never seen before and produces its best guess based on what it learned." },
-  { id: "p5", year: "STEP 05", title: "Check & Improve", text: "The guess is compared against the real answer. The model nudges its internal rules to be a little more accurate next time — then repeats." },
+  { id: "p5", year: "STEP 05", title: "Check & Improve", text: "The guess is compared against the real answer. The model nudges its internal rules to be a little more accurate next time - then repeats." },
 ];
 
-const SPLIT_ITEMS = [
+const SPLIT_ITEMS: SplitItem[] = [
   { id: "c1", label: "10,000 labeled cat and dog photos the model studies over and over", answer: "training" },
   { id: "c2", label: "500 brand-new photos the model has never seen, used to check its score", answer: "testing" },
   { id: "c3", label: "Years of past weather records used to teach a model what leads to rain", answer: "training" },
@@ -235,23 +287,29 @@ const SPLIT_ITEMS = [
   { id: "c6", label: "A fresh batch of shoppers the system has never encountered, used only to grade it", answer: "testing" },
 ];
 
-const SPLIT_CATEGORIES = [
+const SPLIT_CATEGORIES: SplitCategory[] = [
   { id: "training", label: "Training Data", hint: "What the model studies and learns from" },
   { id: "testing", label: "Testing Data", hint: "Held back, used only to grade the model" },
 ];
 
-const SPAM_ITEMS = [
-  { id: "e1", text: "\"FREE MONEY!! Click now to claim your $1,000,000 prize!!!\"", answer: "spam", explain: "Urgent all-caps language, an unbelievable prize, and pressure to click — classic spam signals." },
-  { id: "e2", text: "\"Hey, are we still on for lunch tomorrow at noon?\"", answer: "not_spam", explain: "Casual, specific, personal — the kind of message a real contact actually sends." },
+const SPAM_ITEMS: SpamItem[] = [
+  { id: "e1", text: "\"FREE MONEY!! Click now to claim your $1,000,000 prize!!!\"", answer: "spam", explain: "Urgent all-caps language, an unbelievable prize, and pressure to click - classic spam signals." },
+  { id: "e2", text: "\"Hey, are we still on for lunch tomorrow at noon?\"", answer: "not_spam", explain: "Casual, specific, personal - the kind of message a real contact actually sends." },
   { id: "e3", text: "\"URGENT: Your account will be suspended, verify your password immediately.\"", answer: "spam", explain: "Manufactured urgency plus a request for a password is a textbook phishing pattern." },
   { id: "e4", text: "\"Reminder: your dentist appointment is on Thursday at 3pm.\"", answer: "not_spam", explain: "A plain, expected reminder tied to something real in your life." },
-  { id: "e5", text: "\"Congratulations! You've been selected for a free cruise — reply NOW.\"", answer: "spam", explain: "Unearned reward plus a demand for an immediate reply — a pattern the model learns to flag." },
+  { id: "e5", text: "\"Congratulations! You've been selected for a free cruise - reply NOW.\"", answer: "spam", explain: "Unearned reward plus a demand for an immediate reply - a pattern the model learns to flag." },
   { id: "e6", text: "\"Here's the report you asked for, let me know if you have questions.\"", answer: "not_spam", explain: "References something specific you'd actually expect, with a normal, unhurried tone." },
 ];
 
 /* ------------------------------- HELPERS ------------------------------- */
 
-function StampBar({ current, completed, onJump }) {
+interface StampBarProps {
+  current: number;
+  completed: boolean[];
+  onJump: (idx: number) => void;
+}
+
+function StampBar({ current, completed, onJump }: StampBarProps) {
   const doneCount = completed.filter(Boolean).length;
   const pct = (doneCount / STAGE_META.length) * 100;
   return (
@@ -295,7 +353,15 @@ function StampBar({ current, completed, onJump }) {
   );
 }
 
-function StageShell({ tag, title, subtitle, progressLabel, children }) {
+interface StageShellProps {
+  tag: string;
+  title: string;
+  subtitle?: string;
+  progressLabel?: string;
+  children: React.ReactNode;
+}
+
+function StageShell({ tag, title, subtitle, progressLabel, children }: StageShellProps) {
   return (
     <div className="mlwm-stage-shell">
       <div className="mlwm-stage-top">
@@ -309,7 +375,15 @@ function StageShell({ tag, title, subtitle, progressLabel, children }) {
   );
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }) {
+interface NavButtonsProps {
+  onBack?: () => void;
+  onNext: () => void;
+  backDisabled?: boolean;
+  nextDisabled?: boolean;
+  nextLabel?: string;
+}
+
+function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
   return (
     <div className="mlwm-nav-row">
       <button className="mlwm-nav-back" onClick={onBack} disabled={backDisabled}>
@@ -325,16 +399,16 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }) {
 /* ------------------------------- MAIN APP ------------------------------- */
 
 export default function MLWithoutMathLab() {
-  const [current, setCurrent] = useState(0); // 0..3 stages, 4 = certificate
-  const [completed, setCompleted] = useState([false, false, false, false]);
+  const [current, setCurrent] = useState<number>(0); // 0..3 stages, 4 = certificate
+  const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
 
-  const [spotAnswers, setSpotAnswers] = useState({});
-  const [visitedSteps, setVisitedSteps] = useState({});
-  const [openStep, setOpenStep] = useState(null);
-  const [splitAnswers, setSplitAnswers] = useState({});
-  const [spamAnswers, setSpamAnswers] = useState({});
+  const [spotAnswers, setSpotAnswers] = useState<SpotAnswerMap>({});
+  const [visitedSteps, setVisitedSteps] = useState<VisitedMap>({});
+  const [openStep, setOpenStep] = useState<string | null>(null);
+  const [splitAnswers, setSplitAnswers] = useState<SplitAnswerMap>({});
+  const [spamAnswers, setSpamAnswers] = useState<SpamAnswerMap>({});
 
-  const markComplete = (idx) => {
+  const markComplete = (idx: number) => {
     setCompleted((prev) => {
       if (prev[idx]) return prev;
       const next = [...prev];
@@ -343,7 +417,7 @@ export default function MLWithoutMathLab() {
     });
   };
 
-  const goTo = (idx) => setCurrent(idx);
+  const goTo = (idx: number) => setCurrent(idx);
 
   const spotDone = Object.keys(spotAnswers).length === SPOT_ITEMS.length;
   const pipelineDone = Object.keys(visitedSteps).length === PIPELINE_STEPS.length;
@@ -384,7 +458,7 @@ export default function MLWithoutMathLab() {
           </div>
           <h1 className="mlwm-h1">Machine Learning Without Math</h1>
           <p className="mlwm-subtitle">
-            No formulas, no code — just the ideas. Learn what learning actually means, how a machine turns
+            No formulas, no code - just the ideas. Learn what learning actually means, how a machine turns
             examples into a skill, why data gets split in two, and watch it all play out on a real spam filter.
           </p>
         </div>
@@ -429,7 +503,7 @@ export default function MLWithoutMathLab() {
                           <XCircle size={16} color={colors.coral} className="mlwm-feedback-icon" />
                         )}
                         <p className="mlwm-feedback-text">
-                          {isCorrect ? "Correct — " : `Actually, this is ${item.answer === "learning" ? "real learning" : "just repeating a fixed behavior"}. `}
+                          {isCorrect ? "Correct - " : `Actually, this is ${item.answer === "learning" ? "real learning" : "just repeating a fixed behavior"}. `}
                           {item.explain}
                         </p>
                       </div>
@@ -440,6 +514,7 @@ export default function MLWithoutMathLab() {
             </div>
             <NavButtons
               backDisabled
+              onBack={() => {}}
               nextDisabled={!spotDone}
               onNext={() => {
                 markComplete(0);
@@ -531,8 +606,8 @@ export default function MLWithoutMathLab() {
                         )}
                         <p className="mlwm-feedback-text">
                           Correct pile: <strong style={{ color: colors.ink }}>
-                            {SPLIT_CATEGORIES.find((c) => c.id === item.answer).label}
-                          </strong> — {SPLIT_CATEGORIES.find((c) => c.id === item.answer).hint}
+                            {SPLIT_CATEGORIES.find((c) => c.id === item.answer)?.label}
+                          </strong> - {SPLIT_CATEGORIES.find((c) => c.id === item.answer)?.hint}
                         </p>
                       </div>
                     )}
@@ -589,7 +664,7 @@ export default function MLWithoutMathLab() {
                           <XCircle size={16} color={colors.coral} className="mlwm-feedback-icon" />
                         )}
                         <p className="mlwm-feedback-text">
-                          Labeled: <strong style={{ color: colors.ink }}>{item.answer === "spam" ? "Spam" : "Not Spam"}</strong> — {item.explain}
+                          Labeled: <strong style={{ color: colors.ink }}>{item.answer === "spam" ? "Spam" : "Not Spam"}</strong> - {item.explain}
                         </p>
                       </div>
                     )}
@@ -619,7 +694,7 @@ export default function MLWithoutMathLab() {
             <h2 className="mlwm-cert-title">You've completed Module 2</h2>
             <p className="mlwm-cert-desc">
               You told real learning apart from mere repetition, walked the data-to-prediction pipeline,
-              sorted training data from testing data, and trained your own mental spam filter — no math required.
+              sorted training data from testing data, and trained your own mental spam filter - no math required.
             </p>
 
             <div className="mlwm-cert-score">

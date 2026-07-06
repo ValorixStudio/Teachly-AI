@@ -11,14 +11,33 @@ import ComparisonGraph from "@/components/activation-lab/ComparisonGraph";
 import { applyActivation, ActivationType } from "@/lib/activation-lab/activations";
 import { properties } from "@/lib/activation-lab/properties";
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------
 interface NeuronInput {
   id: number;
   x: number;
   w: number;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+interface AdaptedFormula {
+  general: string;
+  activation: string;
+  note: string;
+}
+
+interface ComparisonPoint {
+  x: number;
+  linear: number;
+  binarystep: number;
+  relu: number;
+  sigmoid: number;
+  tanh: number;
+  leakyrelu: number;
+  elu: number;
+  swish: number;
+  gelu: number;
+}
+
+// -- Helpers --------------------------------------------------------------
 function calcLinearOutput(inputs: NeuronInput[], b: number): number {
   return inputs.reduce((sum, inp) => sum + inp.w * inp.x, 0) + b;
 }
@@ -26,7 +45,7 @@ function calcLinearOutput(inputs: NeuronInput[], b: number): number {
 /** Build a human-readable formula string for the current inputs */
 function buildFormulaString(inputs: NeuronInput[], b: number): string {
   if (inputs.length === 1) {
-    return `z = w·x + b`;
+    return `z = w*x + b`;
   }
   const terms = inputs.map((_, i) => `w${subscript(i + 1)}x${subscript(i + 1)}`).join(" + ");
   return `z = ${terms} + b`;
@@ -34,16 +53,16 @@ function buildFormulaString(inputs: NeuronInput[], b: number): string {
 
 function buildComputedString(inputs: NeuronInput[], b: number, z: number): string {
   const terms = inputs
-    .map((inp) => `(${inp.w} × ${inp.x})`)
+    .map((inp) => `(${inp.w} x ${inp.x})`)
     .join(" + ");
   return `z = ${terms} + ${b} = ${z.toFixed(4)}`;
 }
 
 function subscript(n: number): string {
   const map: Record<string, string> = {
-    "0": "₀", "1": "₁", "2": "₂", "3": "₃",
-    "4": "₄", "5": "₅", "6": "₆", "7": "₇",
-    "8": "₈", "9": "₉",
+    "0": "0", "1": "1", "2": "2", "3": "3",
+    "4": "4", "5": "5", "6": "6", "7": "7",
+    "8": "8", "9": "9",
   };
   return String(n)
     .split("")
@@ -51,26 +70,23 @@ function subscript(n: number): string {
     .join("");
 }
 
-// ── Formulas that adapt to input count ────────────────────────────────────
-function getAdaptedFormula(activation: ActivationType, inputCount: number): {
-  general: string;
-  activation: string;
-  note: string;
-} {
+// -- Formulas that adapt to input count --------------------------------
+function getAdaptedFormula(activation: ActivationType, inputCount: number): AdaptedFormula {
   const zDef =
     inputCount === 1
       ? "z = wx + b"
       : `z = ${Array.from({ length: inputCount }, (_, i) => `w${subscript(i + 1)}x${subscript(i + 1)}`).join(" + ")} + b`;
 
   const activationFormulas: Record<ActivationType, string> = {
+    linear: "a = z",
     relu: "a = max(0, z)",
-    sigmoid: "a = 1 / (1 + e⁻ᶻ)",
-    tanh: "a = (eᶻ - e⁻ᶻ) / (eᶻ + e⁻ᶻ)",
-    binarystep: "a = 1 if z ≥ 0, else 0",
+    sigmoid: "a = 1 / (1 + e^-z)",
+    tanh: "a = (e^z - e^-z) / (e^z + e^-z)",
+    binarystep: "a = 1 if z >= 0, else 0",
     leakyrelu: "a = max(0.01z, z)",
-    elu: "a = z if z > 0, else α(eᶻ - 1)",
-    swish: "a = z · σ(z)",
-    gelu: "a ≈ 0.5z · (1 + tanh(√(2/π)(z + 0.044715z³)))",
+    elu: "a = z if z > 0, else alpha*(e^z - 1)",
+    swish: "a = z * sigmoid(z)",
+    gelu: "a ~= 0.5z * (1 + tanh(sqrt(2/pi)(z + 0.044715z^3)))",
   };
 
   return {
@@ -78,18 +94,18 @@ function getAdaptedFormula(activation: ActivationType, inputCount: number): {
     activation: activationFormulas[activation],
     note:
       inputCount > 1
-        ? `Each input xᵢ has its own learnable weight wᵢ. The neuron computes a weighted sum of all ${inputCount} inputs before applying the activation.`
+        ? `Each input x has its own learnable weight w. The neuron computes a weighted sum of all ${inputCount} inputs before applying the activation.`
         : "A single input x is multiplied by weight w and bias b is added.",
   };
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
+// -- Component --------------------------------------------------------------
 export default function Home() {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<number>(0);
   const [inputs, setInputs] = useState<NeuronInput[]>([
     { id: 1, x: 2, w: 0.5 },
   ]);
-  const [b, setB] = useState(1);
+  const [b, setB] = useState<number>(1);
   const [activation, setActivation] = useState<ActivationType>("relu");
 
   const linearOutput = calcLinearOutput(inputs, b);
@@ -98,7 +114,7 @@ export default function Home() {
     activation.charAt(0).toUpperCase() + activation.slice(1);
   const adaptedFormula = getAdaptedFormula(activation, inputs.length);
 
-  // ── Input helpers ────────────────────────────────────────────────────────
+  // -- Input helpers --------------------------------------------------------------
   function addInput() {
     if (inputs.length >= 6) return;
     setInputs((prev) => [
@@ -125,8 +141,8 @@ export default function Home() {
     );
   }
 
-  // ── Graph data ────────────────────────────────────────────────────────────
-  // For graphs we sweep x₁ (first input), keeping others fixed
+  // -- Graph data --------------------------------------------------------------
+  // For graphs we sweep x1 (first input), keeping others fixed
   const graphData = useMemo(() => {
     return Array.from({ length: 200 }, (_, i) => {
       const xVal = parseFloat((-10 + i * 0.1).toFixed(2));
@@ -138,7 +154,7 @@ export default function Home() {
     });
   }, [activation, inputs, b]);
 
-  const comparisonData = useMemo(() => {
+  const comparisonData: ComparisonPoint[] = useMemo(() => {
     return Array.from({ length: 200 }, (_, i) => {
       const xVal = parseFloat((-10 + i * 0.1).toFixed(2));
       const z =
@@ -160,14 +176,14 @@ export default function Home() {
     });
   }, [inputs, b]);
 
-  // ── SVG wiring heights ────────────────────────────────────────────────────
+  // -- SVG wiring heights --------------------------------------------------------------
   const INPUT_BOX_H = 90; // approx px per input row
   const svgH = inputs.length * INPUT_BOX_H;
   const midY = svgH / 2;
 
   return (
     <main>
-      {/* ── HERO ── */}
+      {/* -- HERO -- */}
       <div className="text-center mb-8">
         <h1 className="gradient-text text-5xl font-black mb-3 leading-tight">
           Activation Function
@@ -181,14 +197,14 @@ export default function Home() {
       </div>
       <br />
 
-      {/* ── PROGRESS BAR ── */}
+      {/* -- PROGRESS BAR -- */}
       <div className="max-w-xxl mx-auto mb-8">
         <div className="flex justify-between mb-2">
           <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
-            🧠 Build Neuron
+            Build Neuron
           </span>
           <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
-            ⚡ Explore Activations
+            Explore Activations
           </span>
         </div>
         <div className="progress-track">
@@ -200,34 +216,34 @@ export default function Home() {
       </div>
       <br />
 
-      {/* ── STEP TABS ── */}
+      {/* -- STEP TABS -- */}
       <div className="flex justify-center gap-3 mb-8">
         <button
           onClick={() => setStep(0)}
           className={`step-tab ${step === 0 ? "active-orange" : ""}`}
         >
-          🧠 Step 1
+          Step 1
         </button>
         <button
           onClick={() => setStep(1)}
           className={`step-tab ${step === 1 ? "active-blue" : ""}`}
         >
-          ⚡ Step 2
+          Step 2
         </button>
       </div>
       <br />
 
-      {/* ════════════════════════
-          STEP 1 — Build Neuron
-          ════════════════════════ */}
+      {/* ============================
+          STEP 1 - Build Neuron
+          ============================ */}
       {step === 0 && (
         <section>
           <h2 className="section-title text-3xl font-black mb-6">
-            🧠 Build Your Neuron
+            Build Your Neuron
           </h2>
           <br />
 
-          {/* ── Multi-input controls ─────────────────────────────────── */}
+          {/* -- Multi-input controls -------------------------------------------------- */}
           <div className="glass-card p-6 mb-5">
             <div className="flex items-center justify-between mb-4">
               <p className="info-card-title">
@@ -296,7 +312,7 @@ export default function Home() {
                     {/* Contribution chip */}
                     <div className="flex items-end pb-1">
                       <span className="rounded-lg bg-white border border-gray-200 px-3 py-2 text-xs font-mono text-gray-600">
-                        w{subscript(idx + 1)}·x{subscript(idx + 1)} ={" "}
+                        w{subscript(idx + 1)}*x{subscript(idx + 1)} ={" "}
                         <span className="font-bold text-violet-600">
                           {(inp.w * inp.x).toFixed(3)}
                         </span>
@@ -311,7 +327,7 @@ export default function Home() {
                       className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 font-bold text-sm transition-all"
                       title={`Remove input ${idx + 1}`}
                     >
-                      ✕
+                      x
                     </button>
                   )}
                 </div>
@@ -342,14 +358,14 @@ export default function Home() {
 
             {inputs.length > 1 && (
               <p className="mt-3 text-xs text-gray-400 italic">
-                💡 Tip: graphs sweep x₁ while keeping other inputs fixed at
+                Tip: graphs sweep x1 while keeping other inputs fixed at
                 their current values.
               </p>
             )}
           </div>
           <br />
          
-          {/* ── Neuron flow diagram ───────────────────────────────────── */}
+          {/* -- Neuron flow diagram -------------------------------------------------- */}
           <div className="glass-card p-7 mb-5">
             <div className="neuron-flow">
               {/* Inputs column */}
@@ -413,7 +429,7 @@ export default function Home() {
                   stroke="#a78bfa"
                   strokeWidth="2"
                 />
-                {/* Arrow to Σ */}
+                {/* Arrow to sum node */}
                 <line
                   x1="30"
                   y1={midY}
@@ -425,18 +441,18 @@ export default function Home() {
                 />
               </svg>
 
-              {/* Σ node */}
+              {/* Sum node */}
               <div className="flow-node">
                 <span className="flow-node-symbol">
                   Weighted Sum
-                  <br />Σ
+                  <br />(Sigma)
                 </span>
                 <span className="flow-node-value">
                   {linearOutput.toFixed(2)}
                 </span>
               </div>
 
-              <span className="flow-arrow">➜</span>
+              <span className="flow-arrow">-&gt;</span>
 
               {/* Activation node */}
               <div className="flow-node flow-node-activation">
@@ -449,7 +465,7 @@ export default function Home() {
                 </span>
               </div>
 
-              <span className="flow-arrow">➜</span>
+              <span className="flow-arrow">-&gt;</span>
 
               {/* Output node */}
               <div className="flow-node flow-node-output">
@@ -474,7 +490,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Live formula display ───────────────────────────────── */}
+            {/* -- Live formula display -------------------------------------------------- */}
             <div className="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-7">
               <br></br>
               <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">
@@ -510,8 +526,8 @@ export default function Home() {
 
             <p className="flow-formula mt-4">
               {inputs.length === 1
-                ? "z = wx + b  ➜  a = f(z)"
-                : `z = ${inputs.map((_, i) => `w${subscript(i + 1)}x${subscript(i + 1)}`).join(" + ")} + b  ➜  a = f(z)`}
+                ? "z = wx + b  ->  a = f(z)"
+                : `z = ${inputs.map((_, i) => `w${subscript(i + 1)}x${subscript(i + 1)}`).join(" + ")} + b  ->  a = f(z)`}
             </p>
           </div>
           <br />
@@ -568,31 +584,31 @@ export default function Home() {
           {/* Next button */}
           <div className="flex justify-end mt-8">
             <button className="btn-next" onClick={() => setStep(1)}>
-              Next: Explore Activations ➜
+              Next: Explore Activations -&gt;
             </button>
           </div>
         </section>
       )}
 
-      {/* ═══════════════════════════════════
-          STEP 2 — Explore Activation Functions
-          ═══════════════════════════════════ */}
+      {/* ============================================
+          STEP 2 - Explore Activation Functions
+          ============================================ */}
       {step === 1 && (
         <section>
           <h2 className="section-title text-3xl font-black mb-6">
-            ⚡ Explore Activation Functions
+            Explore Activation Functions
           </h2>
           <br />
 
           {inputs.length > 1 && (
             <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-700">
-              <strong>📊 Note:</strong> The graph is drawn by varying x₁ from −10 to 10 while keeping x₂ and the bias fixed. This changes the neuron's linear output (z), and the graph shows how the activation function transforms z into the activated output (a).
+              <strong>Note:</strong> The graph is drawn by varying x1 from -10 to 10 while keeping x2 and the bias fixed. This changes the neuron's linear output (z), and the graph shows how the activation function transforms z into the activated output (a).
             </div>
           )}
 
           <div className="glass-card p-6 mb-5">
             <h3 className="card-title text-lg font-bold mb-6">
-              Activation Curve — {activationLabel}
+              Activation Curve - {activationLabel}
             </h3>
             <br />
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -605,7 +621,7 @@ export default function Home() {
               <div className="rounded-3xl border border-violet-200 bg-violet-50 p-5 h-fit">
                 <br />
                 <h4 className="text-lg font-bold text-violet-700 mb-5">
-                  📖 How to Read This Graph
+                  How to Read This Graph
                 </h4>
 <br></br>
                 <div className="rounded-xl bg-white p-4 shadow-sm border mb-5">
@@ -619,11 +635,11 @@ export default function Home() {
                       <div className="text-xs text-gray-500">X-axis</div>
                       
                     </div>
-                    <div className="text-2xl text-violet-500">↓</div>
+                    <div className="text-2xl text-violet-500">v</div>
                     <div className="font-semibold text-violet-700">
                       Activation Function
                     </div>
-                    <div className="text-2xl text-violet-500">↓</div>
+                    <div className="text-2xl text-violet-500">v</div>
                     <div>
                       <div className="font-bold text-pink-600">
                         Activated Output (a)
@@ -659,7 +675,7 @@ export default function Home() {
                   <div className="font-semibold mb-3">Formula</div>
                   <div className="text-center font-mono text-xs">
                     <div>{adaptedFormula.general}</div>
-                    <div className="my-2 text-gray-400">↓</div>
+                    <div className="my-2 text-gray-400">v</div>
                     <div>a = f(z)</div>
                   </div>
                 </div>
@@ -681,16 +697,16 @@ export default function Home() {
           {/* Nav buttons */}
           <div className="flex justify-between items-center mt-8">
             <button className="btn-back" onClick={() => setStep(0)}>
-              ⬅ Back
+              Back
             </button>
             <div className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-yellow-100 via-orange-100 to-pink-100 px-6 py-4 border-2 border-yellow-300 shadow-lg">
               <br />
               <br />
-              <span className="text-4xl">🏆</span>
+              <span className="text-4xl">*</span>
               <span className="text-2xl font-extrabold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-                Hurray! You Did It! 🎉
+                Hurray! You Did It!
               </span>
-              <span className="text-4xl">🎊</span>
+              <span className="text-4xl">*</span>
               <br />
             </div>
           </div>

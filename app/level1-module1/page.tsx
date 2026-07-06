@@ -14,6 +14,7 @@ import {
   Sparkles,
   Award,
   RotateCcw,
+  LucideIcon,
 } from "lucide-react";
 
 const colors = {
@@ -216,35 +217,93 @@ const STYLES = `
   }
 `;
 
+/* ---------------------------- TYPES ---------------------------- */
+
+type SpotAnswer = "intelligent" | "rules";
+type DuelAnswer = "ai" | "human";
+type CategoryId = "narrow" | "general" | "super";
+
+interface StageMetaItem {
+  key: string;
+  title: string;
+  icon: LucideIcon;
+  tag: string;
+}
+
+interface SpotItem {
+  id: string;
+  text: string;
+  answer: SpotAnswer;
+  explain: string;
+}
+
+interface DuelItem {
+  id: string;
+  text: string;
+  answer: DuelAnswer;
+  explain: string;
+}
+
+interface HuntItem {
+  id: string;
+  label: string;
+  reveal: string;
+}
+
+interface TimelineEvent {
+  id: string;
+  year: string;
+  title: string;
+  text: string;
+}
+
+interface ClassifyItem {
+  id: string;
+  label: string;
+  answer: CategoryId;
+}
+
+interface Category {
+  id: CategoryId;
+  label: string;
+  hint: string;
+}
+
+type SpotAnswerMap = Record<string, SpotAnswer>;
+type DuelAnswerMap = Record<string, DuelAnswer>;
+type FoundMap = Record<string, boolean>;
+type VisitedMap = Record<string, boolean>;
+type ClassifiedMap = Record<string, CategoryId>;
+
 /* ---------------------------- CONTENT DATA ---------------------------- */
 
-const STAGE_META = [
-  { key: "intelligence", title: "What Is Intelligence?", icon: Brain, tag: "Stage 1 · Spot the Pattern" },
-  { key: "comparison", title: "AI vs Human", icon: Users, tag: "Stage 2 · Head-to-Head" },
-  { key: "around-us", title: "AI Around Us", icon: Globe, tag: "Stage 3 · Scavenger Hunt" },
-  { key: "history", title: "History of AI", icon: Clock, tag: "Stage 4 · Timeline Dig" },
-  { key: "types", title: "Types of AI", icon: Layers, tag: "Stage 5 · Classify the Machines" },
+const STAGE_META: StageMetaItem[] = [
+  { key: "intelligence", title: "What Is Intelligence?", icon: Brain, tag: "Stage 1 - Spot the Pattern" },
+  { key: "comparison", title: "AI vs Human", icon: Users, tag: "Stage 2 - Head-to-Head" },
+  { key: "around-us", title: "AI Around Us", icon: Globe, tag: "Stage 3 - Scavenger Hunt" },
+  { key: "history", title: "History of AI", icon: Clock, tag: "Stage 4 - Timeline Dig" },
+  { key: "types", title: "Types of AI", icon: Layers, tag: "Stage 5 - Classify the Machines" },
 ];
 
-const SPOT_ITEMS = [
-  { id: "s1", text: "A thermostat turns on the heater whenever the room drops below 18°C.", answer: "rules", explain: "Fixed if-then rule — no learning, no adapting. Same input, same output, forever." },
-  { id: "s2", text: "A crow bends a piece of wire into a hook to fish food out of a tube.", answer: "intelligent", explain: "It solved a brand-new problem it had never faced before — real reasoning, not a script." },
+const SPOT_ITEMS: SpotItem[] = [
+  { id: "s1", text: "A thermostat turns on the heater whenever the room drops below 18 degreesC.", answer: "rules", explain: "Fixed if-then rule -- no learning, no adapting. Same input, same output, forever." },
+  { id: "s2", text: "A crow bends a piece of wire into a hook to fish food out of a tube.", answer: "intelligent", explain: "It solved a brand-new problem it had never faced before -- real reasoning, not a script." },
   { id: "s3", text: "A calculator instantly solves a fourteen-digit multiplication.", answer: "rules", explain: "Blazing fast, but it only ever executes one fixed procedure. It can't learn new math." },
-  { id: "s4", text: "A toddler tries three different grips before finally twisting a jar open.", answer: "intelligent", explain: "Trial, error, and learning from the attempt — a core trait of intelligence." },
+  { id: "s4", text: "A toddler tries three different grips before finally twisting a jar open.", answer: "intelligent", explain: "Trial, error, and learning from the attempt -- a core trait of intelligence." },
   { id: "s5", text: "A vending machine dispenses a snack the moment a coin is inserted.", answer: "rules", explain: "One input, one guaranteed output. Nothing is being understood or decided." },
   { id: "s6", text: "A dolphin invents a new hunting trick and teaches it to her calf.", answer: "intelligent", explain: "Inventing a method and passing it on is creativity plus learning in action." },
 ];
 
-const DUEL_ITEMS = [
-  { id: "d1", text: "Multiply two twelve-digit numbers instantly, with zero mistakes.", answer: "ai", explain: "Machines never tire and never miscalculate — raw speed and precision favor AI." },
+const DUEL_ITEMS: DuelItem[] = [
+  { id: "d1", text: "Multiply two twelve-digit numbers instantly, with zero mistakes.", answer: "ai", explain: "Machines never tire and never miscalculate -- raw speed and precision favor AI." },
   { id: "d2", text: "Comfort a friend who just failed an important exam.", answer: "human", explain: "Reading emotion and responding with genuine empathy is still a deeply human skill." },
-  { id: "d3", text: "Recall every rule of chess perfectly, every single game.", answer: "ai", explain: "Perfect, tireless memory — machines don't forget a rule after game one thousand." },
-  { id: "d4", text: "Catch the sarcasm in 'Oh great, another Monday.'", answer: "human", explain: "Sarcasm depends on tone, context, and shared experience — territory humans still lead in." },
+  { id: "d3", text: "Recall every rule of chess perfectly, every single game.", answer: "ai", explain: "Perfect, tireless memory -- machines don't forget a rule after game one thousand." },
+  { id: "d4", text: "Catch the sarcasm in 'Oh great, another Monday.'", answer: "human", explain: "Sarcasm depends on tone, context, and shared experience -- territory humans still lead in." },
   { id: "d5", text: "Scan one million medical scans overnight, flagging anything unusual.", answer: "ai", explain: "Tireless, consistent, and fast at spotting patterns across huge volumes of data." },
-  { id: "d6", text: "Dream up a completely original invention no one has ever imagined.", answer: "human", explain: "Open-ended, from-nothing creativity is still led by humans — AI can assist, not originate intent." },
+  { id: "d6", text: "Dream up a completely original invention no one has ever imagined.", answer: "human", explain: "Open-ended, from-nothing creativity is still led by humans -- AI can assist, not originate intent." },
 ];
 
-const HUNT_ITEMS = [
+const HUNT_ITEMS: HuntItem[] = [
   { id: "h1", label: "Unlocking your phone with your face", reveal: "Facial-recognition AI maps the geometry of your face and matches it in milliseconds." },
   { id: "h2", label: "Netflix suggesting your next show", reveal: "A recommendation engine studies your watch history to predict what you'll enjoy." },
   { id: "h3", label: "Autocorrect fixing your typo mid-sentence", reveal: "Language models predict the most likely word from the patterns of billions of sentences." },
@@ -253,16 +312,16 @@ const HUNT_ITEMS = [
   { id: "h6", label: "A voice assistant answering your question", reveal: "Speech recognition plus language AI turn your voice into a spoken answer." },
 ];
 
-const TIMELINE_EVENTS = [
-  { id: "t1", year: "1950", title: "Turing asks the question", text: "Alan Turing proposes the 'Turing Test' — a way to judge if a machine can act intelligently enough to fool a human." },
+const TIMELINE_EVENTS: TimelineEvent[] = [
+  { id: "t1", year: "1950", title: "Turing asks the question", text: "Alan Turing proposes the 'Turing Test' -- a way to judge if a machine can act intelligently enough to fool a human." },
   { id: "t2", year: "1956", title: "The term is born", text: "At the Dartmouth Conference, scientists coin the phrase 'Artificial Intelligence' and set out to build thinking machines." },
-  { id: "t3", year: "1997", title: "Deep Blue vs Kasparov", text: "IBM's Deep Blue defeats world chess champion Garry Kasparov — machines beat humans at pure strategy." },
+  { id: "t3", year: "1997", title: "Deep Blue vs Kasparov", text: "IBM's Deep Blue defeats world chess champion Garry Kasparov -- machines beat humans at pure strategy." },
   { id: "t4", year: "2011", title: "Watson wins Jeopardy!", text: "IBM Watson beats champion contestants on live TV, proving AI could understand tricky natural language." },
-  { id: "t5", year: "2016", title: "AlphaGo masters Go", text: "AlphaGo defeats a world champion at Go — a game once thought too intuitive for any machine to learn." },
+  { id: "t5", year: "2016", title: "AlphaGo masters Go", text: "AlphaGo defeats a world champion at Go -- a game once thought too intuitive for any machine to learn." },
   { id: "t6", year: "2020s", title: "Generative AI era", text: "Tools like ChatGPT and image generators show AI that can write, draw, code, and hold a conversation." },
 ];
 
-const CLASSIFY_ITEMS = [
+const CLASSIFY_ITEMS: ClassifyItem[] = [
   { id: "c1", label: "Voice assistant (Siri / Alexa)", answer: "narrow" },
   { id: "c2", label: "Chess-playing engine", answer: "narrow" },
   { id: "c3", label: "Self-driving car software", answer: "narrow" },
@@ -271,15 +330,21 @@ const CLASSIFY_ITEMS = [
   { id: "c6", label: "A machine smarter than all of humanity combined, at everything", answer: "super" },
 ];
 
-const CATEGORIES = [
+const CATEGORIES: Category[] = [
   { id: "narrow", label: "Narrow AI", hint: "Great at one job" },
-  { id: "general", label: "General AI", hint: "Hypothetical — doesn't exist yet" },
+  { id: "general", label: "General AI", hint: "Hypothetical -- doesn't exist yet" },
   { id: "super", label: "Superintelligence", hint: "Purely theoretical" },
 ];
 
 /* ------------------------------- HELPERS ------------------------------- */
 
-function StampBar({ current, completed, onJump }) {
+interface StampBarProps {
+  current: number;
+  completed: boolean[];
+  onJump: (idx: number) => void;
+}
+
+function StampBar({ current, completed, onJump }: StampBarProps) {
   const doneCount = completed.filter(Boolean).length;
   const pct = (doneCount / STAGE_META.length) * 100;
   return (
@@ -323,7 +388,15 @@ function StampBar({ current, completed, onJump }) {
   );
 }
 
-function StageShell({ tag, title, subtitle, progressLabel, children }) {
+interface StageShellProps {
+  tag: string;
+  title: string;
+  subtitle?: string;
+  progressLabel?: string;
+  children: React.ReactNode;
+}
+
+function StageShell({ tag, title, subtitle, progressLabel, children }: StageShellProps) {
   return (
     <div className="aiel-stage-shell">
       <div className="aiel-stage-top">
@@ -337,7 +410,15 @@ function StageShell({ tag, title, subtitle, progressLabel, children }) {
   );
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }) {
+interface NavButtonsProps {
+  onBack?: () => void;
+  onNext: () => void;
+  backDisabled?: boolean;
+  nextDisabled?: boolean;
+  nextLabel?: string;
+}
+
+function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
   return (
     <div className="aiel-nav-row">
       <button className="aiel-nav-back" onClick={onBack} disabled={backDisabled}>
@@ -353,17 +434,17 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }) {
 /* ------------------------------- MAIN APP ------------------------------- */
 
 export default function AIExplorerLab() {
-  const [current, setCurrent] = useState(0); // 0..4 stages, 5 = certificate
-  const [completed, setCompleted] = useState([false, false, false, false, false]);
+  const [current, setCurrent] = useState<number>(0); // 0..4 stages, 5 = certificate
+  const [completed, setCompleted] = useState<boolean[]>([false, false, false, false, false]);
 
-  const [spotAnswers, setSpotAnswers] = useState({});
-  const [duelAnswers, setDuelAnswers] = useState({});
-  const [found, setFound] = useState({});
-  const [visitedEvents, setVisitedEvents] = useState({});
-  const [openEvent, setOpenEvent] = useState(null);
-  const [classified, setClassified] = useState({});
+  const [spotAnswers, setSpotAnswers] = useState<SpotAnswerMap>({});
+  const [duelAnswers, setDuelAnswers] = useState<DuelAnswerMap>({});
+  const [found, setFound] = useState<FoundMap>({});
+  const [visitedEvents, setVisitedEvents] = useState<VisitedMap>({});
+  const [openEvent, setOpenEvent] = useState<string | null>(null);
+  const [classified, setClassified] = useState<ClassifiedMap>({});
 
-  const markComplete = (idx) => {
+  const markComplete = (idx: number) => {
     setCompleted((prev) => {
       if (prev[idx]) return prev;
       const next = [...prev];
@@ -372,7 +453,7 @@ export default function AIExplorerLab() {
     });
   };
 
-  const goTo = (idx) => setCurrent(idx);
+  const goTo = (idx: number) => setCurrent(idx);
 
   const spotDone = Object.keys(spotAnswers).length === SPOT_ITEMS.length;
   const duelDone = Object.keys(duelAnswers).length === DUEL_ITEMS.length;
@@ -459,7 +540,7 @@ export default function AIExplorerLab() {
                           <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                         )}
                         <p className="aiel-feedback-text">
-                          {isCorrect ? "Correct — " : `Actually, this is ${item.answer === "intelligent" ? "real intelligence" : "just a rule"}. `}
+                          {isCorrect ? "Correct -- " : `Actually, this is ${item.answer === "intelligent" ? "real intelligence" : "just a rule"}. `}
                           {item.explain}
                         </p>
                       </div>
@@ -470,6 +551,7 @@ export default function AIExplorerLab() {
             </div>
             <NavButtons
               backDisabled
+              onBack={() => {}}
               nextDisabled={!spotDone}
               onNext={() => {
                 markComplete(0);
@@ -517,7 +599,7 @@ export default function AIExplorerLab() {
                           <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                         )}
                         <p className="aiel-feedback-text">
-                          Typically wins: <strong style={{ color: colors.ink }}>{item.answer === "ai" ? "AI" : "Human"}</strong> — {item.explain}
+                          Typically wins: <strong style={{ color: colors.ink }}>{item.answer === "ai" ? "AI" : "Human"}</strong> -- {item.explain}
                         </p>
                       </div>
                     )}
@@ -579,7 +661,7 @@ export default function AIExplorerLab() {
           <StageShell
             tag={STAGE_META[3].tag}
             title="Dig Through the Timeline"
-            subtitle="Tap each year to unearth what happened — and why it mattered."
+            subtitle="Tap each year to unearth what happened -- and why it mattered."
             progressLabel={`${Object.keys(visitedEvents).length}/${TIMELINE_EVENTS.length} unearthed`}
           >
             <div className="aiel-timeline">
@@ -656,8 +738,8 @@ export default function AIExplorerLab() {
                         )}
                         <p className="aiel-feedback-text">
                           Correct category: <strong style={{ color: colors.ink }}>
-                            {CATEGORIES.find((c) => c.id === item.answer).label}
-                          </strong> — {CATEGORIES.find((c) => c.id === item.answer).hint}
+                            {CATEGORIES.find((c) => c.id === item.answer)?.label}
+                          </strong> -- {CATEGORIES.find((c) => c.id === item.answer)?.hint}
                         </p>
                       </div>
                     )}
