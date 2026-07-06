@@ -9,8 +9,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Neural Network Activation Lab ⚡",
-  description: "Learn how neurons work, explore activation functions visually.",
+  title: "AI Visualization Lab ⚡",
+  description: "Unlock the power of AI.",
 };
 
 export default function RootLayout({
