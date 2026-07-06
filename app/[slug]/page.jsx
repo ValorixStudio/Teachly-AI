@@ -5,24 +5,24 @@ import Link from "next/link";
 import { ChevronLeft, Lightbulb, Zap, Globe, History, Layers } from "lucide-react";
 
 const colors = {
-  bg: "#FFF7E3",
-  bgSoft: "#FFEFC8",
-  card: "#FFFFFF",
-  cardAlt: "#F6F1FF",
-  border: "#FFD866",
-  borderSoft: "#FFE9A8",
-  gold: "#F5A623",
-  goldDeep: "#E2860A",
-  goldDeepest: "#B96A05",
-  coral: "#FF7A59",
-  coralDeep: "#E85A38",
-  purple: "#A855F7",
-  purpleDeep: "#8B34E0",
-  teal: "#2FB6A3",
-  tealDeep: "#1F9585",
-  ink: "#3A2E1E",
-  inkSoft: "#5A4B34",
-  muted: "#8A7A5C",
+    bg: "#FFF7E3",
+    bgSoft: "#FFEFC8",
+    card: "#FFFFFF",
+    cardAlt: "#F6F1FF",
+    border: "#FFD866",
+    borderSoft: "#FFE9A8",
+    gold: "#F5A623",
+    goldDeep: "#E2860A",
+    goldDeepest: "#B96A05",
+    coral: "#FF7A59",
+    coralDeep: "#E85A38",
+    purple: "#A855F7",
+    purpleDeep: "#8B34E0",
+    teal: "#2FB6A3",
+    tealDeep: "#1F9585",
+    ink: "#3A2E1E",
+    inkSoft: "#5A4B34",
+    muted: "#8A7A5C",
 };
 
 const STYLES = `
@@ -180,69 +180,68 @@ const STYLES = `
 `;
 
 const topicIcons = {
-  "what-is-intelligence": Lightbulb,
-  "ai-vs-human-intelligence": Zap,
-  "ai-around-us": Globe,
-  "history-of-ai": History,
-  "types-of-ai": Layers,
+    "what-is-intelligence": Lightbulb,
+    "ai-vs-human-intelligence": Zap,
+    "ai-around-us": Globe,
+    "history-of-ai": History,
+    "types-of-ai": Layers,
 };
 
 const contentMap = {
-  "what-is-intelligence": {
-    title: "What is Intelligence?",
-    subtitle: "Understanding the foundation",
-    content: `Intelligence is the ability to acquire, understand, and apply knowledge. It involves reasoning, learning from experience, problem-solving, and adapting to new situations.
+    "what-is-intelligence": {
+        title: "What is Intelligence?",
+        subtitle: "Understanding the foundation",
+        content: `Intelligence is the ability to acquire, understand, and apply knowledge. It involves reasoning, learning from experience, problem-solving, and adapting to new situations.
 
-Key aspects of intelligence:
-• Cognitive abilities
-• Learning capacity
-• Problem-solving skills
-• Reasoning and logic
-• Creativity and innovation
-• Emotional understanding
-• Adaptability to change`,
-  },
-  "ai-vs-human-intelligence": {
-    title: "AI vs Human Intelligence",
-    subtitle: "Comparing two forms of intelligence",
-    content: `Human intelligence and artificial intelligence both have unique strengths and limitations.
+            Key aspects of intelligence:
+            • Cognitive abilities
+            • Learning capacity
+            • Problem-solving skills
+            • Reasoning and logic
+            • Creativity and innovation
+            • Emotional understanding
+            • Adaptability to change`,
+    },
+    "ai-vs-human-intelligence": {
+        title: "AI vs Human Intelligence",
+        subtitle: "Comparing two forms of intelligence",
+        content: `Human intelligence and artificial intelligence both have unique strengths and limitations.
+        Human Intelligence:
+        • Emotional understanding and empathy
+        • Creative and abstract thinking
+        • Common sense reasoning
+        • Flexible adaptation to novelty
+        • Conscious awareness
+        • Learning from few examples
 
-Human Intelligence:
-• Emotional understanding and empathy
-• Creative and abstract thinking
-• Common sense reasoning
-• Flexible adaptation to novelty
-• Conscious awareness
-• Learning from few examples
+        Artificial Intelligence:
+        • Lightning-fast computation
+        • Perfect memory and recall
+        • Handling massive datasets
+        • Consistency and zero fatigue
+        • Scalability across tasks
+        • Pattern recognition at scale`,
+    },
+    "ai-around-us": {
+        title: "AI Around Us",
+        subtitle: "Discovering AI in daily life",
+        content: `Artificial intelligence is embedded in the technology we use every single day.
 
-Artificial Intelligence:
-• Lightning-fast computation
-• Perfect memory and recall
-• Handling massive datasets
-• Consistency and zero fatigue
-• Scalability across tasks
-• Pattern recognition at scale`,
-  },
-  "ai-around-us": {
-    title: "AI Around Us",
-    subtitle: "Discovering AI in daily life",
-    content: `Artificial intelligence is embedded in the technology we use every single day.
-
-Common applications:
-• Smartphones: Voice assistants, face recognition, predictive text
-• Social Media: Content recommendations, feed curation
-• Shopping: Product suggestions, price optimization
-• Navigation: GPS routing, traffic prediction
-• Healthcare: Diagnosis assistance, drug discovery
-• Entertainment: Movie and music recommendations
-• Home Automation: Smart devices, energy management
-• Banking: Fraud detection, credit scoring
-• Search Engines: Ranking and understanding queries`,
-  },
-  "history-of-ai": {
-    title: "History of AI",
-    subtitle: "The journey of artificial intelligence",
-    content: `The field of artificial intelligence has evolved through cycles of optimism and challenges.
+        Common applications:
+        • Smartphones: Voice assistants, face recognition, predictive text
+        • Social Media: Content recommendations, feed curation
+        • Shopping: Product suggestions, price optimization
+        • Navigation: GPS routing, traffic prediction
+        • Healthcare: Diagnosis assistance, drug discovery
+        • Entertainment: Movie and music recommendations
+        • Home Automation: Smart devices, energy management
+        • Banking: Fraud detection, credit scoring
+        • Search Engines: Ranking and understanding queries`,
+    },
+    "history-of-ai": {
+        title: "History of AI",
+        subtitle: "The journey of artificial intelligence",
+        content: `The field of artificial intelligence has evolved through cycles of optimism and challenges.
 
 Key Milestones:
 • 1950s: Birth of AI - Alan Turing's foundational work
@@ -253,11 +252,11 @@ Key Milestones:
 • 2012: Deep Learning Revolution - Neural networks proved highly effective
 • 2017: Transformer Architecture - Foundation for modern LLMs
 • 2023+: Generative AI Era - ChatGPT and large language models`,
-  },
-  "types-of-ai": {
-    title: "Types of AI",
-    subtitle: "Categorizing artificial intelligence",
-    content: `AI can be categorized in multiple meaningful ways.
+    },
+    "types-of-ai": {
+        title: "Types of AI",
+        subtitle: "Categorizing artificial intelligence",
+        content: `AI can be categorized in multiple meaningful ways.
 
 By Capability Level:
 • Narrow AI (Weak AI): Designed for specific, well-defined tasks
@@ -275,88 +274,88 @@ By Autonomy:
 • Limited Memory: Uses historical data for decisions
 • Theory of Mind: Understands emotions and beliefs
 • Self-aware: Hypothetical conscious AI systems`,
-  },
+    },
 };
 
 export default function DynamicPage() {
-  const params = useParams();
-  const slug = params?.slug;
+    const params = useParams();
+    const slug = params?.slug;
 
-  const content = contentMap[slug] || {
-    title: "Page Not Found",
-    subtitle: "Topic not found",
-    content: "This topic hasn't been added yet. Please go back and select a topic from the curriculum.",
-  };
+    const content = contentMap[slug] || {
+        title: "Page Not Found",
+        subtitle: "Topic not found",
+        content: "This topic hasn't been added yet. Please go back and select a topic from the curriculum.",
+    };
 
-  const IconComponent = topicIcons[slug] || Lightbulb;
+    const IconComponent = topicIcons[slug] || Lightbulb;
 
-  return (
-    <div className="topic-root">
-      <style>{STYLES}</style>
-      <div className="topic-container">
-        {/* Back Button */}
-        <Link href="/" className="topic-back-btn">
-          <ChevronLeft size={18} />
-          Back to Curriculum
-        </Link>
+    return (
+        <div className="topic-root">
+            <style>{STYLES}</style>
+            <div className="topic-container">
+                {/* Back Button */}
+                <Link href="/" className="topic-back-btn">
+                    <ChevronLeft size={18} />
+                    Back to Curriculum
+                </Link>
 
-        {/* Header */}
-        <div className="topic-header">
-          <div className="topic-icon">
-            <IconComponent size={32} />
-          </div>
-          <h1 className="topic-title">{content.title}</h1>
-          <p className="topic-subtitle">{content.subtitle}</p>
+                {/* Header */}
+                <div className="topic-header">
+                    <div className="topic-icon">
+                        <IconComponent size={32} />
+                    </div>
+                    <h1 className="topic-title">{content.title}</h1>
+                    <p className="topic-subtitle">{content.subtitle}</p>
+                </div>
+
+                {/* Content Card */}
+                <div className="topic-card">
+                    <div
+                        className="topic-content"
+                        dangerouslySetInnerHTML={{
+                            __html: content.content
+                                .split("\n")
+                                .map((line) => {
+                                    if (line.startsWith("•")) {
+                                        return `<li>${line.slice(1).trim()}</li>`;
+                                    }
+                                    if (line.trim() && !line.startsWith("•")) {
+                                        const prev = content.content
+                                            .split("\n")
+                                            .indexOf(line) - 1;
+                                        if (prev >= 0 && content.content.split("\n")[prev].startsWith("•")) {
+                                            return `<ul>${content.content
+                                                .split("\n")
+                                                .filter((l) => l.startsWith("•"))
+                                                .map((l) => `<li>${l.slice(1).trim()}</li>`)
+                                                .join("")}</ul><p>${line}</p>`;
+                                        }
+                                        return `<p>${line}</p>`;
+                                    }
+                                    return "";
+                                })
+                                .join("")
+                                .replace(/<\/ul><p>/g, "</ul><p>"),
+                        }}
+                    />
+                </div>
+
+                {/* Topic Navigation */}
+                <div className="topic-nav">
+                    <div className="topic-nav-label">Explore Other Topics</div>
+                    <div className="topic-nav-grid">
+                        {Object.keys(contentMap).map((topic) => (
+                            <Link
+                                key={topic}
+                                href={`/${topic}`}
+                                className={`topic-nav-btn ${slug === topic ? "active" : ""}`}
+                            >
+                                {topic.replace(/-/g, " ").split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
-
-        {/* Content Card */}
-        <div className="topic-card">
-          <div
-            className="topic-content"
-            dangerouslySetInnerHTML={{
-              __html: content.content
-                .split("\n")
-                .map((line) => {
-                  if (line.startsWith("•")) {
-                    return `<li>${line.slice(1).trim()}</li>`;
-                  }
-                  if (line.trim() && !line.startsWith("•")) {
-                    const prev = content.content
-                      .split("\n")
-                      .indexOf(line) - 1;
-                    if (prev >= 0 && content.content.split("\n")[prev].startsWith("•")) {
-                      return `<ul>${content.content
-                        .split("\n")
-                        .filter((l) => l.startsWith("•"))
-                        .map((l) => `<li>${l.slice(1).trim()}</li>`)
-                        .join("")}</ul><p>${line}</p>`;
-                    }
-                    return `<p>${line}</p>`;
-                  }
-                  return "";
-                })
-                .join("")
-                .replace(/<\/ul><p>/g, "</ul><p>"),
-            }}
-          />
-        </div>
-
-        {/* Topic Navigation */}
-        <div className="topic-nav">
-          <div className="topic-nav-label">Explore Other Topics</div>
-          <div className="topic-nav-grid">
-            {Object.keys(contentMap).map((topic) => (
-              <Link
-                key={topic}
-                href={`/${topic}`}
-                className={`topic-nav-btn ${slug === topic ? "active" : ""}`}
-              >
-                {topic.replace(/-/g, " ").split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
