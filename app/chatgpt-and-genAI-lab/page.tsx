@@ -1,12 +1,10 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import Link from "next/link";
 import {
-  Brain,
-  Users,
-  Globe,
-  Clock,
-  Layers,
+  MessageSquare,
+  Braces,
+  Bot,
+  ShieldCheck,
   Compass,
   CheckCircle2,
   XCircle,
@@ -126,17 +124,23 @@ const STYLES = `
   .aiel-item-list { display: flex; flex-direction: column; gap: 12px; }
   .aiel-item-card { border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
   .aiel-item-text { font-size: 14px; color: ${colors.ink}; margin: 0 0 12px 0; font-weight: 500; }
+  .aiel-item-goal {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: ${colors.purpleDeep}; margin: 0 0 6px 0;
+  }
 
-  .aiel-choice-row { display: flex; gap: 8px; }
+  .aiel-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .aiel-choice-btn {
     flex: 1; font-size: 12.5px; font-weight: 700; padding: 12px 8px; border-radius: 999px; color: ${colors.ink};
     box-shadow: 0 4px 0 rgba(0,0,0,0.18); transition: transform 0.12s ease, box-shadow 0.12s ease;
+    min-width: 90px;
   }
   .aiel-choice-btn:hover { transform: translateY(-1px); }
   .aiel-choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
   .aiel-choice-teal { background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); }
   .aiel-choice-coral { background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); }
   .aiel-choice-gold { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); }
+  .aiel-choice-purple { background: linear-gradient(180deg, #DBB6FF 0%, ${colors.purple} 100%); }
   .aiel-choice-outline {
     font-size: 12.5px; font-weight: 700; padding: 10px 14px; border-radius: 999px;
     background: ${colors.card}; border: 2px solid ${colors.border}; color: ${colors.ink};
@@ -148,29 +152,20 @@ const STYLES = `
   .aiel-feedback-text { font-size: 12px; color: ${colors.muted}; margin: 0; line-height: 1.5; }
   .aiel-feedback-icon { margin-top: 2px; flex-shrink: 0; }
 
-  .aiel-hunt-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-  @media (min-width: 640px) { .aiel-hunt-grid { grid-template-columns: 1fr 1fr; } }
-  .aiel-hunt-card {
-    text-align: left; border-radius: 20px; padding: 16px; transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; width: 100%;
+  .aiel-prompt-pair { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .aiel-prompt-option {
+    text-align: left; width: 100%; border-radius: 16px; padding: 12px 14px;
+    background: ${colors.card}; border: 2px solid ${colors.borderSoft};
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.12s ease;
   }
-  .aiel-hunt-card:hover { transform: translateY(-2px); box-shadow: 0 4px 0 ${colors.borderSoft}; }
-  .aiel-hunt-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .aiel-hunt-dot { width: 14px; height: 14px; border-radius: 999px; border: 2px solid ${colors.muted}; flex-shrink: 0; }
-  .aiel-hunt-label { font-size: 14px; font-weight: 600; color: ${colors.ink}; margin: 0; }
-  .aiel-hunt-reveal { font-size: 12px; color: ${colors.muted}; margin: 8px 0 0 0; line-height: 1.5; }
-
-  .aiel-timeline { position: relative; padding-left: 24px; }
-  .aiel-timeline-line { position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: ${colors.borderSoft}; }
-  .aiel-timeline-list { display: flex; flex-direction: column; gap: 12px; }
-  .aiel-timeline-item { position: relative; }
-  .aiel-timeline-dot { position: absolute; left: -24px; top: 8px; width: 12px; height: 12px; border-radius: 999px; }
-  .aiel-timeline-card { width: 100%; text-align: left; border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; transition: border-color 0.15s ease, transform 0.15s ease; }
-  .aiel-timeline-card:hover { border-color: ${colors.gold}; transform: translateY(-1px); }
-  .aiel-timeline-top { display: flex; align-items: center; justify-content: space-between; }
-  .aiel-timeline-year { font-family: 'Baloo 2', sans-serif; font-size: 13px; font-weight: 700; color: ${colors.goldDeep}; }
-  .aiel-timeline-title { font-size: 14px; font-weight: 600; color: ${colors.ink}; }
-  .aiel-timeline-text { font-size: 12px; color: ${colors.muted}; margin: 12px 0 0 0; line-height: 1.5; }
+  .aiel-prompt-option:hover { transform: translateY(-1px); border-color: ${colors.gold}; box-shadow: 0 3px 0 ${colors.borderSoft}; }
+  .aiel-prompt-option-label {
+    font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: ${colors.muted}; margin: 0 0 4px 0;
+  }
+  .aiel-prompt-option-text { font-size: 13.5px; color: ${colors.ink}; margin: 0; line-height: 1.5; font-style: italic; }
+  .aiel-prompt-option.is-correct { border-color: ${colors.teal}; background: #EAFBF7; }
+  .aiel-prompt-option.is-wrong { border-color: ${colors.coral}; background: #FFF1EC; opacity: 0.75; }
 
   .aiel-tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -209,7 +204,8 @@ const STYLES = `
   }
   .aiel-cert-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.goldDeep}; }
   .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
-  .aiel-cert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; }
+  .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; }
+  @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(4, 1fr); } }
   .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
   .aiel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
   .aiel-reset-btn {
@@ -220,10 +216,6 @@ const STYLES = `
 
 /* ---------------------------- TYPES ---------------------------- */
 
-type SpotAnswer = "intelligent" | "rules";
-type DuelAnswer = "ai" | "human";
-type CategoryId = "narrow" | "general" | "super";
-
 interface StageMetaItem {
   key: string;
   title: string;
@@ -231,110 +223,145 @@ interface StageMetaItem {
   tag: string;
 }
 
-interface SpotItem {
+interface WordItem {
   id: string;
-  text: string;
-  answer: SpotAnswer;
+  prompt: string;
+  options: string[];
+  answer: string;
   explain: string;
 }
 
-interface DuelItem {
+interface PromptItem {
   id: string;
-  text: string;
-  answer: DuelAnswer;
+  goal: string;
+  weak: string;
+  strong: string;
   explain: string;
 }
 
-interface HuntItem {
+type ToolCategoryId = "search" | "files" | "code" | "actions";
+
+interface ToolItem {
   id: string;
   label: string;
-  reveal: string;
+  answer: ToolCategoryId;
 }
 
-interface TimelineEvent {
-  id: string;
-  year: string;
-  title: string;
-  text: string;
-}
-
-interface ClassifyItem {
-  id: string;
-  label: string;
-  answer: CategoryId;
-}
-
-interface Category {
-  id: CategoryId;
+interface ToolCategory {
+  id: ToolCategoryId;
   label: string;
   hint: string;
 }
 
-type SpotAnswerMap = Record<string, SpotAnswer>;
-type DuelAnswerMap = Record<string, DuelAnswer>;
-type FoundMap = Record<string, boolean>;
-type VisitedMap = Record<string, boolean>;
-type ClassifiedMap = Record<string, CategoryId>;
+type EthicsCategoryId = "bias" | "misinformation" | "privacy" | "jobs";
+
+interface EthicsItem {
+  id: string;
+  text: string;
+  answer: EthicsCategoryId;
+}
+
+interface EthicsCategory {
+  id: EthicsCategoryId;
+  label: string;
+  hint: string;
+}
+
+type WordAnswerMap = Record<string, string>;
+type PromptAnswerMap = Record<string, "weak" | "strong">;
+type ToolAnswerMap = Record<string, ToolCategoryId>;
+type EthicsAnswerMap = Record<string, EthicsCategoryId>;
 
 /* ---------------------------- CONTENT DATA ---------------------------- */
 
 const STAGE_META: StageMetaItem[] = [
-  { key: "intelligence", title: "What Is Intelligence?", icon: Brain, tag: "Stage 1 - Spot the Pattern" },
-  { key: "comparison", title: "AI vs Human", icon: Users, tag: "Stage 2 - Head-to-Head" },
-  { key: "around-us", title: "AI Around Us", icon: Globe, tag: "Stage 3 - Scavenger Hunt" },
-  { key: "history", title: "History of AI", icon: Clock, tag: "Stage 4 - Timeline Dig" },
-  { key: "types", title: "Types of AI", icon: Layers, tag: "Stage 5 - Classify the Machines" },
+  { key: "llms", title: "LLMs", icon: MessageSquare, tag: "Stage 1 - Predict the Word" },
+  { key: "prompting", title: "Prompt Engineering", icon: Braces, tag: "Stage 2 - Which Prompt Wins?" },
+  { key: "assistants", title: "AI Assistants", icon: Bot, tag: "Stage 3 - Match the Tool" },
+  { key: "ethics", title: "AI Ethics", icon: ShieldCheck, tag: "Stage 4 - Spot the Concern" },
 ];
 
-const SPOT_ITEMS: SpotItem[] = [
-  { id: "s1", text: "A thermostat turns on the heater whenever the room drops below 18 degreesC.", answer: "rules", explain: "Fixed if-then rule -- no learning, no adapting. Same input, same output, forever." },
-  { id: "s2", text: "A crow bends a piece of wire into a hook to fish food out of a tube.", answer: "intelligent", explain: "It solved a brand-new problem it had never faced before -- real reasoning, not a script." },
-  { id: "s3", text: "A calculator instantly solves a fourteen-digit multiplication.", answer: "rules", explain: "Blazing fast, but it only ever executes one fixed procedure. It can't learn new math." },
-  { id: "s4", text: "A toddler tries three different grips before finally twisting a jar open.", answer: "intelligent", explain: "Trial, error, and learning from the attempt -- a core trait of intelligence." },
-  { id: "s5", text: "A vending machine dispenses a snack the moment a coin is inserted.", answer: "rules", explain: "One input, one guaranteed output. Nothing is being understood or decided." },
-  { id: "s6", text: "A dolphin invents a new hunting trick and teaches it to her calf.", answer: "intelligent", explain: "Inventing a method and passing it on is creativity plus learning in action." },
+const WORD_ITEMS: WordItem[] = [
+  { id: "w1", prompt: "I woke up and drank a cup of ___", options: ["coffee", "bicycle", "jealousy"], answer: "coffee", explain: "An LLM predicts the next word using patterns learned from huge amounts of text -- 'coffee' follows 'cup of' far more often than the other options ever would." },
+  { id: "w2", prompt: "The sun rises in the ___", options: ["east", "refrigerator", "Tuesday"], answer: "east", explain: "This phrase appears constantly in training text, so the model has seen the pattern 'sun rises in the east' many, many times." },
+  { id: "w3", prompt: "Two plus two equals ___", options: ["four", "giraffe", "Monday"], answer: "four", explain: "Even simple arithmetic phrases like this show up so often in text that the model reliably predicts the expected word." },
+  { id: "w4", prompt: "The weather today is sunny with a chance of ___", options: ["rain", "homework", "silence"], answer: "rain", explain: "Weather reports are a common pattern in training data, so 'rain' is a far likelier continuation than an unrelated word." },
+  { id: "w5", prompt: "She opened the door and stepped ___", options: ["outside", "spaghetti", "purple"], answer: "outside", explain: "Story-like sentences follow common patterns -- 'stepped outside' fits the flow of the sentence, while the other options break it completely." },
+  { id: "w6", prompt: "Once upon a time, in a land far ___", options: ["away", "Tuesday", "calculator"], answer: "away", explain: "This is one of the most repeated story openings in existence, so the model has an extremely strong prediction for what comes next." },
 ];
 
-const DUEL_ITEMS: DuelItem[] = [
-  { id: "d1", text: "Multiply two twelve-digit numbers instantly, with zero mistakes.", answer: "ai", explain: "Machines never tire and never miscalculate -- raw speed and precision favor AI." },
-  { id: "d2", text: "Comfort a friend who just failed an important exam.", answer: "human", explain: "Reading emotion and responding with genuine empathy is still a deeply human skill." },
-  { id: "d3", text: "Recall every rule of chess perfectly, every single game.", answer: "ai", explain: "Perfect, tireless memory -- machines don't forget a rule after game one thousand." },
-  { id: "d4", text: "Catch the sarcasm in 'Oh great, another Monday.'", answer: "human", explain: "Sarcasm depends on tone, context, and shared experience -- territory humans still lead in." },
-  { id: "d5", text: "Scan one million medical scans overnight, flagging anything unusual.", answer: "ai", explain: "Tireless, consistent, and fast at spotting patterns across huge volumes of data." },
-  { id: "d6", text: "Dream up a completely original invention no one has ever imagined.", answer: "human", explain: "Open-ended, from-nothing creativity is still led by humans -- AI can assist, not originate intent." },
+const PROMPT_ITEMS: PromptItem[] = [
+  {
+    id: "p1",
+    goal: "Get help writing a birthday message",
+    weak: "Write something for a birthday",
+    strong: "Write a warm, 3-sentence birthday message for my sister who loves hiking, mentioning the outdoors",
+    explain: "Naming the length, the person, and a personal detail gives the model everything it needs to write something specific instead of generic.",
+  },
+  {
+    id: "p2",
+    goal: "Understand a science concept",
+    weak: "Explain photosynthesis",
+    strong: "Explain photosynthesis to a 10-year-old in 3 simple sentences with one everyday example",
+    explain: "Specifying the audience, the length, and asking for an example steers the answer toward something actually useful and easy to follow.",
+  },
+  {
+    id: "p3",
+    goal: "Get help fixing code",
+    weak: "Fix my code",
+    strong: "Here's my Python function that should sort a list but throws an error on line 5 -- explain what's wrong and give the corrected code",
+    explain: "Describing the expected behaviour and pointing to exactly where it fails helps the model diagnose the real problem instead of guessing.",
+  },
+  {
+    id: "p4",
+    goal: "Plan a trip",
+    weak: "Plan a trip",
+    strong: "Plan a 3-day budget-friendly itinerary for a first-time visitor to Tokyo, focused on food and temples",
+    explain: "Giving a duration, a budget, a destination, and a focus turns an impossibly broad request into one the model can actually answer well.",
+  },
+  {
+    id: "p5",
+    goal: "Summarize a long article",
+    weak: "Summarize this",
+    strong: "Summarize this article in 5 bullet points, focusing on the main argument and any statistics mentioned",
+    explain: "Asking for a specific format and telling the model what to prioritize produces a summary you can actually use right away.",
+  },
 ];
 
-const HUNT_ITEMS: HuntItem[] = [
-  { id: "h1", label: "Unlocking your phone with your face", reveal: "Facial-recognition AI maps the geometry of your face and matches it in milliseconds." },
-  { id: "h2", label: "Netflix suggesting your next show", reveal: "A recommendation engine studies your watch history to predict what you'll enjoy." },
-  { id: "h3", label: "Autocorrect fixing your typo mid-sentence", reveal: "Language models predict the most likely word from the patterns of billions of sentences." },
-  { id: "h4", label: "Google Maps choosing the fastest route", reveal: "AI blends live traffic data with historical patterns to route you around jams." },
-  { id: "h5", label: "Spam vanishing from your inbox automatically", reveal: "A spam-filter model flags suspicious patterns before the email ever reaches you." },
-  { id: "h6", label: "A voice assistant answering your question", reveal: "Speech recognition plus language AI turn your voice into a spoken answer." },
+const TOOL_ITEMS: ToolItem[] = [
+  { id: "t1", label: "Find out today's stock price for a company", answer: "search" },
+  { id: "t2", label: "Check the latest news about an election", answer: "search" },
+  { id: "t3", label: "Summarize a PDF report you just uploaded", answer: "files" },
+  { id: "t4", label: "Read a spreadsheet and calculate the average of a column", answer: "files" },
+  { id: "t5", label: "Debug a Python script and run it to check the output", answer: "code" },
+  { id: "t6", label: "Schedule a meeting with your team for Thursday", answer: "actions" },
+  { id: "t7", label: "Send a follow-up email to a client", answer: "actions" },
+  { id: "t8", label: "Test whether a small function actually produces the right result", answer: "code" },
 ];
 
-const TIMELINE_EVENTS: TimelineEvent[] = [
-  { id: "t1", year: "1950", title: "Turing asks the question", text: "Alan Turing proposes the 'Turing Test' -- a way to judge if a machine can act intelligently enough to fool a human." },
-  { id: "t2", year: "1956", title: "The term is born", text: "At the Dartmouth Conference, scientists coin the phrase 'Artificial Intelligence' and set out to build thinking machines." },
-  { id: "t3", year: "1997", title: "Deep Blue vs Kasparov", text: "IBM's Deep Blue defeats world chess champion Garry Kasparov -- machines beat humans at pure strategy." },
-  { id: "t4", year: "2011", title: "Watson wins Jeopardy!", text: "IBM Watson beats champion contestants on live TV, proving AI could understand tricky natural language." },
-  { id: "t5", year: "2016", title: "AlphaGo masters Go", text: "AlphaGo defeats a world champion at Go -- a game once thought too intuitive for any machine to learn." },
-  { id: "t6", year: "2020s", title: "Generative AI era", text: "Tools like ChatGPT and image generators show AI that can write, draw, code, and hold a conversation." },
+const TOOL_CATEGORIES: ToolCategory[] = [
+  { id: "search", label: "Web Search", hint: "Needs current, outside information" },
+  { id: "files", label: "File & Document Reading", hint: "Needs to read something you provided" },
+  { id: "code", label: "Code Execution", hint: "Needs to write and actually run code" },
+  { id: "actions", label: "Take Real-World Action", hint: "Needs to do something on your behalf" },
 ];
 
-const CLASSIFY_ITEMS: ClassifyItem[] = [
-  { id: "c1", label: "Voice assistant (Siri / Alexa)", answer: "narrow" },
-  { id: "c2", label: "Chess-playing engine", answer: "narrow" },
-  { id: "c3", label: "Self-driving car software", answer: "narrow" },
-  { id: "c4", label: "Movie recommendation engine", answer: "narrow" },
-  { id: "c5", label: "A machine that learns any subject as flexibly as a human", answer: "general" },
-  { id: "c6", label: "A machine smarter than all of humanity combined, at everything", answer: "super" },
+const ETHICS_ITEMS: EthicsItem[] = [
+  { id: "e1", text: "A hiring AI trained mostly on resumes from one gender ends up favoring that gender for interviews.", answer: "bias" },
+  { id: "e2", text: "A facial recognition system misidentifies people of a certain skin tone far more often than others.", answer: "bias" },
+  { id: "e3", text: "A chatbot confidently states a wrong historical date, and someone shares it online as fact.", answer: "misinformation" },
+  { id: "e4", text: "An AI-generated article spreads a fabricated quote that a real public figure never actually said.", answer: "misinformation" },
+  { id: "e5", text: "An AI assistant retains and reuses sensitive medical details a user typed into a conversation.", answer: "privacy" },
+  { id: "e6", text: "A free AI app quietly sells users' uploaded photos to advertisers without clear consent.", answer: "privacy" },
+  { id: "e7", text: "A company replaces its entire customer support team with an AI chatbot overnight.", answer: "jobs" },
+  { id: "e8", text: "Automated AI translation tools replace most of a company's human translation staff.", answer: "jobs" },
 ];
 
-const CATEGORIES: Category[] = [
-  { id: "narrow", label: "Narrow AI", hint: "Great at one job" },
-  { id: "general", label: "General AI", hint: "Hypothetical -- doesn't exist yet" },
-  { id: "super", label: "Superintelligence", hint: "Purely theoretical" },
+const ETHICS_CATEGORIES: EthicsCategory[] = [
+  { id: "bias", label: "Bias", hint: "Unfair treatment baked in from unbalanced data" },
+  { id: "misinformation", label: "Misinformation", hint: "Confident, convincing, and wrong" },
+  { id: "privacy", label: "Privacy", hint: "Personal data handled carelessly" },
+  { id: "jobs", label: "Job Impact", hint: "Automation changing human roles" },
 ];
 
 /* ------------------------------- HELPERS ------------------------------- */
@@ -350,7 +377,6 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
   const pct = (doneCount / STAGE_META.length) * 100;
   return (
     <div>
-       
       <div className="aiel-progress-track">
         <div className="aiel-progress-fill" style={{ width: `${pct}%` }} />
       </div>
@@ -435,16 +461,14 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
 
 /* ------------------------------- MAIN APP ------------------------------- */
 
-export default function AIExplorerLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..4 stages, 5 = certificate
-  const [completed, setCompleted] = useState<boolean[]>([false, false, false, false, false]);
+export default function GenerativeAILab() {
+  const [current, setCurrent] = useState<number>(0); // 0..3 stages, 4 = certificate
+  const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
 
-  const [spotAnswers, setSpotAnswers] = useState<SpotAnswerMap>({});
-  const [duelAnswers, setDuelAnswers] = useState<DuelAnswerMap>({});
-  const [found, setFound] = useState<FoundMap>({});
-  const [visitedEvents, setVisitedEvents] = useState<VisitedMap>({});
-  const [openEvent, setOpenEvent] = useState<string | null>(null);
-  const [classified, setClassified] = useState<ClassifiedMap>({});
+  const [wordAnswers, setWordAnswers] = useState<WordAnswerMap>({});
+  const [promptAnswers, setPromptAnswers] = useState<PromptAnswerMap>({});
+  const [toolAnswers, setToolAnswers] = useState<ToolAnswerMap>({});
+  const [ethicsAnswers, setEthicsAnswers] = useState<EthicsAnswerMap>({});
 
   const markComplete = (idx: number) => {
     setCompleted((prev) => {
@@ -457,31 +481,29 @@ export default function AIExplorerLab() {
 
   const goTo = (idx: number) => setCurrent(idx);
 
-  const spotDone = Object.keys(spotAnswers).length === SPOT_ITEMS.length;
-  const duelDone = Object.keys(duelAnswers).length === DUEL_ITEMS.length;
-  const huntDone = Object.keys(found).length === HUNT_ITEMS.length;
-  const historyDone = Object.keys(visitedEvents).length === TIMELINE_EVENTS.length;
-  const classifyDone = Object.keys(classified).length === CLASSIFY_ITEMS.length;
+  const wordDone = Object.keys(wordAnswers).length === WORD_ITEMS.length;
+  const promptDone = Object.keys(promptAnswers).length === PROMPT_ITEMS.length;
+  const toolDone = Object.keys(toolAnswers).length === TOOL_ITEMS.length;
+  const ethicsDone = Object.keys(ethicsAnswers).length === ETHICS_ITEMS.length;
 
   const scores = useMemo(() => {
-    const spotCorrect = SPOT_ITEMS.filter((it) => spotAnswers[it.id] === it.answer).length;
-    const duelCorrect = DUEL_ITEMS.filter((it) => duelAnswers[it.id] === it.answer).length;
-    const classifyCorrect = CLASSIFY_ITEMS.filter((it) => classified[it.id] === it.answer).length;
-    return { spotCorrect, duelCorrect, classifyCorrect };
-  }, [spotAnswers, duelAnswers, classified]);
+    const wordCorrect = WORD_ITEMS.filter((it) => wordAnswers[it.id] === it.answer).length;
+    const promptCorrect = PROMPT_ITEMS.filter((it) => promptAnswers[it.id] === "strong").length;
+    const toolCorrect = TOOL_ITEMS.filter((it) => toolAnswers[it.id] === it.answer).length;
+    const ethicsCorrect = ETHICS_ITEMS.filter((it) => ethicsAnswers[it.id] === it.answer).length;
+    return { wordCorrect, promptCorrect, toolCorrect, ethicsCorrect };
+  }, [wordAnswers, promptAnswers, toolAnswers, ethicsAnswers]);
 
-  const totalScore = scores.spotCorrect + scores.duelCorrect + scores.classifyCorrect;
-  const totalPossible = SPOT_ITEMS.length + DUEL_ITEMS.length + CLASSIFY_ITEMS.length;
+  const totalScore = scores.wordCorrect + scores.promptCorrect + scores.toolCorrect + scores.ethicsCorrect;
+  const totalPossible = WORD_ITEMS.length + PROMPT_ITEMS.length + TOOL_ITEMS.length + ETHICS_ITEMS.length;
 
   const resetAll = () => {
     setCurrent(0);
-    setCompleted([false, false, false, false, false]);
-    setSpotAnswers({});
-    setDuelAnswers({});
-    setFound({});
-    setVisitedEvents({});
-    setOpenEvent(null);
-    setClassified({});
+    setCompleted([false, false, false, false]);
+    setWordAnswers({});
+    setPromptAnswers({});
+    setToolAnswers({});
+    setEthicsAnswers({});
   };
 
   return (
@@ -492,52 +514,45 @@ export default function AIExplorerLab() {
       `}</style>
 
       <div className="aiel-container">
-        <Link href="/" className="topic-back-btn">
-                  <ChevronLeft size={18} />
-                  Back to Curriculum
-                </Link>
         <div className="aiel-header">
           <div className="aiel-header-icon">
             <Compass size={26} color={colors.gold} />
-            
           </div>
-          <h1 className="aiel-h1">AI Intro Lab</h1>
+          <h1 className="aiel-h1">ChatGPT & Generative AI Lab</h1>
           <p className="aiel-subtitle">
-            Learn what makes something intelligent, compare AI and human strengths, and explore real-world AI through fun interactive challenges.
+            Play the same game a language model plays, craft sharper prompts, match tasks to the right
+            AI tools, and spot the ethical concerns hiding in real scenarios.
           </p>
         </div>
 
-        {current <= 4 && <StampBar current={current} completed={completed} onJump={goTo} />}
+        {current <= 3 && <StampBar current={current} completed={completed} onJump={goTo} />}
 
-        {/* STAGE 0: What is Intelligence */}
+        {/* STAGE 0: LLMs */}
         {current === 0 && (
           <StageShell
             tag={STAGE_META[0].tag}
-            title="Spot the Intelligence"
-            subtitle="Read each scenario. Decide: is this real intelligence, or just a machine following a fixed rule?"
-            progressLabel={`${Object.keys(spotAnswers).length}/${SPOT_ITEMS.length} sorted`}
+            title="Predict the Next Word"
+            subtitle="This is exactly the task an LLM is trained on: given the text so far, guess the most likely next word."
+            progressLabel={`${Object.keys(wordAnswers).length}/${WORD_ITEMS.length} predicted`}
           >
             <div className="aiel-item-list">
-              {SPOT_ITEMS.map((item) => {
-                const chosen = spotAnswers[item.id];
+              {WORD_ITEMS.map((item) => {
+                const chosen = wordAnswers[item.id];
                 const isCorrect = chosen === item.answer;
                 return (
                   <div key={item.id} className="aiel-item-card">
-                    <p className="aiel-item-text">{item.text}</p>
+                    <p className="aiel-item-text">{item.prompt}</p>
                     {!chosen ? (
                       <div className="aiel-choice-row">
-                        <button
-                          className="aiel-choice-btn aiel-choice-teal"
-                          onClick={() => setSpotAnswers((p) => ({ ...p, [item.id]: "intelligent" }))}
-                        >
-                          Real Intelligence
-                        </button>
-                        <button
-                          className="aiel-choice-btn aiel-choice-coral"
-                          onClick={() => setSpotAnswers((p) => ({ ...p, [item.id]: "rules" }))}
-                        >
-                          Just Following Rules
-                        </button>
+                        {item.options.map((opt, i) => (
+                          <button
+                            key={opt}
+                            className={`aiel-choice-btn ${i === 0 ? "aiel-choice-teal" : i === 1 ? "aiel-choice-coral" : "aiel-choice-gold"}`}
+                            onClick={() => setWordAnswers((p) => ({ ...p, [item.id]: opt }))}
+                          >
+                            {opt}
+                          </button>
+                        ))}
                       </div>
                     ) : (
                       <div className="aiel-feedback">
@@ -547,7 +562,7 @@ export default function AIExplorerLab() {
                           <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                         )}
                         <p className="aiel-feedback-text">
-                          {isCorrect ? "Correct -- " : `Actually, this is ${item.answer === "intelligent" ? "real intelligence" : "just a rule"}. `}
+                          {isCorrect ? "Correct -- " : `Most models would pick '${item.answer}' here. `}
                           {item.explain}
                         </p>
                       </div>
@@ -559,7 +574,7 @@ export default function AIExplorerLab() {
             <NavButtons
               backDisabled
               onBack={() => {}}
-              nextDisabled={!spotDone}
+              nextDisabled={!wordDone}
               onNext={() => {
                 markComplete(0);
                 setCurrent(1);
@@ -568,45 +583,48 @@ export default function AIExplorerLab() {
           </StageShell>
         )}
 
-        {/* STAGE 1: AI vs Human */}
+        {/* STAGE 1: Prompt Engineering */}
         {current === 1 && (
           <StageShell
             tag={STAGE_META[1].tag}
-            title="Human vs AI: Who Wins?"
-            subtitle="Before you see the answer, guess who is typically better at each task today."
-            progressLabel={`${Object.keys(duelAnswers).length}/${DUEL_ITEMS.length} guessed`}
+            title="Which Prompt Wins?"
+            subtitle="Same goal, two different prompts. Pick the one that would actually get a better answer."
+            progressLabel={`${Object.keys(promptAnswers).length}/${PROMPT_ITEMS.length} chosen`}
           >
             <div className="aiel-item-list">
-              {DUEL_ITEMS.map((item) => {
-                const chosen = duelAnswers[item.id];
-                const isCorrect = chosen === item.answer;
+              {PROMPT_ITEMS.map((item) => {
+                const chosen = promptAnswers[item.id];
                 return (
                   <div key={item.id} className="aiel-item-card">
-                    <p className="aiel-item-text">{item.text}</p>
-                    {!chosen ? (
-                      <div className="aiel-choice-row">
-                        <button
-                          className="aiel-choice-btn aiel-choice-gold"
-                          onClick={() => setDuelAnswers((p) => ({ ...p, [item.id]: "ai" }))}
-                        >
-                          AI
-                        </button>
-                        <button
-                          className="aiel-choice-btn aiel-choice-teal"
-                          onClick={() => setDuelAnswers((p) => ({ ...p, [item.id]: "human" }))}
-                        >
-                          Human
-                        </button>
-                      </div>
-                    ) : (
+                    <p className="aiel-item-goal">Goal: {item.goal}</p>
+                    <div className="aiel-prompt-pair">
+                      <button
+                        className={`aiel-prompt-option ${chosen ? (chosen === "weak" ? "is-wrong" : "") : ""}`}
+                        onClick={() => !chosen && setPromptAnswers((p) => ({ ...p, [item.id]: "weak" }))}
+                        disabled={!!chosen}
+                      >
+                        <p className="aiel-prompt-option-label">Prompt A</p>
+                        <p className="aiel-prompt-option-text">"{item.weak}"</p>
+                      </button>
+                      <button
+                        className={`aiel-prompt-option ${chosen ? (chosen === "strong" ? "is-correct" : "") : ""}`}
+                        onClick={() => !chosen && setPromptAnswers((p) => ({ ...p, [item.id]: "strong" }))}
+                        disabled={!!chosen}
+                      >
+                        <p className="aiel-prompt-option-label">Prompt B</p>
+                        <p className="aiel-prompt-option-text">"{item.strong}"</p>
+                      </button>
+                    </div>
+                    {chosen && (
                       <div className="aiel-feedback">
-                        {isCorrect ? (
+                        {chosen === "strong" ? (
                           <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
                         ) : (
                           <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                         )}
                         <p className="aiel-feedback-text">
-                          Typically wins: <strong style={{ color: colors.ink }}>{item.answer === "ai" ? "AI" : "Human"}</strong> -- {item.explain}
+                          {chosen === "strong" ? "Correct -- Prompt B wins. " : "Prompt B actually wins here. "}
+                          {item.explain}
                         </p>
                       </div>
                     )}
@@ -616,7 +634,7 @@ export default function AIExplorerLab() {
             </div>
             <NavButtons
               onBack={() => setCurrent(0)}
-              nextDisabled={!duelDone}
+              nextDisabled={!promptDone}
               onNext={() => {
                 markComplete(1);
                 setCurrent(2);
@@ -625,112 +643,28 @@ export default function AIExplorerLab() {
           </StageShell>
         )}
 
-        {/* STAGE 2: AI Around Us */}
+        {/* STAGE 2: AI Assistants */}
         {current === 2 && (
           <StageShell
             tag={STAGE_META[2].tag}
-            title="AI Around Us: Scavenger Hunt"
-            subtitle="Tap each everyday moment to reveal the AI quietly working behind it."
-            progressLabel={`${Object.keys(found).length}/${HUNT_ITEMS.length} found`}
-          >
-            <div className="aiel-hunt-grid">
-              {HUNT_ITEMS.map((item) => {
-                const isFound = found[item.id];
-                return (
-                  <button
-                    key={item.id}
-                    className="aiel-hunt-card"
-                    style={{ borderColor: isFound ? colors.teal : colors.borderSoft }}
-                    onClick={() => setFound((p) => ({ ...p, [item.id]: true }))}
-                  >
-                    <div className="aiel-hunt-top">
-                      {isFound ? <Sparkles size={15} color={colors.teal} /> : <div className="aiel-hunt-dot" />}
-                      <p className="aiel-hunt-label">{item.label}</p>
-                    </div>
-                    {isFound && <p className="aiel-hunt-reveal">{item.reveal}</p>}
-                  </button>
-                );
-              })}
-            </div>
-            <NavButtons
-              onBack={() => setCurrent(1)}
-              nextDisabled={!huntDone}
-              onNext={() => {
-                markComplete(2);
-                setCurrent(3);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 3: History */}
-        {current === 3 && (
-          <StageShell
-            tag={STAGE_META[3].tag}
-            title="Dig Through the Timeline"
-            subtitle="Tap each year to unearth what happened -- and why it mattered."
-            progressLabel={`${Object.keys(visitedEvents).length}/${TIMELINE_EVENTS.length} unearthed`}
-          >
-            <div className="aiel-timeline">
-              <div className="aiel-timeline-line" />
-              <div className="aiel-timeline-list">
-                {TIMELINE_EVENTS.map((ev) => {
-                  const isOpen = openEvent === ev.id;
-                  const isVisited = visitedEvents[ev.id];
-                  return (
-                    <div key={ev.id} className="aiel-timeline-item">
-                      <div className="aiel-timeline-dot" style={{ background: isVisited ? colors.gold : colors.borderSoft }} />
-                      <button
-                        className="aiel-timeline-card"
-                        onClick={() => {
-                          setOpenEvent(isOpen ? null : ev.id);
-                          setVisitedEvents((p) => ({ ...p, [ev.id]: true }));
-                        }}
-                      >
-                        <div className="aiel-timeline-top">
-                          <span className="aiel-timeline-year">{ev.year}</span>
-                          <span className="aiel-timeline-title">{ev.title}</span>
-                        </div>
-                        {isOpen && <p className="aiel-timeline-text">{ev.text}</p>}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <NavButtons
-              onBack={() => setCurrent(2)}
-              nextDisabled={!historyDone}
-              onNext={() => {
-                markComplete(3);
-                setCurrent(4);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 4: Types of AI */}
-        {current === 4 && (
-          <StageShell
-            tag={STAGE_META[4].tag}
-            title="Classify the Machines"
-            subtitle="Sort each example into the AI category it truly belongs to."
-            progressLabel={`${Object.keys(classified).length}/${CLASSIFY_ITEMS.length} classified`}
+            title="Match the Right Tool"
+            subtitle="An AI assistant is only as useful as the tools behind it. Sort each task by what it truly needs."
+            progressLabel={`${Object.keys(toolAnswers).length}/${TOOL_ITEMS.length} matched`}
           >
             <div className="aiel-item-list">
-              {CLASSIFY_ITEMS.map((item) => {
-                const chosen = classified[item.id];
+              {TOOL_ITEMS.map((item) => {
+                const chosen = toolAnswers[item.id];
                 const isCorrect = chosen === item.answer;
                 return (
                   <div key={item.id} className="aiel-item-card">
                     <p className="aiel-item-text">{item.label}</p>
                     {!chosen ? (
                       <div className="aiel-tag-row">
-                        {CATEGORIES.map((cat) => (
+                        {TOOL_CATEGORIES.map((cat) => (
                           <button
                             key={cat.id}
                             className="aiel-choice-outline"
-                            onClick={() => setClassified((p) => ({ ...p, [item.id]: cat.id }))}
+                            onClick={() => setToolAnswers((p) => ({ ...p, [item.id]: cat.id }))}
                           >
                             {cat.label}
                           </button>
@@ -744,9 +678,9 @@ export default function AIExplorerLab() {
                           <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                         )}
                         <p className="aiel-feedback-text">
-                          Correct category: <strong style={{ color: colors.ink }}>
-                            {CATEGORIES.find((c) => c.id === item.answer)?.label}
-                          </strong> -- {CATEGORIES.find((c) => c.id === item.answer)?.hint}
+                          Needs: <strong style={{ color: colors.ink }}>
+                            {TOOL_CATEGORIES.find((c) => c.id === item.answer)?.label}
+                          </strong> -- {TOOL_CATEGORIES.find((c) => c.id === item.answer)?.hint}
                         </p>
                       </div>
                     )}
@@ -755,28 +689,84 @@ export default function AIExplorerLab() {
               })}
             </div>
             <NavButtons
-              onBack={() => setCurrent(3)}
-              nextDisabled={!classifyDone}
+              onBack={() => setCurrent(1)}
+              nextDisabled={!toolDone}
+              onNext={() => {
+                markComplete(2);
+                setCurrent(3);
+              }}
+            />
+          </StageShell>
+        )}
+
+        {/* STAGE 3: AI Ethics */}
+        {current === 3 && (
+          <StageShell
+            tag={STAGE_META[3].tag}
+            title="Spot the Concern"
+            subtitle="Read each real-world scenario and identify which ethical concern it raises."
+            progressLabel={`${Object.keys(ethicsAnswers).length}/${ETHICS_ITEMS.length} classified`}
+          >
+            <div className="aiel-item-list">
+              {ETHICS_ITEMS.map((item) => {
+                const chosen = ethicsAnswers[item.id];
+                const isCorrect = chosen === item.answer;
+                return (
+                  <div key={item.id} className="aiel-item-card">
+                    <p className="aiel-item-text">{item.text}</p>
+                    {!chosen ? (
+                      <div className="aiel-tag-row">
+                        {ETHICS_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.id}
+                            className="aiel-choice-outline"
+                            onClick={() => setEthicsAnswers((p) => ({ ...p, [item.id]: cat.id }))}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="aiel-feedback">
+                        {isCorrect ? (
+                          <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
+                        ) : (
+                          <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
+                        )}
+                        <p className="aiel-feedback-text">
+                          Correct concern: <strong style={{ color: colors.ink }}>
+                            {ETHICS_CATEGORIES.find((c) => c.id === item.answer)?.label}
+                          </strong> -- {ETHICS_CATEGORIES.find((c) => c.id === item.answer)?.hint}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <NavButtons
+              onBack={() => setCurrent(2)}
+              nextDisabled={!ethicsDone}
               nextLabel="Finish Lab"
               onNext={() => {
-                markComplete(4);
-                setCurrent(5);
+                markComplete(3);
+                setCurrent(4);
               }}
             />
           </StageShell>
         )}
 
         {/* CERTIFICATE */}
-        {current === 5 && (
+        {current === 4 && (
           <div className="aiel-cert">
             <div className="aiel-cert-badge">
               <Award size={36} color={colors.ink} />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 1</h2>
+            <h2 className="aiel-cert-title">You've completed Module 4</h2>
             <p className="aiel-cert-desc">
-              You explored intelligence, compared human and machine minds, hunted down real-world AI,
-              dug through AI history, and classified today's machines.
+              You played the next-word prediction game LLMs are trained on, sharpened weak prompts into
+              strong ones, matched tasks to the right AI tools, and spotted real ethical concerns in AI.
             </p>
 
             <div className="aiel-cert-score">

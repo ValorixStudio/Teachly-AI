@@ -183,19 +183,7 @@ export default function Home() {
 
   return (
     <main>
-      {/* -- HERO -- */}
-      <div className="text-center mb-8">
-        <h1 className="gradient-text text-5xl font-black mb-3 leading-tight">
-          Activation Function
-          <br />
-          Learning Lab
-        </h1>
-        <div className="text-center mb-8">
-          Learn how neurons think, how activation functions work, and explore
-          neural networks through fun visual experiments.
-        </div>
-      </div>
-      <br />
+  
 
       {/* -- PROGRESS BAR -- */}
       <div className="max-w-xxl mx-auto mb-8">
@@ -207,13 +195,14 @@ export default function Home() {
             Explore Activations
           </span>
         </div>
+        </div>
         <div className="progress-track">
           <div
             className="progress-fill"
             style={{ width: step === 0 ? "50%" : "100%" }}
           />
         </div>
-      </div>
+      
       <br />
 
       {/* -- STEP TABS -- */}
@@ -533,13 +522,13 @@ export default function Home() {
           <br />
 
           {/* Activation selector */}
-          <div className="glass-card p-6 mb-5">
-            <p className="info-card-title mb-2">Activation function</p>
+        
+            
             <ActivationSelector
               activation={activation}
               setActivation={setActivation}
             />
-          </div>
+         
           <br />
 
           {/* Formula + properties */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -10,8 +10,6 @@ interface Topic {
   title: string;
   isHandsOn?: boolean;
   labPath?: string;
-  /** Short theory/explanation shown in a flashcard before the learner proceeds. */
-  content?: string;
 }
 
 interface Module {
@@ -34,6 +32,12 @@ function titleToSlug(title: string): string {
     .trim();
 }
 
+// Every topic navigates somewhere. If a labPath was set explicitly, use it;
+// otherwise derive a URL from the topic title (e.g. "AI Around Us" -> /ai-around-us).
+function resolveTopicPath(topic: Topic): string {
+  return topic.labPath ?? `/${titleToSlug(topic.title)}`;
+}
+
 const curriculum: Level[] = [
   {
     title: "Level 1 - AI Explorer",
@@ -41,109 +45,42 @@ const curriculum: Level[] = [
       {
         title: "Module 1: What is AI?",
         topics: [
-          {
-            title: "What is Intelligence?",
-            content:
-              "Intelligence is the ability to notice a new situation, figure out what's actually going on, and respond in a way that wasn't pre-programmed. Three signs usually give it away: learning (getting better with experience), adapting (handling a situation you've never faced before), and problem-solving (finding a new path to a goal, not just following one).The trap to watch for: something can look smart just because it's fast or complex, when really it's just executing a fixed rule same input, same output, every time, no matter how many times you repeat it. A thermostat isn't deciding anything; it's just checking a number against a threshold. A crow bending wire into a hook to reach food, on the other hand, is solving a problem it's never seen before that's real intelligence.",
-          },
-          {
-            title: "AI vs Human Intelligence",
-            content:
-              "AI is extremely fast at crunching huge amounts of data and never gets tired, but it doesn't truly 'understand' the world the way people do — it recognises statistical patterns rather than reasoning from lived experience. Humans are better at common sense, creativity, and handling situations they've never seen before. Most real-world AI today is a tool that's great at narrow, well-defined tasks, not a replacement for human judgement.",
-          },
-          {
-            title: "AI Around Us",
-            content:
-              "AI already shows up in everyday life: the recommendations on your streaming app, voice assistants like Siri or Alexa, spam filters in your inbox, face unlock on your phone, and turn-by-turn navigation that predicts traffic. Each of these systems was trained on large amounts of past data to spot patterns humans use every day without thinking about it.",
-          },
-          {
-            title: "History of AI",
-            content:
-              "AI as a field began in the 1950s, with Alan Turing's famous question 'Can machines think?' and his Turing Test. Progress was uneven — periods of excitement were followed by 'AI winters' when funding and interest dried up because the technology couldn't yet deliver. The field took off again after 2012, when deep learning combined with more data and more computing power finally started producing dramatic real-world results.",
-          },
-          {
-            title: "Types of AI",
-            content:
-              "AI is usually grouped into three categories: Narrow AI (today's AI — great at one specific task like translation or image recognition), General AI (a hypothetical system with human-level ability across any task, which doesn't exist yet), and Superintelligence (a theoretical AI that would surpass human intelligence in every domain). Everything you use today, including this course, is Narrow AI.",
-          },
+          { title: "What is Intelligence?", labPath: "/what-is-intelligence" },
+          { title: "AI vs Human Intelligence", labPath: "/ai-vs-human-intelligence" },
+          { title: "AI Around Us", labPath: "/ai-around-us" },
+          { title: "History of AI", labPath: "/history-of-ai" },
+          { title: "Types of AI", labPath: "/types-of-ai" },
           { title: "AI Intro Lab", isHandsOn: true, labPath: "/ai-intro-lab" },
         ],
       },
       {
         title: "Module 2: Machine Learning Without Math",
         topics: [
-          {
-            title: "What is Learning?",
-            content:
-              "In machine learning, 'learning' means improving performance on a task by looking at examples, rather than being told explicit rules for every case. Instead of a programmer writing 'if X then Y' for every possibility, the system is shown many examples and works out the underlying pattern itself.",
-          },
-          {
-            title: "How Machines Learn",
-            content:
-              "A machine learning model starts with random internal settings (parameters). It's shown examples, makes a guess, checks how wrong that guess was, and nudges its parameters to be a little less wrong next time. Repeat this thousands or millions of times and the model gradually gets good at the task.",
-          },
-          {
-            title: "Training vs Testing",
-            content:
-              "Training data is what the model learns from — it sees the answers and adjusts itself accordingly. Testing data is kept completely separate and hidden from the model during training; it's used afterward to check whether the model actually generalises to new, unseen situations rather than just memorising the training examples.",
-          },
-          {
-            title: "Examples",
-            content:
-              "Common everyday ML examples: spam filters learn from millions of emails already labelled 'spam' or 'not spam'; price-prediction tools learn from past sales data; photo apps learn to tag 'beach' or 'dog' from millions of labelled images. In every case, the pattern is learned from labelled past examples, not hand-written rules.",
-          },
-          { title: "ML Without Math Lab", isHandsOn: true, labPath: "/level1-module2" },
+          { title: "What is Learning?" },
+          { title: "How Machines Learn" },
+          { title: "Training vs Testing" },
+          { title: "Examples" },
+          { title: "ML Without Math Lab", isHandsOn: true, labPath: "/ml-without-math-lab" },
         ],
       },
       {
         title: "Module 3: Computer Vision",
         topics: [
-          {
-            title: "Face Recognition",
-            content:
-              "Face recognition works by mapping unique measurable features of a face — like the distance between the eyes or the shape of the jawline — into a numerical fingerprint. New faces are compared against stored fingerprints to find a match, rather than the system 'seeing' a face the way a person does.",
-          },
-          {
-            title: "Self-driving Cars",
-            content:
-              "Self-driving cars combine cameras, radar and other sensors with computer vision models trained to detect lanes, road signs, pedestrians and other vehicles in real time — often many times per second — so the car's software can decide how to steer, brake or accelerate safely.",
-          },
-          {
-            title: "Image Classification",
-            content:
-              "Image classification is the task of assigning a label to an entire image — 'cat', 'car', 'X-ray showing a fracture' — by learning which visual patterns (edges, textures, shapes) reliably distinguish one category from another, based on thousands of labelled example images.",
-          },
-          {
-            title: "OCR",
-            content:
-              "OCR (Optical Character Recognition) converts an image containing text — a scanned page, a photo of a street sign — into machine-readable, editable text. It's what lets your phone 'read' a business card or a document scanner turn a photo into a searchable PDF.",
-          },
-          { title: "Computer Vision Lab", isHandsOn: true, labPath: "/level1-module3" },
+          { title: "Face Recognition" },
+          { title: "Self-driving Cars" },
+          { title: "Image Classification" },
+          { title: "OCR" },
+          { title: "Computer Vision Lab", isHandsOn: true, labPath: "/computer-vision-lab" },
         ],
       },
       {
         title: "Module 4: ChatGPT and Generative AI",
         topics: [
-          {
-            title: "LLMs",
-            content:
-              "Large Language Models (LLMs) are neural networks trained on enormous amounts of text. They learn to predict the next word in a sequence so well that, strung together, this simple prediction produces coherent essays, code, conversations, and more.",
-          },
-          {
-            title: "Prompt Engineering",
-            content:
-              "Prompt engineering is the skill of writing clear, well-structured inputs to guide an LLM toward the response you actually want — giving context, examples, constraints or a specific format rather than a vague one-line request.",
-          },
-          {
-            title: "AI Assistants",
-            content:
-              "AI assistants pair an LLM with tools and actions — web search, calendars, code execution — so it can not just talk about a task but actually help complete it, like drafting an email, scheduling a meeting, or writing and running code.",
-          },
-          {
-            title: "AI Ethics",
-            content:
-              "AI ethics covers the responsible development and use of AI: avoiding bias in training data, protecting people's privacy, being transparent about AI's limitations, and thinking carefully about misuse before it happens rather than after.",
-          },
+          { title: "LLMs" },
+          { title: "Prompt Engineering" },
+          { title: "AI Assistants" },
+          { title: "AI Ethics" },
+          { title: "ChatGPT and Generative AI Lab", isHandsOn: true, labPath: "/chatgpt-and-genAI-lab" },
         ],
       },
     ],
@@ -159,6 +96,8 @@ const curriculum: Level[] = [
           { title: "Functions" },
           { title: "Lists" },
           { title: "Dictionaries" },
+{ title: "Python Basics Lab", isHandsOn: true, labPath: "/python-basics-lab" },
+          
         ],
       },
       {
@@ -169,6 +108,7 @@ const curriculum: Level[] = [
           { title: "Images" },
           { title: "Audio" },
           { title: "Text" },
+          { title: "Data Lab", isHandsOn: true, labPath: "/data-lab" },
         ],
       },
       {
@@ -183,6 +123,7 @@ const curriculum: Level[] = [
           { title: "Logistic Regression" },
           { title: "Decision Tree" },
           { title: "KNN" },
+           { title: "Machine Learning Basics Lab", isHandsOn: true, labPath: "/ml-basics-lab" },
         ],
       },
       {
@@ -197,7 +138,7 @@ const curriculum: Level[] = [
           { title: "Layers" },
           { title: "Forward Propagation" },
           // Hands-on: this is the one that jumps into the real lab
-          { title: "Activation Functions", isHandsOn: true, labPath: "/level2-module4" },
+          { title: "Activation Functions", isHandsOn: true, labPath: "/neural-network-lab" },
         ],
       },
       {
@@ -207,6 +148,7 @@ const curriculum: Level[] = [
           { title: "RNN" },
           { title: "LSTM" },
           { title: "Transformers (Introduction)" },
+           { title: "Deep Learning Lab", isHandsOn: true, labPath: "/deep-learning-lab" },
         ],
       },
     ],
@@ -362,10 +304,6 @@ function topicKey(levelIndex: number, moduleIndex: number, topicIndex: number) {
   return `${levelIndex}:${moduleIndex}:${topicIndex}`;
 }
 
-function fallbackTheory(title: string) {
-  return `Theory content for "${title}" is coming soon. For now, review any linked material or ask your instructor for a quick explanation before continuing to the next topic.`;
-}
-
 // -----------------------------------------------------------------------
 // Small inline icons (no extra dependency)
 // -----------------------------------------------------------------------
@@ -463,24 +401,6 @@ function CheckIcon() {
   );
 }
 
-function BookIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    </svg>
-  );
-}
-
 // -----------------------------------------------------------------------
 // Page
 // -----------------------------------------------------------------------
@@ -488,7 +408,6 @@ function BookIcon() {
 export default function Home() {
   const [openLevel, setOpenLevel] = useState<string | null>(curriculum[0]?.title ?? null);
   const [openModule, setOpenModule] = useState<string | null>(null);
-  const [openTopic, setOpenTopic] = useState<string | null>(null);
 
   // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
@@ -530,7 +449,7 @@ export default function Home() {
     });
   }
 
- // Used purely for unlocking the NEXT module/level. Empty-content modules
+  // Used purely for unlocking the NEXT module/level. Empty-content modules
   // auto-pass here so they never permanently block progression.
   function isModuleCompleted(levelIndex: number, moduleIndex: number): boolean {
     const mod = curriculum[levelIndex].modules[moduleIndex];
@@ -559,6 +478,7 @@ export default function Home() {
     if (!hasAnyContent(levelIndex)) return false;
     return isLevelCompleted(levelIndex);
   }
+
   function isLevelUnlocked(levelIndex: number): boolean {
     if (levelIndex === 0) return true;
     return isLevelCompleted(levelIndex - 1);
@@ -618,7 +538,6 @@ export default function Home() {
                     if (levelLocked) return;
                     setOpenLevel(levelOpen ? null : level.title);
                     setOpenModule(null);
-                    setOpenTopic(null);
                   }}
                   className="al-level-header"
                   aria-expanded={levelOpen}
@@ -659,7 +578,6 @@ export default function Home() {
                               onClick={() => {
                                 if (moduleLocked) return;
                                 setOpenModule(moduleOpen ? null : moduleKey);
-                                setOpenTopic(null);
                               }}
                               className="al-module-header"
                               aria-expanded={moduleOpen}
@@ -687,64 +605,12 @@ export default function Home() {
                                   )}
                                   {mod.topics.map((t, i) => {
                                     const topicKeyStr = `${moduleKey}/${t.title}/${i}`;
-                                    const topicOpen = openTopic === topicKeyStr;
                                     const tLocked = !isTopicUnlocked(levelIndex, modIndex, i);
                                     const tCompleted = completedTopics.has(
                                       topicKey(levelIndex, modIndex, i)
                                     );
+                                    const href = resolveTopicPath(t);
 
-                                    // Real lab -> a link, but marks the topic complete on click
-                                    // so the next module/level can unlock.
-                                    if (t.labPath) {
-                                      if (tLocked) {
-                                        return (
-                                          <li key={topicKeyStr} className="al-topic">
-                                            <div className="al-topic-row al-topic-locked">
-                                              <span className="al-topic-text">
-                                                {t.title}
-                                                {t.isHandsOn && (
-                                                  <span className="al-badge">
-                                                    <FlaskIcon />
-                                                    Hands-on
-                                                  </span>
-                                                )}
-                                              </span>
-                                              <LockIcon />
-                                            </div>
-                                          </li>
-                                        );
-                                      }
-                                      return (
-                                        <li key={topicKeyStr} className="al-topic">
-                                          <Link
-                                            href={t.labPath}
-                                            className="al-topic-row al-topic-link"
-                                            onClick={() =>
-                                              markTopicComplete(levelIndex, modIndex, i)
-                                            }
-                                          >
-                                            <span className="al-topic-text">
-                                              {t.title}
-                                              {t.isHandsOn && (
-                                                <span className="al-badge">
-                                                  <FlaskIcon />
-                                                  Hands-on
-                                                </span>
-                                              )}
-                                              {tCompleted && (
-                                                <span className="al-status-badge al-status-complete">
-                                                  <CheckIcon />
-                                                  Done
-                                                </span>
-                                              )}
-                                            </span>
-                                            <ArrowIcon />
-                                          </Link>
-                                        </li>
-                                      );
-                                    }
-
-                                    // No lab -> expand into a theory flashcard instead of navigating.
                                     if (tLocked) {
                                       return (
                                         <li key={topicKeyStr} className="al-topic">
@@ -766,12 +632,12 @@ export default function Home() {
 
                                     return (
                                       <li key={topicKeyStr} className="al-topic">
-                                        <button
+                                        <Link
+                                          href={href}
+                                          className="al-topic-row al-topic-link"
                                           onClick={() =>
-                                            setOpenTopic(topicOpen ? null : topicKeyStr)
+                                            markTopicComplete(levelIndex, modIndex, i)
                                           }
-                                          className="al-topic-row al-topic-button"
-                                          aria-expanded={topicOpen}
                                         >
                                           <span className="al-topic-text">
                                             {t.title}
@@ -788,42 +654,8 @@ export default function Home() {
                                               </span>
                                             )}
                                           </span>
-                                          <ChevronIcon open={topicOpen} />
-                                        </button>
-
-                                        <div
-                                          className={`al-collapsible ${
-                                            topicOpen ? "al-open" : ""
-                                          }`}
-                                        >
-                                          <div className="al-collapsible-inner">
-                                            <div className="al-flashcard">
-                                              <div className="al-flashcard-label">
-                                                <BookIcon />
-                                                Key Concept
-                                              </div>
-                                              <p className="al-flashcard-text">
-                                                {t.content ?? fallbackTheory(t.title)}
-                                              </p>
-                                              {tCompleted ? (
-                                                <p className="al-flashcard-done">
-                                                  <CheckIcon />
-                                                  Completed
-                                                </p>
-                                              ) : (
-                                                <button
-                                                  type="button"
-                                                  className="al-flashcard-btn"
-                                                  onClick={() =>
-                                                    markTopicComplete(levelIndex, modIndex, i)
-                                                  }
-                                                >
-                                                  Mark as Complete
-                                                </button>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
+                                          <ArrowIcon />
+                                        </Link>
                                       </li>
                                     );
                                   })}
@@ -1220,71 +1052,11 @@ export default function Home() {
           border-radius: 8px;
         }
 
-        /* ---------- Theory flashcard ---------- */
-
-        .al-flashcard {
-          margin: 0.25rem 0.25rem 1rem;
-          padding: 1rem 1.1rem;
-          border-radius: 12px;
-          border: 1px solid var(--line);
-          border-left: 3px solid var(--accent);
-          background: color-mix(in srgb, var(--accent) 5%, var(--surface));
-        }
-
-        .al-flashcard-label {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          font-family: "JetBrains Mono", ui-monospace, monospace;
-          font-size: 0.68rem;
-          font-weight: 600;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: var(--accent);
-          margin-bottom: 0.55rem;
-        }
-
-        .al-flashcard-text {
-          font-size: 0.88rem;
-          line-height: 1.55;
-          color: var(--ink);
-          margin: 0 0 0.9rem;
-        }
-
-        .al-flashcard-btn {
-          padding: 0.55rem 0.9rem;
-          border-radius: 8px;
-          border: 1px solid var(--accent);
-          background: color-mix(in srgb, var(--accent) 12%, transparent);
-          color: var(--accent);
-          font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-          font-weight: 600;
-          font-size: 0.82rem;
-          cursor: pointer;
-          transition: background 180ms ease, transform 180ms ease;
-        }
-
-        .al-flashcard-btn:hover {
-          background: color-mix(in srgb, var(--accent) 20%, transparent);
-          transform: translateY(-1px);
-        }
-
-        .al-flashcard-done {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          margin: 0;
-          font-size: 0.8rem;
-          font-weight: 600;
-          color: #12a594;
-        }
-
         /* ---------- Accessibility ---------- */
 
         .al-level-header:focus-visible,
         .al-module-header:focus-visible,
-        .al-topic-row:focus-visible,
-        .al-flashcard-btn:focus-visible {
+        .al-topic-row:focus-visible {
           outline: 2px solid var(--accent);
           outline-offset: -2px;
           border-radius: 8px;
