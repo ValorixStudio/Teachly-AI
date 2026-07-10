@@ -3527,8 +3527,6 @@ knn: {
         ],
       },
     ],
-    handsOnPrompt:
-      "In the lab, you'll manually push a small input through a mini network's layers, computing the forward pass by hand.",
   },
 
   /* ===================== LEVEL 2 · MODULE 5: Deep Learning ===================== */
@@ -3555,8 +3553,6 @@ knn: {
         ],
       },
     ],
-    handsOnPrompt:
-      "In the lab, you'll slide a small filter over a tiny grid of pixels and see what pattern it lights up on.",
   },
 
   rnn: {
@@ -3581,8 +3577,6 @@ knn: {
         ],
       },
     ],
-    handsOnPrompt:
-      "In the lab, you'll step through a short sequence and track how the network's 'memory' updates at each step.",
   },
 
   lstm: {
@@ -3607,8 +3601,7 @@ knn: {
         ],
       },
     ],
-    handsOnPrompt:
-      "In the lab, you'll compare a plain RNN and an LSTM on a sequence where an early detail matters much later on.",
+
   },
 
   "transformers-introduction": {
