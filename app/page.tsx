@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-
-
 interface Topic {
   title: string;
   isHandsOn?: boolean;
@@ -45,11 +43,14 @@ const curriculum: Level[] = [
       {
         title: "Module 1: What is AI?",
         topics: [
-          { title: "What is Intelligence?", labPath: "/what-is-intelligence" },
-          { title: "AI vs Human Intelligence", labPath: "/ai-vs-human-intelligence" },
-          { title: "AI Around Us", labPath: "/ai-around-us" },
-          { title: "History of AI", labPath: "/history-of-ai" },
-          { title: "Types of AI", labPath: "/types-of-ai" },
+          { title: "What is Intelligence?", labPath: "what-is-intelligence" },
+          {
+            title: "AI vs Human Intelligence",
+            labPath: "ai-vs-human-intelligence",
+          },
+          { title: "AI Around Us", labPath: "ai-around-us" },
+          { title: "History of AI", labPath: "history-of-ai" },
+          { title: "Types of AI", labPath: "types-of-ai" },
           { title: "AI Intro Lab", isHandsOn: true, labPath: "/ai-intro-lab" },
         ],
       },
@@ -60,7 +61,11 @@ const curriculum: Level[] = [
           { title: "How Machines Learn" },
           { title: "Training vs Testing" },
           { title: "Examples" },
-          { title: "ML Without Math Lab", isHandsOn: true, labPath: "/ml-without-math-lab" },
+          {
+            title: "ML Without Math Lab",
+            isHandsOn: true,
+            labPath: "/ml-without-math-lab",
+          },
         ],
       },
       {
@@ -70,7 +75,11 @@ const curriculum: Level[] = [
           { title: "Self-driving Cars" },
           { title: "Image Classification" },
           { title: "OCR" },
-          { title: "Computer Vision Lab", isHandsOn: true, labPath: "/computer-vision-lab" },
+          {
+            title: "Computer Vision Lab",
+            isHandsOn: true,
+            labPath: "/computer-vision-lab",
+          },
         ],
       },
       {
@@ -80,7 +89,11 @@ const curriculum: Level[] = [
           { title: "Prompt Engineering" },
           { title: "AI Assistants" },
           { title: "AI Ethics" },
-          { title: "ChatGPT and Generative AI Lab", isHandsOn: true, labPath: "/chatgpt-and-genAI-lab" },
+          {
+            title: "ChatGPT and Generative AI Lab",
+            isHandsOn: true,
+            labPath: "/chatgpt-and-genAI-lab",
+          },
         ],
       },
     ],
@@ -96,8 +109,11 @@ const curriculum: Level[] = [
           { title: "Functions" },
           { title: "Lists" },
           { title: "Dictionaries" },
-{ title: "Python Basics Lab", isHandsOn: true, labPath: "/python-basics-lab" },
-          
+          {
+            title: "Python Basics Lab",
+            isHandsOn: true,
+            labPath: "/python-basics-lab",
+          },
         ],
       },
       {
@@ -118,12 +134,15 @@ const curriculum: Level[] = [
           { title: "Supervised Learning" },
           { title: "Unsupervised Learning" },
           { title: "Reinforcement Learning" },
-          { title: "Algorithms" },
           { title: "Linear Regression" },
           { title: "Logistic Regression" },
           { title: "Decision Tree" },
           { title: "KNN" },
-           { title: "Machine Learning Basics Lab", isHandsOn: true, labPath: "/ml-basics-lab" },
+          {
+            title: "Machine Learning Basics Lab",
+            isHandsOn: true,
+            labPath: "/ml-basics-lab",
+          },
         ],
       },
       {
@@ -138,7 +157,11 @@ const curriculum: Level[] = [
           { title: "Layers" },
           { title: "Forward Propagation" },
           // Hands-on: this is the one that jumps into the real lab
-          { title: "Activation Functions", isHandsOn: true, labPath: "/neural-network-lab" },
+          {
+            title: "Activation Functions",
+            isHandsOn: true,
+            labPath: "/neural-network-lab",
+          },
         ],
       },
       {
@@ -148,7 +171,11 @@ const curriculum: Level[] = [
           { title: "RNN" },
           { title: "LSTM" },
           { title: "Transformers (Introduction)" },
-           { title: "Deep Learning Lab", isHandsOn: true, labPath: "/deep-learning-lab" },
+          {
+            title: "Deep Learning Lab",
+            isHandsOn: true,
+            labPath: "/deep-learning-lab",
+          },
         ],
       },
     ],
@@ -249,12 +276,16 @@ const curriculum: Level[] = [
           { title: "Backpropagation" },
           { title: "Gradient Descent" },
           { title: "Optimizers" },
-          { title: "Activation Functions", labPath: "/level2-module4" },
+          { title: "Activation Functions" },
           { title: "Loss Functions" },
           { title: "Regularization" },
           { title: "Batch Normalization" },
           { title: "Dropout" },
-          { title: "PyTorch & TensorFlow", isHandsOn: true },
+           {
+            title: "Neural Network Simulation Lab",
+            isHandsOn: true,
+            labPath: "/feed-forward-lab"
+          }
         ],
       },
       { title: "Module 7: Computer Vision", topics: [] },
@@ -406,11 +437,15 @@ function CheckIcon() {
 // -----------------------------------------------------------------------
 
 export default function Home() {
-  const [openLevel, setOpenLevel] = useState<string | null>(curriculum[0]?.title ?? null);
+  const [openLevel, setOpenLevel] = useState<string | null>(
+    curriculum[0]?.title ?? null,
+  );
   const [openModule, setOpenModule] = useState<string | null>(null);
 
   // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
-  const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
+  const [completedTopics, setCompletedTopics] = useState<Set<string>>(
+    new Set(),
+  );
   const [hydrated, setHydrated] = useState(false);
 
   // Load saved progress once, on the client, after mount.
@@ -434,14 +469,18 @@ export default function Home() {
     try {
       window.localStorage.setItem(
         PROGRESS_STORAGE_KEY,
-        JSON.stringify(Array.from(completedTopics))
+        JSON.stringify(Array.from(completedTopics)),
       );
     } catch {
       // ignore write failures (e.g. storage disabled)
     }
   }, [completedTopics, hydrated]);
 
-  function markTopicComplete(levelIndex: number, moduleIndex: number, topicIndex: number) {
+  function markTopicComplete(
+    levelIndex: number,
+    moduleIndex: number,
+    topicIndex: number,
+  ) {
     setCompletedTopics((prev) => {
       const next = new Set(prev);
       next.add(topicKey(levelIndex, moduleIndex, topicIndex));
@@ -454,11 +493,15 @@ export default function Home() {
   function isModuleCompleted(levelIndex: number, moduleIndex: number): boolean {
     const mod = curriculum[levelIndex].modules[moduleIndex];
     if (mod.topics.length === 0) return true;
-    return mod.topics.every((_, ti) => completedTopics.has(topicKey(levelIndex, moduleIndex, ti)));
+    return mod.topics.every((_, ti) =>
+      completedTopics.has(topicKey(levelIndex, moduleIndex, ti)),
+    );
   }
 
   function isLevelCompleted(levelIndex: number): boolean {
-    return curriculum[levelIndex].modules.every((_, mi) => isModuleCompleted(levelIndex, mi));
+    return curriculum[levelIndex].modules.every((_, mi) =>
+      isModuleCompleted(levelIndex, mi),
+    );
   }
 
   // Used purely for the "Completed" BADGE. A module/level only earns the
@@ -468,7 +511,10 @@ export default function Home() {
     return curriculum[levelIndex].modules.some((m) => m.topics.length > 0);
   }
 
-  function moduleEarnsCompleteBadge(levelIndex: number, moduleIndex: number): boolean {
+  function moduleEarnsCompleteBadge(
+    levelIndex: number,
+    moduleIndex: number,
+  ): boolean {
     const mod = curriculum[levelIndex].modules[moduleIndex];
     if (mod.topics.length === 0) return false;
     return isModuleCompleted(levelIndex, moduleIndex);
@@ -490,10 +536,16 @@ export default function Home() {
     return isModuleCompleted(levelIndex, moduleIndex - 1);
   }
 
-  function isTopicUnlocked(levelIndex: number, moduleIndex: number, topicIndex: number): boolean {
+  function isTopicUnlocked(
+    levelIndex: number,
+    moduleIndex: number,
+    topicIndex: number,
+  ): boolean {
     if (!isModuleUnlocked(levelIndex, moduleIndex)) return false;
     if (topicIndex === 0) return true;
-    return completedTopics.has(topicKey(levelIndex, moduleIndex, topicIndex - 1));
+    return completedTopics.has(
+      topicKey(levelIndex, moduleIndex, topicIndex - 1),
+    );
   }
 
   return (
@@ -502,13 +554,17 @@ export default function Home() {
         <header className="al-header">
           <h1 className="al-title">AI Visualization Labs</h1>
           <p className="al-sub">
-            Learn how AI works, explore it visually, and build your own AI skills step by step.
+            Learn how AI works, explore it visually, and build your own AI
+            skills step by step.
           </p>
 
           <ul className="al-legend">
             {levelThemes.map((t, i) => (
               <li key={t.name} className="al-legend-item">
-                <span className="al-legend-dot" style={{ background: t.accent }} />
+                <span
+                  className="al-legend-dot"
+                  style={{ background: t.accent }}
+                />
                 <span className="al-legend-label">
                   L{i + 1} · {t.name}
                 </span>
@@ -545,7 +601,9 @@ export default function Home() {
                   disabled={levelLocked}
                 >
                   <span className="al-level-heading">
-                    <span className="al-tag al-tag-level">L{levelIndex + 1}</span>
+                    <span className="al-tag al-tag-level">
+                      L{levelIndex + 1}
+                    </span>
                     <span className="al-level-title">{level.title}</span>
                     {levelCompleted && (
                       <span className="al-status-badge al-status-complete">
@@ -560,7 +618,11 @@ export default function Home() {
                       </span>
                     )}
                   </span>
-                  {levelLocked ? <LockIcon /> : <ChevronIcon open={levelOpen} />}
+                  {levelLocked ? (
+                    <LockIcon />
+                  ) : (
+                    <ChevronIcon open={levelOpen} />
+                  )}
                 </button>
 
                 <div className={`al-collapsible ${levelOpen ? "al-open" : ""}`}>
@@ -568,12 +630,23 @@ export default function Home() {
                     <div className="al-modules">
                       {level.modules.map((mod, modIndex) => {
                         const moduleKey = `${level.title}/${mod.title}`;
-                        const moduleLocked = !isModuleUnlocked(levelIndex, modIndex);
-                        const moduleCompleted = isModuleCompleted(levelIndex, modIndex);
-                        const moduleOpen = openModule === moduleKey && !moduleLocked;
+                        const moduleLocked = !isModuleUnlocked(
+                          levelIndex,
+                          modIndex,
+                        );
+                        const moduleCompleted = isModuleCompleted(
+                          levelIndex,
+                          modIndex,
+                        );
+                        const moduleOpen =
+                          openModule === moduleKey && !moduleLocked;
 
                         return (
-                          <div key={mod.title} className="al-module" data-locked={moduleLocked}>
+                          <div
+                            key={mod.title}
+                            className="al-module"
+                            data-locked={moduleLocked}
+                          >
                             <button
                               onClick={() => {
                                 if (moduleLocked) return;
@@ -585,8 +658,12 @@ export default function Home() {
                               disabled={moduleLocked}
                             >
                               <span className="al-module-heading">
-                                <span className="al-tag al-tag-module">M{modIndex + 1}</span>
-                                <span className="al-module-title">{mod.title}</span>
+                                <span className="al-tag al-tag-module">
+                                  M{modIndex + 1}
+                                </span>
+                                <span className="al-module-title">
+                                  {mod.title}
+                                </span>
                                 {moduleCompleted && mod.topics.length > 0 && (
                                   <span className="al-status-badge al-status-complete">
                                     <CheckIcon />
@@ -594,26 +671,41 @@ export default function Home() {
                                   </span>
                                 )}
                               </span>
-                              {moduleLocked ? <LockIcon /> : <ChevronIcon open={moduleOpen} />}
+                              {moduleLocked ? (
+                                <LockIcon />
+                              ) : (
+                                <ChevronIcon open={moduleOpen} />
+                              )}
                             </button>
 
-                            <div className={`al-collapsible ${moduleOpen ? "al-open" : ""}`}>
+                            <div
+                              className={`al-collapsible ${moduleOpen ? "al-open" : ""}`}
+                            >
                               <div className="al-collapsible-inner">
                                 <ul className="al-topics">
                                   {mod.topics.length === 0 && (
-                                    <li className="al-empty">Content in progress</li>
+                                    <li className="al-empty">
+                                      Content in progress
+                                    </li>
                                   )}
                                   {mod.topics.map((t, i) => {
                                     const topicKeyStr = `${moduleKey}/${t.title}/${i}`;
-                                    const tLocked = !isTopicUnlocked(levelIndex, modIndex, i);
+                                    const tLocked = !isTopicUnlocked(
+                                      levelIndex,
+                                      modIndex,
+                                      i,
+                                    );
                                     const tCompleted = completedTopics.has(
-                                      topicKey(levelIndex, modIndex, i)
+                                      topicKey(levelIndex, modIndex, i),
                                     );
                                     const href = resolveTopicPath(t);
 
                                     if (tLocked) {
                                       return (
-                                        <li key={topicKeyStr} className="al-topic">
+                                        <li
+                                          key={topicKeyStr}
+                                          className="al-topic"
+                                        >
                                           <div className="al-topic-row al-topic-locked">
                                             <span className="al-topic-text">
                                               {t.title}
@@ -631,12 +723,19 @@ export default function Home() {
                                     }
 
                                     return (
-                                      <li key={topicKeyStr} className="al-topic">
+                                      <li
+                                        key={topicKeyStr}
+                                        className="al-topic"
+                                      >
                                         <Link
                                           href={href}
                                           className="al-topic-row al-topic-link"
                                           onClick={() =>
-                                            markTopicComplete(levelIndex, modIndex, i)
+                                            markTopicComplete(
+                                              levelIndex,
+                                              modIndex,
+                                              i,
+                                            )
                                           }
                                         >
                                           <span className="al-topic-text">
@@ -678,23 +777,25 @@ export default function Home() {
         @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap");
 
         .al-page {
-          --ink: #12141c;
-          --ink-soft: #5b6072;
-          --paper: #f5f6f8;
-          --surface: #ffffff;
-          --line: #e3e5ea;
+          --bg-base: #f8fafc;
+          --bg-surface: #ffffff;
+          --ink: #0f172a;
+          --ink-soft: #64748b;
+          --line: #e2e8f0;
 
           min-height: 100vh;
           padding: 4rem 1.5rem 6rem;
-          background-color: var(--paper);
-          background-image: radial-gradient(circle, #dfe2e8 1px, transparent 1px);
-          background-size: 22px 22px;
+          background-color: var(--bg-base);
+          background-image: url("/bg-light.jpg");
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
           color: var(--ink);
           font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
         }
 
         .al-wrap {
-          max-width: 46rem;
+          max-width: 58rem;
           margin: 0 auto;
         }
 
@@ -702,25 +803,35 @@ export default function Home() {
 
         .al-header {
           text-align: center;
-          margin-bottom: 3rem;
+          margin-bottom: 3.5rem;
         }
 
         .al-title {
           font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-          font-size: clamp(2.75rem, 6vw, 3.75rem);
+          font-size: clamp(2.75rem, 6vw, 4rem);
           font-weight: 700;
-          letter-spacing: -0.02em;
-          margin-bottom: 0.5rem;
-          background: linear-gradient(90deg, #2d7dd2, #12a594, #7c5cfc, #e8590c);
-          background-clip: text;
+          letter-spacing: -0.03em;
+          margin-bottom: 1rem;
+          background: linear-gradient(
+            235deg,
+            #a62963 0%,
+            #a6497c 60%,
+            #bf984e 100%
+          );
           -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           color: transparent;
         }
 
         .al-sub {
-          font-size: 1.05rem;
+          font-size: 1.15rem;
           color: var(--ink-soft);
-          margin-bottom: 1.75rem;
+          margin-bottom: 2rem;
+          max-width: 32rem;
+          margin-left: auto;
+          margin-right: auto;
+          line-height: 1.6;
         }
 
         .al-legend {
@@ -728,7 +839,7 @@ export default function Home() {
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
-          gap: 0.5rem 1.1rem;
+          gap: 0.75rem 1.5rem;
           padding: 0;
           margin: 0;
         }
@@ -736,49 +847,92 @@ export default function Home() {
         .al-legend-item {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.5rem;
         }
 
         .al-legend-dot {
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
           flex-shrink: 0;
+          box-shadow: 0 0 8px var(--accent);
         }
 
         .al-legend-label {
           font-family: "JetBrains Mono", ui-monospace, monospace;
-          font-size: 0.72rem;
-          letter-spacing: 0.02em;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
           color: var(--ink-soft);
         }
 
-        /* ---------- Levels ---------- */
+        /* ---------- Levels (Roadmap Timeline) ---------- */
 
         .al-levels {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 2.5rem;
+          position: relative;
+          padding-left: 48px;
+        }
+
+        .al-levels::before {
+          content: "";
+          position: absolute;
+          top: 2rem;
+          bottom: 2rem;
+          left: 14px;
+          width: 4px;
+          background: var(--line);
+          border-radius: 4px;
         }
 
         .al-level {
-          background: var(--surface);
+          position: relative;
+          background: var(--bg-surface);
           border: 1px solid var(--line);
-          border-left: 3px solid var(--accent);
-          border-radius: 16px;
+          border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 1px 2px rgba(18, 20, 28, 0.04);
-          transition: box-shadow 220ms ease, transform 220ms ease, opacity 220ms ease;
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        /* Timeline Node */
+        .al-level::before {
+          content: "";
+          position: absolute;
+          top: 1.5rem;
+          left: -42px; /* Centers the 16px circle on the 4px line at 14px */
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--bg-surface);
+          border: 4px solid var(--accent);
+          z-index: 2;
+          box-shadow: 0 0 0 6px var(--bg-base);
+          transition:
+            border-color 0.2s ease,
+            transform 0.2s ease;
         }
 
         .al-level[data-open="true"] {
-          box-shadow: 0 10px 28px rgba(18, 20, 28, 0.08);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+          transform: translateY(-2px);
+          border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+        }
+
+        .al-level[data-open="true"]::before {
+          transform: scale(1.2);
         }
 
         .al-level[data-locked="true"] {
-          opacity: 0.55;
-          border-left-color: var(--line);
+          opacity: 0.6;
+          filter: grayscale(100%);
+        }
+
+        .al-level[data-locked="true"]::before {
+          border-color: var(--line);
         }
 
         .al-level-header {
@@ -787,16 +941,17 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 1rem;
-          padding: 1.15rem 1.4rem;
+          padding: 1.25rem 1.5rem;
           background: transparent;
           border: none;
           cursor: pointer;
           text-align: left;
           color: var(--ink);
+          transition: background-color 0.2s ease;
         }
 
         .al-level-header:hover {
-          background: color-mix(in srgb, var(--accent) 6%, transparent);
+          background-color: rgba(0, 0, 0, 0.02);
         }
 
         .al-level[data-locked="true"] .al-level-header {
@@ -810,14 +965,14 @@ export default function Home() {
         .al-level-heading {
           display: flex;
           align-items: center;
-          gap: 0.85rem;
+          gap: 1rem;
           min-width: 0;
           flex-wrap: wrap;
         }
 
         .al-level-title {
           font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-          font-size: 1.2rem;
+          font-size: 1.25rem;
           font-weight: 600;
           letter-spacing: -0.01em;
         }
@@ -838,24 +993,26 @@ export default function Home() {
         .al-status-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
+          gap: 0.35rem;
           font-family: "JetBrains Mono", ui-monospace, monospace;
           font-size: 0.65rem;
           font-weight: 600;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
-          padding: 0.18rem 0.5rem;
+          padding: 0.25rem 0.6rem;
           border-radius: 999px;
         }
 
         .al-status-complete {
-          color: #12a594;
-          background: color-mix(in srgb, #12a594 14%, transparent);
+          color: #059669;
+          background: rgba(5, 150, 105, 0.1);
+          border: 1px solid rgba(5, 150, 105, 0.2);
         }
 
         .al-status-locked {
           color: var(--ink-soft);
-          background: color-mix(in srgb, #5b6072 12%, transparent);
+          background: rgba(100, 116, 139, 0.1);
+          border: 1px solid var(--line);
         }
 
         /* ---------- Tags (mono badges) ---------- */
@@ -864,23 +1021,25 @@ export default function Home() {
           flex-shrink: 0;
           font-family: "JetBrains Mono", ui-monospace, monospace;
           font-weight: 600;
-          letter-spacing: 0.02em;
+          letter-spacing: 0.05em;
           border-radius: 6px;
           text-align: center;
+          border: 1px solid var(--accent);
         }
 
         .al-tag-level {
           font-size: 0.75rem;
-          padding: 0.28rem 0.5rem;
+          padding: 0.25rem 0.5rem;
           color: var(--accent);
-          background: color-mix(in srgb, var(--accent) 14%, transparent);
+          background: color-mix(in srgb, var(--accent) 15%, transparent);
         }
 
         .al-tag-module {
-          font-size: 0.68rem;
-          padding: 0.2rem 0.42rem;
+          font-size: 0.7rem;
+          padding: 0.2rem 0.4rem;
           color: var(--accent);
           background: color-mix(in srgb, var(--accent) 10%, transparent);
+          border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
         }
 
         /* ---------- Collapsible (animated height) ---------- */
@@ -911,7 +1070,7 @@ export default function Home() {
         }
 
         .al-module[data-locked="true"] {
-          opacity: 0.5;
+          opacity: 0.6;
         }
 
         .al-module:last-child {
@@ -924,16 +1083,17 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 1rem;
-          padding: 0.85rem 1.4rem;
+          padding: 1rem 1.5rem;
           background: transparent;
           border: none;
           cursor: pointer;
           text-align: left;
           color: var(--ink);
+          transition: background-color 0.2s ease;
         }
 
         .al-module-header:hover {
-          background: color-mix(in srgb, var(--accent) 5%, transparent);
+          background-color: rgba(0, 0, 0, 0.015);
         }
 
         .al-module[data-locked="true"] .al-module-header {
@@ -947,14 +1107,14 @@ export default function Home() {
         .al-module-heading {
           display: flex;
           align-items: center;
-          gap: 0.7rem;
+          gap: 0.85rem;
           min-width: 0;
           flex-wrap: wrap;
         }
 
         .al-module-title {
           font-weight: 500;
-          font-size: 0.95rem;
+          font-size: 1rem;
         }
 
         /* ---------- Topics ---------- */
@@ -962,11 +1122,11 @@ export default function Home() {
         .al-topics {
           list-style: none;
           margin: 0;
-          padding: 0.25rem 1.4rem 1rem 2.5rem;
+          padding: 0.5rem 1.5rem 1.25rem 2.75rem;
         }
 
         .al-topic {
-          border-bottom: 1px dashed var(--line);
+          border-bottom: 1px solid var(--line);
         }
 
         .al-topic:last-child {
@@ -979,13 +1139,16 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 0.75rem;
-          padding: 0.6rem 0.25rem;
+          padding: 0.75rem 0.5rem;
           background: none;
           border: none;
           cursor: pointer;
           text-align: left;
-          font-size: 0.9rem;
+          font-size: 0.95rem;
           color: var(--ink);
+          transition:
+            color 0.2s ease,
+            transform 0.2s ease;
         }
 
         .al-topic-link {
@@ -994,6 +1157,7 @@ export default function Home() {
 
         .al-topic-row:hover {
           color: var(--accent);
+          transform: translateX(4px);
         }
 
         .al-topic-locked {
@@ -1003,35 +1167,40 @@ export default function Home() {
 
         .al-topic-locked:hover {
           color: var(--ink-soft);
+          transform: none;
         }
 
         .al-topic-text {
           display: inline-flex;
           align-items: center;
-          gap: 0.55rem;
+          gap: 0.65rem;
           flex-wrap: wrap;
         }
 
         .al-badge {
           display: inline-flex;
           align-items: center;
-          gap: 0.3rem;
+          gap: 0.35rem;
           font-family: "JetBrains Mono", ui-monospace, monospace;
           font-size: 0.65rem;
           font-weight: 600;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
           color: var(--accent);
-          background: color-mix(in srgb, var(--accent) 12%, transparent);
-          padding: 0.18rem 0.45rem;
+          background: color-mix(in srgb, var(--accent) 15%, transparent);
+          border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+          padding: 0.2rem 0.5rem;
           border-radius: 999px;
         }
 
         .al-arrow {
           flex-shrink: 0;
           opacity: 0;
-          transform: translateX(-4px);
-          transition: opacity 200ms ease, transform 200ms ease;
+          transform: translateX(-8px);
+          transition:
+            opacity 200ms ease,
+            transform 200ms ease;
+          color: var(--accent);
         }
 
         .al-topic-link:hover .al-arrow,
@@ -1041,15 +1210,17 @@ export default function Home() {
         }
 
         .al-empty {
-          padding: 0.7rem 0.75rem;
-          margin: 0.25rem 0;
+          padding: 1rem;
+          margin: 0.5rem 0;
           font-family: "JetBrains Mono", ui-monospace, monospace;
-          font-size: 0.72rem;
-          letter-spacing: 0.02em;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
           text-transform: uppercase;
           color: var(--ink-soft);
           border: 1px dashed var(--line);
           border-radius: 8px;
+          text-align: center;
+          background: rgba(0, 0, 0, 0.01);
         }
 
         /* ---------- Accessibility ---------- */
@@ -1066,7 +1237,8 @@ export default function Home() {
           .al-collapsible,
           .al-chevron,
           .al-arrow,
-          .al-level {
+          .al-level,
+          .al-topic-row {
             transition: none !important;
           }
         }
@@ -1075,13 +1247,28 @@ export default function Home() {
           .al-page {
             padding: 2.5rem 1rem 4rem;
           }
+          .al-title {
+            font-size: 2.25rem;
+          }
+          .al-levels {
+            padding-left: 32px;
+          }
+          .al-levels::before {
+            left: 8px;
+          }
+          .al-level::before {
+            left: -34px;
+            width: 16px;
+            height: 16px;
+            top: 1.4rem;
+          }
           .al-level-header,
           .al-module-header {
             padding-left: 1rem;
             padding-right: 1rem;
           }
           .al-topics {
-            padding-left: 1.75rem;
+            padding-left: 1.5rem;
           }
         }
       `}</style>

@@ -1,45 +1,76 @@
 "use client";
 
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
   Lightbulb,
+  FunctionSquare,
   Users,
+  Trees,
   Globe,
   Clock,
   Layers,
-  FlaskConical,
+  FileWarning,
+  Search,
+  Shield,
+  Group,
+  Tags,
+  Package,
+Calculator,
+Layers3,
+Table,
+Radar,
+Zap,
+CircleOff,
+Grid2X2,
+Split,
+SlidersHorizontal,
+Target,
+SearchCheck,
+Scale,
+LineChart,
+BrainCircuit,
+BrushCleaning,
+Dice5,
   BookOpen,
   Cpu,
   Table2,
   Sparkles,
-  Eye,
+  Compass,
   Car,
+  SplitSquareVertical,
   Image as ImageIcon,
   FileText,
   MessageSquare,
   Braces,
   Bot,
   ShieldCheck,
+  ShieldAlert,
   Code2,
   GitBranch,
   Boxes,
+  TrendingDown,
+  Gauge,
   Database,
   Music,
   Sigma,
   Network,
   Workflow,
   Brain,
-  BrainCircuit,
+  TrendingUp,
   ScanFace,
   Binary,
   BarChart3,
+  RotateCcw,
   Rocket,
-  Scale,
+ ArrowRightLeft,
   GraduationCap,
   PieChart,
+  Wand2,
 } from "lucide-react";
 import { text } from "stream/consumers";
 
@@ -62,7 +93,7 @@ const colors = {
 
 /* ---------------------------- TYPES ---------------------------- */
 
-type AccentKey = "teal" | "coral" | "gold" | "purple";
+type AccentKey = "teal" | "coral" | "gold" | "purple" | "blue" | "green" | "orange";
 
 interface Section {
   heading?: string;
@@ -86,246 +117,290 @@ const STYLES = `
   .topic-root {
     min-height: 100vh;
     width: 100%;
-    padding: 32px 16px;
-    background: radial-gradient(circle at 20% -10%, ${colors.bgSoft} 0%, ${colors.bg} 55%);
-    font-family: 'Poppins', sans-serif;
+    padding: 2rem 1.5rem 6rem;
+    background-color: #f8fafc;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+    color: #0f172a;
     box-sizing: border-box;
   }
   .topic-root * { box-sizing: border-box; }
-  .topic-root button { font-family: inherit; border: none; background: none; cursor: pointer; }
-  @media (prefers-reduced-motion: reduce) {
-    .topic-root * { transition: none !important; animation: none !important; }
+  .topic-root button { font-family: inherit; cursor: pointer; }
+
+  .bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.25;
+    z-index: 0;
+    animation: float 20s infinite alternate;
+  }
+  .blob-1 {
+    top: -10%; left: -10%; width: 50vw; height: 50vw;
+    background: var(--accent);
+  }
+  .blob-2 {
+    bottom: -10%; right: -10%; width: 40vw; height: 40vw;
+    background: var(--accent-border);
+    animation-delay: -5s;
+  }
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(8%, 12%) scale(1.1); }
   }
 
-  .topic-container { max-width: 1060px; margin: 0 auto; }
+  .topic-container {
+    max-width: 64rem;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
 
   .topic-back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    margin-bottom: 24px;
-    border-radius: 999px;
-    background: ${colors.card};
-    border: 2px solid ${colors.borderSoft};
-    color: ${colors.ink};
-    font-weight: 700;
-    font-size: 14px;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 2.5rem;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 0.875rem;
     transition: all 0.2s ease;
     text-decoration: none;
-    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
   .topic-back-btn:hover {
-    background: ${colors.borderSoft};
-    transform: translateX(-2px);
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
   }
 
   .topic-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    margin-bottom: 28px;
+    text-align: left;
+    margin-bottom: 2rem;
   }
   .topic-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 18px;
+    width: 3.5rem; height: 3.5rem;
+    border-radius: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 24px var(--accent-soft);
+  }
+  .topic-eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.5rem 0;
+  }
+  .topic-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem 0;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  .topic-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.6;
+    max-width: 40rem;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 1.5rem;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,0.7);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.4s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-content {
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 768px) {
+    .slide-content {
+      flex-direction: row;
+      min-height: 450px;
+    }
+  }
+
+  .slide-text {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .slide-visual {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: ${colors.card};
-    border: 2.5px solid var(--accent-border);
-    box-shadow: 0 6px 0 var(--accent-border);
-    color: var(--accent);
+    padding: 3rem;
+    background: rgba(255,255,255,0.25);
+    border-left: 1px solid rgba(255,255,255,0.5);
   }
-  .topic-eyebrow {
-    font-size: 12px;
+  @media (max-width: 767px) {
+    .slide-visual {
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.5);
+      padding: 2rem;
+    }
+    .slide-text { padding: 2rem; }
+  }
+
+  .visual-img {
+    width: 100%;
+    max-width: 360px;
+    border-radius: 1rem;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+
+  .slide-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--accent);
-    margin: 0;
-  }
-  .topic-title {
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 800;
-    font-size: 32px;
-    margin: 0;
-    color: ${colors.goldDeep};
-    line-height: 1.2;
-  }
-  .topic-subtitle {
-    font-size: 15px;
-    color: ${colors.muted};
-    margin: 0;
-    max-width: 480px;
-  }
-
-  .topic-card {
-    border-radius: 28px;
-    padding: 32px;
-    background: ${colors.card};
-    border: 3px solid ${colors.border};
-    box-shadow: 0 10px 0 ${colors.borderSoft};
-    margin-bottom: 20px;
-  }
-
-  .topic-section + .topic-section {
-    margin-top: 22px;
-    padding-top: 22px;
-    border-top: 1px dashed ${colors.borderSoft};
+    background: var(--accent-soft);
+    padding: 0.3rem 0.8rem;
+    border-radius: 99px;
+    align-self: flex-start;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.4);
   }
 
   .topic-section-heading {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.85rem;
     font-weight: 700;
-    font-size: 17px;
-    color: var(--accent);
-    margin: 0 0 10px 0;
+    margin: 0 0 1.25rem 0;
+    color: #0f172a;
+    line-height: 1.2;
   }
 
   .topic-paragraph {
-    font-size: 15px;
-    color: ${colors.ink};
-    line-height: 1.75;
-    margin: 0 0 12px 0;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #334155;
+    margin: 0 0 1.25rem 0;
   }
   .topic-paragraph:last-child { margin-bottom: 0; }
 
   .topic-bullets {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    list-style: none; padding: 0; margin: 1rem 0 0 0;
+    display: flex; flex-direction: column; gap: 0.85rem;
   }
   .topic-bullets li {
-    padding: 10px 14px;
-    border-radius: 14px;
-    background: ${colors.cardAlt};
-    border: 2px solid ${colors.borderSoft};
-    font-size: 14px;
-    color: ${colors.ink};
-    line-height: 1.5;
     position: relative;
-    padding-left: 30px;
+    padding-left: 1.85rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #334155;
   }
-  .topic-bullets li:before {
-    content: "▸";
+  .topic-bullets li::before {
+    content: "→";
     position: absolute;
-    left: 12px;
+    left: 0;
+    top: 2px;
     color: var(--accent);
     font-weight: bold;
   }
 
-  .topic-cta {
+  .slide-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    border-radius: 22px;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, var(--accent-soft) 0%, ${colors.card} 70%);
-    border: 2px solid var(--accent-border);
-    margin-bottom: 24px;
+    padding: 1.5rem 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.4);
   }
-  .topic-cta-text {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  @media (max-width: 767px) {
+    .slide-controls { padding: 1.5rem 2rem; }
   }
-  .topic-cta-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: ${colors.card};
-    border: 2px solid var(--accent-border);
-    color: var(--accent);
-  }
-  .topic-cta-title {
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: ${colors.ink};
-    margin: 0 0 2px 0;
-  }
-  .topic-cta-desc {
-    font-size: 12.5px;
-    color: ${colors.muted};
-    margin: 0;
-  }
-  .topic-cta-btn {
+
+  .control-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 12px 20px;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 700;
-    color: ${colors.ink};
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    box-shadow: 0 5px 0 ${colors.goldDeep};
-    text-decoration: none;
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-    white-space: nowrap;
-  }
-  .topic-cta-btn:hover { transform: translateY(-1px); }
-  .topic-cta-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 ${colors.goldDeep}; }
-
-  .topic-nav {
-    margin-top: 8px;
-  }
-  .topic-nav-label {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: ${colors.teal};
-    margin-bottom: 12px;
-  }
-  .topic-nav-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
-  }
-  .topic-nav-btn {
-    padding: 14px 12px;
-    border-radius: 16px;
-    background: ${colors.cardAlt};
-    border: 2px solid ${colors.borderSoft};
-    font-size: 13px;
-    font-weight: 700;
-    color: ${colors.ink};
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     transition: all 0.2s ease;
-    text-decoration: none;
-    display: block;
-    text-align: center;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: white;
+    color: #0f172a;
   }
-  .topic-nav-btn:hover {
-    background: ${colors.borderSoft};
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 ${colors.borderSoft};
+  .control-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
-  .topic-nav-btn.active {
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    border-color: ${colors.border};
-    color: ${colors.ink};
+  .control-btn:not(:disabled):hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
+    border-color: rgba(15, 23, 42, 0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .control-btn.primary {
+    background: #0f172a;
+    color: white;
+    border-color: #0f172a;
+  }
+  .control-btn.primary:not(:disabled):hover {
+    background: #1e293b;
+    border-color: #1e293b;
+    box-shadow: 0 6px 16px rgba(15,23,42,0.2);
   }
 
-  @media (max-width: 640px) {
-    .topic-root { padding: 24px 16px; }
-    .topic-card { padding: 20px; }
-    .topic-title { font-size: 26px; }
-    .topic-cta { flex-direction: column; align-items: stretch; text-align: left; }
-    .topic-cta-btn { justify-content: center; }
+  .progress-dots {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .dot:hover { background: rgba(15, 23, 42, 0.3); }
+  .dot.active {
+    background: var(--accent);
+    transform: scale(1.4);
   }
 `;
 
@@ -336,6 +411,10 @@ const ACCENTS: Record<AccentKey, { color: string; border: string; soft: string }
   coral: { color: colors.coral, border: "#FFD4C4", soft: "#FFF0E9" },
   gold: { color: colors.goldDeep, border: colors.border, soft: colors.bgSoft },
   purple: { color: colors.purple, border: "#E7D3FC", soft: colors.cardAlt },
+  blue: { color: "#3B82F6", border: "#BFDBFE", soft: "#EFF6FF" },
+  green: { color: "#22C55E", border: "#D1FAE5", soft: "#ECFDF5" },
+   orange: { color: "#F97316", border: "#FED7AA", soft: "#FFF7ED" },
+   red: { color: "#EF4444", border: "#FECACA", soft: "#FEF2F2" },
 };
 
 
@@ -547,9 +626,10 @@ const contentMap: Record<string, TopicContent> = {
       bullets: [
         "1950 — Alan Turing asked an important question: 'Can a machine think like a human?' This inspired many scientists to explore AI.",
         "1956 — A group of researchers met at Dartmouth College and officially named the field 'Artificial Intelligence.'",
+        "1980 — Expert Systems helped computers imitate human experts, allowing them to make decisions and solve real-world problems using predefined rules.",
         "1997 — IBM's Deep Blue defeated the world chess champion, showing that computers could solve very complex problems.",
-        "2011 — IBM Watson won the quiz show Jeopardy!, proving that AI could understand and answer questions written in human language.",
-        "2016 — AlphaGo defeated a world champion in the game of Go, a game that many people believed was too difficult for computers because it required planning and strategy.",
+        "2012 — A deep neural network called AlexNet wins the ImageNet competition by a huge margin, proving that large, layered networks trained on lots of data can outperform hand-built approaches.",
+        "2017 — The paper 'Attention Is All You Need' introduces the transformer, letting models weigh every word against every other word at once. It becomes the backbone of modern language models.",
         "2020s — Generative AI tools like ChatGPT, image generators, and coding assistants showed that AI could write stories, answer questions, create images, and even help people write computer programs.",
       ],
     },
@@ -3355,280 +3435,6042 @@ knn: {
   ],
 },
 
-  "biological-neuron": {
-    title: "Biological Neuron",
-    subtitle: "The brain cell that inspired the artificial version — the very first step in this chain.",
-    eyebrow: "Concept 2 of 8",
-    accent: "coral",
-    icon: Brain,
-    sections: [
-      {
-        heading: "How a real neuron behaves",
-        paragraphs: [
-          "A biological neuron receives electrical signals from other neurons through its dendrites, combines them, and — only if the combined signal is strong enough — fires its own signal onward through its axon to the next neuron.",
-        ],
-      },
-      {
-        heading: "The idea worth borrowing",
-        bullets: [
-          "Many small inputs get combined into one",
-          "A firing decision only happens past a certain threshold",
-          "Millions of these simple units, connected together, produce complex behaviour",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll see a simplified animation of signals combining and firing in a biological neuron.",
+ "biological-neuron": {
+  title: "Biological Neuron",
+  subtitle: "The tiny brain cell that inspired modern Artificial Intelligence.",
+  eyebrow: "Concept 2 of 8",
+  accent: "coral",
+  icon: Brain,
+  sections: [
+    {
+      heading: "What is a Biological Neuron?",
+      paragraphs: [
+        "A Biological Neuron is a nerve cell found in the brain and nervous system. It is the basic building block of the human brain and is responsible for receiving, processing, and transmitting information throughout the body.",
+        "The human brain contains nearly 86 billion neurons. Although each neuron performs only a small task, together they allow us to think, learn, remember, recognize objects, speak, and make decisions.",
+        "Scientists studied how these neurons communicate with one another, and this inspired the creation of Artificial Neural Networks used in modern AI.",
+      ],
+    },
+    {
+      heading: "Parts of a Biological Neuron",
+      paragraphs: [
+        "A biological neuron has different parts, and each part performs a specific function in processing information.",
+      ],
+      bullets: [
+        "Dendrites – Receive signals from other neurons.",
+        "Cell Body (Soma) – Processes and combines all incoming signals.",
+        "Nucleus – Controls the activities of the neuron.",
+        "Axon – Carries the electrical signal away from the cell body.",
+        "Axon Terminals – Pass the signal to the next neuron through tiny gaps called synapses.",
+      ],
+    },
+    {
+      heading: "How does a Biological Neuron work?",
+      paragraphs: [
+        "A neuron continuously receives electrical signals from many nearby neurons through its dendrites. These signals are combined inside the cell body.",
+        "If the combined signal becomes strong enough to cross a certain threshold, the neuron 'fires' an electrical impulse that travels along the axon and is passed to the next neuron.",
+        "This process happens billions of times every second, allowing the brain to process information extremely quickly.",
+      ],
+      bullets: [
+        "Receive signals through dendrites.",
+        "Combine all incoming signals.",
+        "Check if the signal crosses the firing threshold.",
+        "Send the signal through the axon.",
+        "Pass the message to the next neuron.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine you're deciding whether to carry an umbrella before leaving home. You look at dark clouds, check the weather forecast, and feel the wind.",
+        "Your brain collects all these pieces of information. If enough evidence suggests it will rain, the neuron fires and your brain decides to carry the umbrella.",
+        "Similarly, a biological neuron collects many signals, combines them, and only sends an output when there is enough evidence to do so.",
+      ],
+    },
+    {
+      heading: "Why is a Biological Neuron important?",
+      paragraphs: [
+        "Biological neurons are the inspiration behind Artificial Neural Networks. Researchers observed how real neurons communicate and designed artificial neurons that follow a simplified version of the same idea.",
+        "Understanding biological neurons helps us understand why neural networks are built using layers of connected artificial neurons.",
+      ],
+      bullets: [
+        "Inspired Artificial Neural Networks.",
+        "Shows how information flows in the brain.",
+        "Explains how learning happens naturally.",
+        "Forms the foundation of Deep Learning concepts.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Artificial neurons are inspired by biological neurons, but they are much simpler and do not behave exactly like real brain cells.",
+      ],
+      bullets: [
+        "Thinking artificial neurons are exact copies of brain cells.",
+        "Believing a single neuron can perform intelligent tasks by itself.",
+        "Assuming neurons always fire regardless of signal strength.",
+        "Confusing biological neurons with artificial neurons.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A Biological Neuron receives information, processes it, and sends it forward only when the signal is strong enough.",
+        "Millions of these simple neurons working together make human intelligence possible and inspired the development of Artificial Neural Networks.",
+      ],
+      bullets: [
+        "Basic unit of the human brain.",
+        "Receives, processes, and transmits information.",
+        "Works with billions of other neurons.",
+        "Inspired Artificial Neural Networks.",
+        "Foundation of modern AI concepts.",
+      ],
+    },
+  ],
   },
 
-  "artificial-neuron": {
-    title: "Artificial Neuron",
-    subtitle: "The same 'combine and fire' idea, rebuilt with numbers instead of chemistry.",
-    eyebrow: "Concept 3 of 8",
-    accent: "gold",
-    icon: Cpu,
-    sections: [
-      {
-        heading: "Weighted inputs, summed together",
-        paragraphs: [
-          "An artificial neuron takes several numeric inputs, multiplies each by a 'weight' showing how important it is, adds them all up, and passes that sum onward — a direct numerical stand-in for a biological neuron combining signals.",
-        ],
-      },
-      {
-        heading: "What the weights actually are",
-        paragraphs: [
-          "The weights are exactly what gets adjusted during training. Learning, at this level, is nothing more than repeatedly tweaking these weights until the neuron's output gets closer to what's wanted.",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll manually change a few weights and see how the neuron's combined output shifts.",
-  },
-
-  perceptron: {
-    title: "Perceptron",
-    subtitle: "The original, simplest artificial neuron — a single yes/no decision maker.",
-    eyebrow: "Concept 4 of 8",
-    accent: "purple",
-    icon: Binary,
-    sections: [
-      {
-        heading: "One neuron, one decision",
-        paragraphs: [
-          "A perceptron is a single artificial neuron that makes a simple binary decision — sums its weighted inputs and outputs one of two results, like 'approve' or 'reject' — based on whether that sum crosses a threshold.",
-        ],
-      },
-      {
-        heading: "Its famous limitation",
-        paragraphs: [
-          "A single perceptron can only draw a straight dividing line between two categories. Many real problems aren't separable by a straight line at all, which is exactly the gap the next concept, non-linearity, was needed to close.",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll try to use a single perceptron to separate two groups of points, and see where a straight line simply isn't enough.",
-  },
-
+ "artificial-neuron": {
+  title: "Artificial Neuron",
+  subtitle: "A mathematical version of a brain cell designed to learn from data.",
+  eyebrow: "Concept 3 of 8",
+  accent: "gold",
+  icon: Cpu,
+  sections: [
+    {
+      heading: "What is an Artificial Neuron?",
+      paragraphs: [
+        "An Artificial Neuron is the basic building block of an Artificial Neural Network. It was inspired by the way biological neurons process information in the human brain.",
+        "Instead of electrical signals and chemicals, an artificial neuron works with numbers. It receives inputs, processes them mathematically, and produces an output.",
+        "Although a single artificial neuron is very simple, millions of them working together can solve complex tasks such as image recognition, speech processing, and language understanding.",
+      ],
+    },
+    {
+      heading: "How does an Artificial Neuron work?",
+      paragraphs: [
+        "An artificial neuron receives multiple input values. Each input is assigned a weight that represents its importance.",
+        "The neuron multiplies every input by its corresponding weight, adds all the results together, and then decides what output to produce.",
+        "This process allows the neuron to determine which inputs are more important and which are less important when making a decision.",
+      ],
+      bullets: [
+        "Receive input values.",
+        "Multiply each input by its weight.",
+        "Add all weighted inputs together.",
+        "Apply a decision rule or activation function.",
+        "Generate an output.",
+      ],
+    },
+    {
+      heading: "What are weights?",
+      paragraphs: [
+        "Weights are numerical values that determine how important each input is to the neuron.",
+        "A larger weight means the input has a stronger influence on the neuron's decision, while a smaller weight means it has less influence.",
+        "During training, the neural network continuously adjusts these weights to improve its predictions and reduce errors.",
+      ],
+      bullets: [
+        "Represent importance of inputs.",
+        "Can increase or decrease influence.",
+        "Learned automatically during training.",
+        "Main source of learning in neural networks.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a teacher deciding a student's final performance based on attendance, assignments, and exam marks.",
+        "The teacher may consider exam marks more important than attendance. Therefore, exam marks receive a higher weight.",
+        "Similarly, an artificial neuron assigns different weights to different inputs before making a decision.",
+      ],
+    },
+    {
+      heading: "How is it different from a Biological Neuron?",
+      paragraphs: [
+        "A biological neuron works using electrical and chemical signals, while an artificial neuron works using mathematical calculations.",
+        "Artificial neurons are much simpler than real brain cells but follow the same basic idea of receiving information, processing it, and producing an output.",
+      ],
+      bullets: [
+        "Biological neurons use electrical signals.",
+        "Artificial neurons use numbers and equations.",
+        "Artificial neurons are simplified models.",
+        "Both process information and produce outputs.",
+      ],
+    },
+    {
+      heading: "Why are Artificial Neurons important?",
+      paragraphs: [
+        "Artificial neurons are the foundation of every neural network. Without them, modern AI systems would not exist.",
+        "By connecting many artificial neurons together, we can build systems capable of recognizing patterns, learning from data, and making intelligent predictions.",
+      ],
+      bullets: [
+        "Foundation of Neural Networks.",
+        "Enable machines to learn from data.",
+        "Power Deep Learning systems.",
+        "Used in modern AI applications.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think an artificial neuron is intelligent by itself, but a single neuron can perform only very simple calculations.",
+      ],
+      bullets: [
+        "Thinking one neuron can solve complex problems alone.",
+        "Assuming weights never change.",
+        "Confusing inputs with weights.",
+        "Believing artificial neurons work exactly like brain cells.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "An Artificial Neuron receives inputs, assigns importance using weights, combines the information, and produces an output.",
+        "Learning happens by adjusting these weights until the neuron makes better decisions.",
+      ],
+      bullets: [
+        "Inspired by biological neurons.",
+        "Works with numbers instead of signals.",
+        "Uses weighted inputs.",
+        "Learns by adjusting weights.",
+        "Building block of Neural Networks.",
+      ],
+    },
+  ],
+},
+perceptron: {
+  title: "Perceptron",
+  subtitle: "The first and simplest artificial neuron that makes yes-or-no decisions.",
+  eyebrow: "Concept 4 of 8",
+  accent: "purple",
+  icon: Binary,
+  sections: [
+    {
+      heading: "What is a Perceptron?",
+      paragraphs: [
+        "A Perceptron is the simplest form of an Artificial Neuron. It was introduced by Frank Rosenblatt in 1958 and became one of the earliest building blocks of Machine Learning.",
+        "A perceptron receives multiple inputs, combines them using weights, and then makes a simple binary decision.",
+        "Its output is usually one of two possible answers, such as Yes or No, True or False, or Accept or Reject.",
+      ],
+    },
+    {
+      heading: "How does a Perceptron work?",
+      paragraphs: [
+        "The perceptron multiplies each input by its corresponding weight and adds the results together.",
+        "The combined value is then compared with a threshold. If the value exceeds the threshold, the perceptron outputs one result; otherwise, it outputs the other.",
+      ],
+      bullets: [
+        "Receive input values.",
+        "Apply weights to inputs.",
+        "Calculate the weighted sum.",
+        "Compare the result with a threshold.",
+        "Produce a binary output.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a university admission process. A student's marks, attendance, and interview score are considered before making a decision.",
+        "If the combined score is above a required cutoff, the student is admitted. Otherwise, the application is rejected.",
+        "A perceptron works in exactly the same way by comparing its final score against a threshold.",
+      ],
+    },
+    {
+      heading: "What can a Perceptron learn?",
+      paragraphs: [
+        "A perceptron can learn simple patterns where data can be separated using a straight line.",
+        "For example, it can classify emails as spam or not spam when the data follows a simple pattern.",
+      ],
+      bullets: [
+        "Binary classification problems.",
+        "Simple pattern recognition.",
+        "Linearly separable datasets.",
+        "Basic decision-making tasks.",
+      ],
+    },
+    {
+      heading: "The limitation of a Perceptron",
+      paragraphs: [
+        "A single perceptron can only create a straight decision boundary between categories.",
+        "Many real-world problems contain complex patterns that cannot be separated by a single straight line.",
+        "This limitation led researchers to create multi-layer neural networks and introduce activation functions to handle more complex problems.",
+      ],
+      bullets: [
+        "Can only learn linear patterns.",
+        "Cannot solve complex non-linear problems.",
+        "Fails on problems like XOR.",
+        "Motivated the development of Deep Learning.",
+      ],
+    },
+    {
+      heading: "Why is the Perceptron important?",
+      paragraphs: [
+        "Although simple, the perceptron introduced the fundamental ideas used in modern neural networks.",
+        "Concepts such as inputs, weights, thresholds, learning, and classification all originated from perceptrons.",
+      ],
+      bullets: [
+        "First neural network model.",
+        "Introduced machine learning concepts.",
+        "Foundation of modern neural networks.",
+        "Inspired Deep Learning research.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many people assume a perceptron can solve any classification problem, but it is limited to simple linear patterns.",
+      ],
+      bullets: [
+        "Expecting a perceptron to solve complex tasks.",
+        "Ignoring the threshold concept.",
+        "Confusing perceptrons with deep neural networks.",
+        "Assuming more training always solves non-linear problems.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A Perceptron is a single artificial neuron that makes simple yes-or-no decisions using weighted inputs and a threshold.",
+        "It is the foundation upon which modern Neural Networks and Deep Learning were built.",
+      ],
+      bullets: [
+        "Single artificial neuron.",
+        "Makes binary decisions.",
+        "Uses weights and thresholds.",
+        "Learns simple patterns.",
+        "Foundation of Neural Networks.",
+      ],
+    },
+  ],
+},
   "need-for-non-linearity": {
-    title: "Need for Non-Linearity",
-    subtitle: "Why real-world patterns almost never fit a straight line.",
-    eyebrow: "Concept 5 of 8",
-    accent: "teal",
-    icon: Workflow,
-    sections: [
-      {
-        heading: "The problem with only straight lines",
-        paragraphs: [
-          "Stack as many straight-line neurons as you like — without something extra, the whole network still only draws straight lines. Most real patterns, like separating a spiral of two colours, simply can't be captured that way.",
-        ],
-      },
-      {
-        heading: "The fix: bend the line",
-        paragraphs: [
-          "By inserting a small non-linear step after each neuron's weighted sum, the network gains the ability to bend, curve, and combine those bends into extremely complex shapes — enough to capture almost any pattern in data.",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll compare a straight decision boundary to a curved one on the same tricky dataset.",
-  },
-
-  "activation-functions": {
-    title: "Activation Functions",
-    subtitle: "The small non-linear step that gives neural networks their real power.",
-    eyebrow: "Concept 6 of 8",
-    accent: "coral",
-    icon: Sigma,
-    sections: [
-      {
-        heading: "The bend, made concrete",
-        paragraphs: [
-          "An activation function takes a neuron's weighted sum and reshapes it — deciding how strongly, if at all, the neuron 'fires' onward. This is exactly the non-linear step the previous concept called for.",
-        ],
-      },
-      {
-        heading: "A few common ones",
-        bullets: [
-          "ReLU — passes positive values through unchanged, blocks negative values to zero",
-          "Sigmoid — squashes any value into a smooth range between 0 and 1",
-          "Without any activation function at all, a deep network mathematically collapses back into one straight line",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll feed the same numbers through a few different activation functions and compare the shapes they produce.",
-  },
-
+  title: "Need for Non-Linearity",
+  subtitle: "The reason neural networks can solve complex real-world problems instead of only simple ones.",
+  eyebrow: "Concept 5 of 8",
+  accent: "teal",
+  icon: Workflow,
+  sections: [
+    {
+      heading: "Why isn't a straight line enough?",
+      paragraphs: [
+        "Many real-world problems contain complex patterns that cannot be separated using a single straight line. Images, speech, handwriting, and human language all contain highly non-linear relationships.",
+        "If every neuron only performed simple linear calculations, even a very deep neural network would behave like one large linear model.",
+        "This means the network would fail to learn complicated patterns that exist in real-world data.",
+      ],
+    },
+    {
+      heading: "What is Non-Linearity?",
+      paragraphs: [
+        "Non-linearity allows a neural network to learn curved, complex, and irregular patterns instead of only straight-line relationships.",
+        "It enables the network to make flexible decisions and model complicated relationships between inputs and outputs.",
+      ],
+      bullets: [
+        "Learns curved decision boundaries.",
+        "Captures complex data patterns.",
+        "Improves prediction accuracy.",
+        "Makes Deep Learning possible.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine separating apples and oranges placed neatly in two rows. A straight line can easily divide them.",
+        "Now imagine the fruits are scattered randomly in circles and curves. A single straight line can no longer separate them correctly.",
+        "To classify the fruits accurately, we need curved decision boundaries. This is exactly why neural networks require non-linearity.",
+      ],
+    },
+    {
+      heading: "Why is Non-Linearity important?",
+      paragraphs: [
+        "Without non-linearity, even networks with hundreds of layers would have the same learning ability as a single-layer linear model.",
+        "Non-linearity allows neural networks to recognize faces, understand speech, translate languages, detect diseases, and perform many other advanced AI tasks.",
+      ],
+      bullets: [
+        "Learns complex relationships.",
+        "Improves model flexibility.",
+        "Essential for Deep Learning.",
+        "Enables powerful AI applications.",
+      ],
+    },
+    {
+      heading: "Where does Non-Linearity come from?",
+      paragraphs: [
+        "Neural networks introduce non-linearity using Activation Functions. These mathematical functions are applied after every neuron computes its weighted sum.",
+        "Activation functions allow the network to learn patterns that would otherwise be impossible using only linear calculations.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think adding more layers automatically makes a network more powerful. However, without activation functions, extra layers provide almost no additional learning capability.",
+      ],
+      bullets: [
+        "Thinking deeper always means smarter.",
+        "Believing linear models can solve every problem.",
+        "Ignoring the role of activation functions.",
+        "Assuming non-linearity means randomness.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Non-linearity allows neural networks to learn complex patterns instead of only straight-line relationships.",
+        "Without non-linearity, modern Deep Learning would not exist.",
+      ],
+      bullets: [
+        "Real-world data is non-linear.",
+        "Straight lines are often not enough.",
+        "Activation functions create non-linearity.",
+        "Foundation of Deep Learning.",
+        "Enables complex decision making.",
+      ],
+    },
+  ],
+},
+"activation-functions": {
+  title: "Activation Functions",
+  subtitle: "The mathematical functions that give neural networks the ability to learn complex patterns.",
+  eyebrow: "Concept 6 of 8",
+  accent: "coral",
+  icon: Sigma,
+  sections: [
+    {
+      heading: "What is an Activation Function?",
+      paragraphs: [
+        "An Activation Function is a mathematical function applied after a neuron calculates its weighted sum. It decides how much information should be passed to the next layer.",
+        "Activation functions introduce non-linearity into neural networks, allowing them to learn much more than simple linear relationships.",
+        "Without activation functions, even very deep neural networks would behave like simple linear models.",
+      ],
+    },
+    {
+      heading: "How does an Activation Function work?",
+      paragraphs: [
+        "Every neuron first calculates a weighted sum of its inputs.",
+        "The activation function then transforms this value into a new output, which is passed to the next layer of neurons.",
+      ],
+      bullets: [
+        "Calculate weighted sum.",
+        "Apply activation function.",
+        "Generate transformed output.",
+        "Pass output to the next layer.",
+      ],
+    },
+    {
+      heading: "Common Activation Functions",
+      paragraphs: [
+        "Different activation functions are designed for different types of problems. Each has its own strengths and weaknesses.",
+      ],
+      bullets: [
+        "ReLU (Rectified Linear Unit) – Outputs positive values and replaces negative values with zero.",
+        "Sigmoid – Converts values into a range between 0 and 1.",
+        "Tanh – Produces outputs between -1 and 1.",
+        "Leaky ReLU – Similar to ReLU but allows a small negative output.",
+        "Softmax – Converts outputs into probabilities for multi-class classification.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a security guard checking visitors at the entrance of a building.",
+        "Not everyone is allowed inside. The guard decides who can enter and who cannot based on certain rules.",
+        "Similarly, an activation function decides how much information should continue to the next neuron instead of allowing every value to pass unchanged.",
+      ],
+    },
+    {
+      heading: "Why are Activation Functions important?",
+      paragraphs: [
+        "Activation functions are one of the most important components of a neural network because they allow the model to learn highly complex and non-linear relationships.",
+        "They enable modern AI systems to recognize faces, understand speech, generate text, detect diseases, and perform many advanced tasks.",
+      ],
+      bullets: [
+        "Introduce non-linearity.",
+        "Improve learning capability.",
+        "Enable Deep Learning.",
+        "Support complex AI applications.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Choosing an activation function depends on the problem being solved. There is no single activation function that works best for every task.",
+      ],
+      bullets: [
+        "Thinking all activation functions behave the same.",
+        "Using Sigmoid everywhere.",
+        "Ignoring the output layer requirements.",
+        "Believing deeper networks remove the need for activation functions.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Activation Functions determine how strongly a neuron responds after processing its inputs.",
+        "They introduce non-linearity, making modern neural networks capable of solving complex real-world problems.",
+      ],
+      bullets: [
+        "Applied after weighted sum.",
+        "Introduce non-linearity.",
+        "Control neuron output.",
+        "Essential for Deep Learning.",
+        "Power modern AI systems.",
+      ],
+    },
+  ],
+},
   layers: {
-    title: "Layers",
-    subtitle: "Stacking neurons into stages so a network can build up complexity.",
-    eyebrow: "Concept 7 of 8",
-    accent: "gold",
-    icon: Layers,
-    sections: [
-      {
-        heading: "Input, hidden, and output",
-        bullets: [
-          "Input layer — where the raw data first enters the network",
-          "Hidden layers — where the actual pattern-building happens, one stage at a time",
-          "Output layer — produces the network's final prediction",
-        ],
-      },
-      {
-        heading: "Why more layers can help",
-        paragraphs: [
-          "Early hidden layers tend to pick up simple patterns, and later hidden layers combine those simple patterns into increasingly complex ones — like edges combining into shapes, and shapes combining into whole objects.",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll add and remove hidden layers and watch how the network's decision boundary changes shape.",
-  },
-
-  "forward-propagation": {
-    title: "Forward Propagation",
-    subtitle: "The journey data takes from raw input to final prediction.",
-    eyebrow: "Concept 8 of 8",
-    accent: "purple",
-    icon: Workflow,
-    sections: [
-      {
-        heading: "One direction, layer by layer",
-        paragraphs: [
-          "Forward propagation is simply the process of pushing an input all the way through every layer of the network, in order, until it produces a final output — no looping back, just one forward pass.",
-        ],
-      },
-      {
-        heading: "Putting the whole module together",
-        bullets: [
-          "Input layer receives the raw data",
-          "Each hidden layer computes weighted sums and applies its activation function",
-          "The output layer produces the final prediction, ready to be compared against the correct answer during training",
-        ],
-      },
-    ],
-  },
+  title: "Layers",
+  subtitle: "Groups of neurons working together, where each layer learns something more complex than the previous one.",
+  eyebrow: "Concept 7 of 8",
+  accent: "gold",
+  icon: Layers,
+  sections: [
+    {
+      heading: "What are Layers in a Neural Network?",
+      paragraphs: [
+        "A neural network is organized into groups of neurons called layers. Instead of every neuron connecting randomly, neurons are arranged in stages that process information step by step.",
+        "Each layer has a specific responsibility. The first layer receives the data, the middle layers learn patterns, and the final layer produces the prediction.",
+        "As information moves through these layers, the network gradually builds a better understanding of the input data.",
+      ],
+    },
+    {
+      heading: "Types of Layers",
+      paragraphs: [
+        "Every neural network contains three main types of layers, each serving a different purpose.",
+      ],
+      bullets: [
+        "Input Layer – Receives the raw input data such as images, numbers, or text.",
+        "Hidden Layers – Process the information and learn patterns from the data.",
+        "Output Layer – Produces the final prediction or decision.",
+      ],
+    },
+    {
+      heading: "How do Layers work together?",
+      paragraphs: [
+        "The input layer passes information to the hidden layers. Each hidden layer extracts increasingly meaningful features from the data.",
+        "Finally, the output layer uses everything learned by the hidden layers to generate the network's prediction.",
+      ],
+      bullets: [
+        "Input receives data.",
+        "Hidden layers learn patterns.",
+        "Output layer makes the prediction.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine identifying a cat in an image.",
+        "The first hidden layer may detect simple edges and lines. The next hidden layer combines those edges to recognize shapes like ears and eyes. The final hidden layer combines these features to recognize the complete cat.",
+        "This gradual learning process allows neural networks to understand very complex data.",
+      ],
+    },
+    {
+      heading: "Why are Hidden Layers important?",
+      paragraphs: [
+        "Hidden layers are where most of the learning happens. They transform simple information into more meaningful representations that help the network make accurate predictions.",
+        "Adding more hidden layers allows a network to solve increasingly difficult problems, although very deep networks also require more data and computational power.",
+      ],
+      bullets: [
+        "Learn increasingly complex patterns.",
+        "Improve prediction accuracy.",
+        "Enable Deep Learning.",
+        "Support advanced AI applications.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think adding more layers automatically improves performance, but deeper networks are not always better.",
+      ],
+      bullets: [
+        "Thinking more layers always mean higher accuracy.",
+        "Confusing neurons with layers.",
+        "Believing hidden layers store data permanently.",
+        "Ignoring the importance of good training data.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Layers organize neurons into stages, allowing the network to learn from simple features to highly complex patterns.",
+        "This layered learning process is what makes Deep Learning so powerful.",
+      ],
+      bullets: [
+        "Input Layer receives data.",
+        "Hidden Layers learn patterns.",
+        "Output Layer makes predictions.",
+        "Learning becomes more complex layer by layer.",
+        "Foundation of Deep Learning.",
+      ],
+    },
+  ],
+},
+"forward-propagation": {
+  title: "Forward Propagation",
+  subtitle: "The step-by-step journey of data through a neural network to produce a prediction.",
+  eyebrow: "Concept 8 of 8",
+  accent: "purple",
+  icon: Workflow,
+  sections: [
+    {
+      heading: "What is Forward Propagation?",
+      paragraphs: [
+        "Forward Propagation is the process of passing input data through every layer of a neural network until it produces a final output.",
+        "During this process, each neuron performs its calculations, applies an activation function, and sends its output to the next layer.",
+        "This forward movement of information is how a neural network makes predictions.",
+      ],
+    },
+    {
+      heading: "How does Forward Propagation work?",
+      paragraphs: [
+        "The network processes data one layer at a time, starting from the input layer and ending at the output layer.",
+      ],
+      bullets: [
+        "Input layer receives the data.",
+        "Each neuron calculates its weighted sum.",
+        "Activation functions transform the outputs.",
+        "The outputs become inputs for the next layer.",
+        "The output layer generates the final prediction.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine predicting whether an email is spam.",
+        "The input layer receives information such as keywords and sender details. Hidden layers analyze patterns within this information, and the output layer finally predicts whether the email is 'Spam' or 'Not Spam'.",
+        "Every decision is made by passing information forward through the network until the final answer is produced.",
+      ],
+    },
+    {
+      heading: "Why is Forward Propagation important?",
+      paragraphs: [
+        "Forward propagation is how every neural network makes predictions before learning from its mistakes.",
+        "Once a prediction is made, the network compares it with the correct answer. During training, another process called Backpropagation adjusts the weights to improve future predictions.",
+      ],
+      bullets: [
+        "Produces predictions.",
+        "Processes data layer by layer.",
+        "Required before learning can happen.",
+        "Works together with Backpropagation during training.",
+      ],
+    },
+    {
+      heading: "Relationship with the previous concepts",
+      paragraphs: [
+        "Forward propagation combines everything learned so far. Inputs enter the network, artificial neurons calculate weighted sums, activation functions introduce non-linearity, hidden layers learn patterns, and the output layer produces the final prediction.",
+        "It brings together all the building blocks of a neural network into one complete process.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Forward propagation only makes predictions. It does not update or improve the network's weights.",
+      ],
+      bullets: [
+        "Confusing Forward Propagation with Backpropagation.",
+        "Thinking weights change during forward propagation.",
+        "Believing predictions automatically improve without training.",
+        "Skipping the role of activation functions.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Forward Propagation is the complete flow of information from the input layer to the output layer.",
+        "It is the prediction phase of every neural network and combines all the concepts you've learned in this module.",
+      ],
+      bullets: [
+        "Starts with input data.",
+        "Moves through every layer.",
+        "Uses neurons, weights, and activation functions.",
+        "Ends with a prediction.",
+        "First step in neural network learning.",
+      ],
+    },
+  ],
+},
 
   /* ===================== LEVEL 2 · MODULE 5: Deep Learning ===================== */
 
-  cnn: {
-    title: "CNN (Convolutional Neural Network)",
-    subtitle: "The neural network architecture built specifically to understand images.",
-    eyebrow: "Concept 1 of 4",
-    accent: "teal",
-    icon: ImageIcon,
-    sections: [
-      {
-        heading: "Scanning for local patterns",
-        paragraphs: [
-          "Instead of looking at an entire image at once, a CNN slides small filters across it, each one learning to detect a specific local pattern — an edge, a curve, a texture — wherever it appears in the picture.",
-        ],
-      },
-      {
-        heading: "Why this suits images so well",
-        bullets: [
-          "The same filter can detect an edge whether it's in the top-left or bottom-right of the image",
-          "Early layers detect simple patterns; later layers combine them into full objects",
-          "This is the backbone behind face recognition, image classification, and self-driving perception",
-        ],
-      },
-    ],
-  },
-
-  rnn: {
-    title: "RNN (Recurrent Neural Network)",
-    subtitle: "The architecture built to remember what came before in a sequence.",
-    eyebrow: "Concept 2 of 4",
-    accent: "coral",
-    icon: Workflow,
-    sections: [
-      {
-        heading: "A memory that carries forward",
-        paragraphs: [
-          "An RNN processes a sequence one step at a time — one word, one time-step of a sensor reading — and carries a running memory forward, so each new step is understood in the context of everything before it.",
-        ],
-      },
-      {
-        heading: "Where sequence order actually matters",
-        bullets: [
-          "Predicting the next word in a sentence",
-          "Forecasting tomorrow's stock price from recent days",
-          "Recognising speech, where sound only makes sense in order",
-        ],
-      },
-    ],
-  },
+ cnn: {
+  title: "CNN (Convolutional Neural Network)",
+  subtitle: "A specialized neural network designed to understand and analyze images.",
+  eyebrow: "Concept 1 of 4",
+  accent: "teal",
+  icon: ImageIcon,
+  sections: [
+    {
+      heading: "What is a CNN?",
+      paragraphs: [
+        "A Convolutional Neural Network (CNN) is a type of Deep Learning model specially designed to process images and other visual data.",
+        "Instead of looking at an entire image at once, a CNN examines small regions of the image one by one, allowing it to identify important visual features such as edges, corners, textures, and shapes.",
+        "By combining these small features layer by layer, a CNN can recognize complex objects like faces, animals, vehicles, or handwritten digits.",
+      ],
+    },
+    {
+      heading: "How does a CNN work?",
+      paragraphs: [
+        "A CNN processes an image through multiple stages. Each stage extracts increasingly meaningful information until the network can recognize the object in the image.",
+      ],
+      bullets: [
+        "Receive the input image.",
+        "Apply convolution filters to detect features.",
+        "Reduce image size using pooling.",
+        "Learn higher-level patterns through multiple layers.",
+        "Produce the final classification or prediction.",
+      ],
+    },
+    {
+      heading: "Key Components of a CNN",
+      paragraphs: [
+        "CNNs contain several specialized layers that work together to understand images efficiently.",
+      ],
+      bullets: [
+        "Convolution Layer – Detects features like edges, textures, and shapes.",
+        "Activation Function – Introduces non-linearity after convolution.",
+        "Pooling Layer – Reduces image size while preserving important features.",
+        "Fully Connected Layer – Uses extracted features to make the final prediction.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine identifying a dog in a photograph.",
+        "The first layers detect simple edges. The next layers combine those edges to identify ears, eyes, and fur. The deeper layers combine these features to recognize the complete dog.",
+        "This step-by-step feature extraction makes CNNs extremely effective for image recognition.",
+      ],
+    },
+    {
+      heading: "Where are CNNs used?",
+      paragraphs: [
+        "CNNs are widely used in applications that involve understanding images and videos.",
+      ],
+      bullets: [
+        "Image classification.",
+        "Face recognition.",
+        "Medical image diagnosis.",
+        "Object detection.",
+        "Self-driving cars.",
+        "Handwritten digit recognition.",
+        "Satellite image analysis.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think CNNs memorize entire images. Instead, they learn useful visual patterns that help recognize similar images they've never seen before.",
+      ],
+      bullets: [
+        "Thinking CNNs look at the whole image at once.",
+        "Confusing convolution with pooling.",
+        "Believing CNNs memorize training images.",
+        "Assuming CNNs work only for photographs.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A CNN learns images by detecting small visual features first and gradually combining them into complete objects.",
+        "This layered feature learning makes CNNs the foundation of modern computer vision.",
+      ],
+      bullets: [
+        "Designed for images.",
+        "Learns features layer by layer.",
+        "Uses convolution and pooling.",
+        "Excellent at visual recognition.",
+        "Foundation of Computer Vision.",
+      ],
+    },
+  ],
+},
 
   lstm: {
-    title: "LSTM (Long Short-Term Memory)",
-    subtitle: "An upgraded RNN built to remember things over much longer sequences.",
-    eyebrow: "Concept 3 of 4",
-    accent: "gold",
-    icon: Brain,
-    sections: [
-      {
-        heading: "The problem plain RNNs ran into",
-        paragraphs: [
-          "A basic RNN's memory fades quickly — by the time it reaches word 50 of a paragraph, it's often forgotten what happened at word 2. LSTMs were designed specifically to fix this.",
-        ],
-      },
-      {
-        heading: "How it holds on longer",
-        bullets: [
-          "A dedicated memory cell that can preserve information across many steps",
-          "'Gates' that learn what to keep, what to forget, and what to pass onward",
-          "This let models handle far longer sentences and sequences reliably",
-        ],
-      },
-    ],
-
+  title: "LSTM (Long Short-Term Memory)",
+  subtitle: "An improved Recurrent Neural Network that can remember important information for much longer periods.",
+  eyebrow: "Concept 3 of 4",
+  accent: "gold",
+  icon: Brain,
+  sections: [
+    {
+      heading: "What is an LSTM?",
+      paragraphs: [
+        "Long Short-Term Memory (LSTM) is a special type of Recurrent Neural Network (RNN) designed to overcome the memory limitations of traditional RNNs.",
+        "While a standard RNN gradually forgets information from earlier parts of a sequence, an LSTM can remember important information over much longer distances.",
+        "This makes LSTMs highly effective for tasks involving long sentences, lengthy documents, speech, and time-series data.",
+      ],
+    },
+    {
+      heading: "Why do we need LSTMs?",
+      paragraphs: [
+        "Standard RNNs struggle to remember information when sequences become very long. As more data is processed, earlier information slowly disappears.",
+        "LSTMs solve this problem by introducing a dedicated memory system that decides what information should be remembered, updated, or forgotten.",
+      ],
+      bullets: [
+        "Remembers information for longer periods.",
+        "Reduces the forgetting problem in RNNs.",
+        "Improves learning on long sequences.",
+        "Produces more accurate predictions.",
+      ],
+    },
+    {
+      heading: "How does an LSTM work?",
+      paragraphs: [
+        "An LSTM contains a memory cell and several gates that control the flow of information.",
+        "These gates automatically learn which information is useful to keep and which information can be discarded.",
+      ],
+      bullets: [
+        "Forget Gate – Removes unnecessary information.",
+        "Input Gate – Decides what new information should be stored.",
+        "Memory Cell – Stores important information over time.",
+        "Output Gate – Determines what information is passed to the next step.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine reading a novel with hundreds of pages.",
+        "Even after many chapters, you still remember the main characters and important events because your brain keeps the most relevant information.",
+        "An LSTM works similarly by remembering important details while ignoring less useful information throughout a long sequence.",
+      ],
+    },
+    {
+      heading: "Where are LSTMs used?",
+      paragraphs: [
+        "LSTMs are useful for applications that require understanding long sequences of information.",
+      ],
+      bullets: [
+        "Language translation.",
+        "Speech recognition.",
+        "Text generation.",
+        "Handwriting recognition.",
+        "Stock market prediction.",
+        "Weather forecasting.",
+        "Time-series forecasting.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think LSTMs remember everything forever. In reality, they learn what information is important and intentionally forget unnecessary details.",
+      ],
+      bullets: [
+        "Thinking LSTMs have unlimited memory.",
+        "Confusing LSTMs with standard RNNs.",
+        "Believing every piece of information is stored.",
+        "Ignoring the role of memory gates.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "An LSTM is an enhanced RNN that uses memory cells and gates to remember important information over long sequences.",
+        "This ability makes LSTMs much better than traditional RNNs for tasks involving long-term dependencies.",
+      ],
+      bullets: [
+        "Improved version of RNN.",
+        "Designed for long sequences.",
+        "Uses memory cells and gates.",
+        "Learns what to remember and forget.",
+        "Excellent for sequence modeling.",
+      ],
+    },
+  ],
   },
 
   "transformers-introduction": {
-    title: "Transformers (Introduction)",
-    subtitle: "The architecture that replaced RNNs and now powers most modern AI.",
-    eyebrow: "Concept 4 of 4",
-    accent: "purple",
-    icon: Sparkles,
-    sections: [
-      {
-        heading: "Looking at the whole sequence at once",
-        paragraphs: [
-          "Instead of processing one step at a time like an RNN, a transformer looks at an entire sequence simultaneously and uses a mechanism called attention to decide which other words matter most for understanding each word.",
+  title: "Transformers (Introduction)",
+  subtitle: "The modern neural network architecture that powers today's most advanced AI systems.",
+  eyebrow: "Concept 4 of 4",
+  accent: "purple",
+  icon: Sparkles,
+  sections: [
+    {
+      heading: "What is a Transformer?",
+      paragraphs: [
+        "A Transformer is a Deep Learning architecture designed to process entire sequences of data simultaneously instead of one step at a time.",
+        "Unlike RNNs and LSTMs, Transformers do not rely on sequential memory. Instead, they use a mechanism called Attention to understand which parts of the input are most important.",
+        "Because of this design, Transformers are faster, more efficient, and significantly more powerful for many AI tasks.",
+      ],
+    },
+    {
+      heading: "How does a Transformer work?",
+      paragraphs: [
+        "A Transformer looks at every part of the input sequence at the same time.",
+        "Using the Attention mechanism, it learns how different words or data points are related, even if they are far apart in the sequence.",
+      ],
+      bullets: [
+        "Receive the complete input sequence.",
+        "Apply the Attention mechanism.",
+        "Learn relationships between different inputs.",
+        "Process information in parallel.",
+        "Generate the final prediction or output.",
+      ],
+    },
+    {
+      heading: "What is Attention?",
+      paragraphs: [
+        "Attention is the mechanism that allows a Transformer to focus on the most relevant parts of the input while processing each word or data point.",
+        "Instead of treating every input equally, the model learns which words or features are more important for understanding the overall meaning.",
+      ],
+      bullets: [
+        "Finds important relationships.",
+        "Focuses on relevant information.",
+        "Connects distant words directly.",
+        "Improves understanding of context.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Consider the sentence: 'The animal didn't cross the road because it was tired.'",
+        "To understand the word 'it', the model needs to know that it refers to 'the animal', even though several words appear between them.",
+        "A Transformer uses Attention to directly connect these related words, making language understanding much more accurate.",
+      ],
+    },
+    {
+      heading: "Why are Transformers important?",
+      paragraphs: [
+        "Transformers have revolutionized Artificial Intelligence by enabling models to learn from enormous amounts of data efficiently.",
+        "They form the foundation of modern Large Language Models and many state-of-the-art AI systems.",
+      ],
+      bullets: [
+        "Much faster than RNNs during training.",
+        "Better at learning long-range relationships.",
+        "Highly scalable.",
+        "Foundation of modern AI models.",
+      ],
+    },
+    {
+      heading: "Where are Transformers used?",
+      paragraphs: [
+        "Transformers are used in almost every modern AI application involving language, images, audio, and even scientific research.",
+      ],
+      bullets: [
+        "ChatGPT and other AI assistants.",
+        "Language translation.",
+        "Text summarization.",
+        "Image generation.",
+        "Speech recognition.",
+        "Code generation.",
+        "Computer Vision.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think Transformers simply replace RNNs. While they outperform RNNs in many tasks, both architectures are based on different approaches and are useful in different situations.",
+      ],
+      bullets: [
+        "Thinking Transformers process one word at a time.",
+        "Confusing Attention with memory.",
+        "Believing Transformers ignore word order completely.",
+        "Assuming every AI model is a Transformer.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Transformers process entire sequences simultaneously using the Attention mechanism to understand relationships between different inputs.",
+        "This architecture powers today's most advanced AI systems, including GPT, Gemini, Claude, and many modern Large Language Models.",
+      ],
+      bullets: [
+        "Processes data in parallel.",
+        "Uses the Attention mechanism.",
+        "Learns long-range relationships.",
+        "Faster and more scalable than RNNs.",
+        "Foundation of modern Generative AI.",
+      ],
+    },
+  ],
+},
+"python-basics-revision": {
+  title: "Python Basics Revision",
+  subtitle: "A quick refresher of the core Python concepts you'll use throughout AI and Machine Learning.",
+  eyebrow: "Concept 1 of 2",
+  accent: "teal",
+  icon: Code2,
+  sections: [
+    {
+      heading: "Why revise Python?",
+      paragraphs: [
+        "Python is the most widely used programming language in Artificial Intelligence because it is simple, readable, and supported by thousands of powerful libraries.",
+        "Before learning Machine Learning and Deep Learning, it's important to be comfortable with Python fundamentals since almost every AI project is built using them.",
+        "This revision helps strengthen the concepts you'll use repeatedly while building AI applications.",
+      ],
+    },
+    {
+      heading: "Core Python concepts to remember",
+      paragraphs: [
+        "These are the fundamental programming concepts every AI developer should know before moving forward.",
+      ],
+      bullets: [
+        "Variables and data types.",
+        "Operators and expressions.",
+        "Input and output.",
+        "Conditional statements (if, elif, else).",
+        "Loops (for and while).",
+        "Functions.",
+        "Lists, tuples, dictionaries, and sets.",
+        "Basic file handling.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine you're creating an AI program that predicts house prices.",
+        "The program first stores data in variables, uses loops to process thousands of records, applies conditions to clean incorrect data, and organizes everything using lists and dictionaries before training the model.",
+        "Almost every AI project follows this workflow, making Python fundamentals essential.",
+      ],
+    },
+    {
+      heading: "Why is Python important for AI?",
+      paragraphs: [
+        "Python allows developers to build AI applications quickly using libraries such as NumPy, Pandas, Matplotlib, Scikit-learn, TensorFlow, and PyTorch.",
+        "Its simple syntax lets developers focus on solving AI problems rather than writing complicated code.",
+      ],
+      bullets: [
+        "Easy to learn and write.",
+        "Large AI and Machine Learning ecosystem.",
+        "Supports rapid development.",
+        "Used in research and industry.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners rush into Machine Learning without fully understanding Python basics, making it difficult to debug or understand AI code later.",
+      ],
+      bullets: [
+        "Skipping Python fundamentals.",
+        "Confusing lists, tuples, and dictionaries.",
+        "Writing repetitive code instead of using functions.",
+        "Ignoring proper variable naming and indentation.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Python is the foundation of modern AI development. Mastering its basic concepts makes learning Machine Learning, Deep Learning, and Generative AI much easier.",
+      ],
+      bullets: [
+        "Foundation of AI programming.",
+        "Simple and beginner-friendly.",
+        "Supports powerful AI libraries.",
+        "Used in every stage of AI development.",
+        "Essential before learning Machine Learning.",
+      ],
+    },
+  ],
+},
+"advanced-data-structures": {
+  title: "Advanced Data Structures",
+  subtitle: "Efficient ways to organize, store, and process data for AI applications.",
+  eyebrow: "Concept 2 of 2",
+  accent: "coral",
+  icon: Database,
+  sections: [
+    {
+      heading: "What are Advanced Data Structures?",
+      paragraphs: [
+        "Advanced Data Structures are specialized ways of organizing data so that it can be stored, accessed, searched, and modified efficiently.",
+        "In Artificial Intelligence, choosing the right data structure improves performance, reduces memory usage, and enables faster processing of large datasets.",
+        "Many AI algorithms rely heavily on efficient data structures to manage millions of records and complex relationships.",
+      ],
+    },
+    {
+      heading: "Common Advanced Data Structures",
+      paragraphs: [
+        "Different problems require different data structures. Each one is optimized for a particular type of operation.",
+      ],
+      bullets: [
+        "Stack – Follows Last In, First Out (LIFO).",
+        "Queue – Follows First In, First Out (FIFO).",
+        "Deque – Allows insertion and deletion from both ends.",
+        "Heap (Priority Queue) – Always retrieves the highest or lowest priority element.",
+        "Hash Table (Dictionary) – Provides extremely fast data lookup.",
+        "Tree – Organizes hierarchical information.",
+        "Graph – Represents relationships between connected objects.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine building a navigation application like Google Maps.",
+        "Cities can be represented as nodes and roads as connections between them. This forms a graph, allowing algorithms to efficiently find the shortest route between two locations.",
+        "Similarly, AI systems choose different data structures depending on the type of problem being solved.",
+      ],
+    },
+    {
+      heading: "Why are Data Structures important in AI?",
+      paragraphs: [
+        "AI applications often process millions of data points. Efficient data structures make searching, sorting, storing, and retrieving information much faster.",
+        "Choosing the wrong data structure can significantly slow down AI models and increase memory consumption.",
+      ],
+      bullets: [
+        "Improve algorithm efficiency.",
+        "Reduce memory usage.",
+        "Speed up data processing.",
+        "Support large-scale AI applications.",
+      ],
+    },
+    {
+      heading: "Where are they used?",
+      paragraphs: [
+        "Advanced data structures are used throughout Artificial Intelligence and software development.",
+      ],
+      bullets: [
+        "Search algorithms.",
+        "Recommendation systems.",
+        "Social network analysis.",
+        "Knowledge graphs.",
+        "Game AI.",
+        "Route planning and navigation.",
+        "Machine Learning pipelines.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use the same data structure for every problem instead of selecting the one best suited for the required operations.",
+      ],
+      bullets: [
+        "Using lists for everything.",
+        "Ignoring time complexity.",
+        "Confusing trees with graphs.",
+        "Choosing inefficient data structures for large datasets.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Advanced Data Structures organize information efficiently, allowing AI systems to process large amounts of data quickly and effectively.",
+      ],
+      bullets: [
+        "Store data efficiently.",
+        "Improve speed and performance.",
+        "Reduce computational cost.",
+        "Essential for scalable AI systems.",
+        "Foundation of efficient algorithms.",
+      ],
+    },
+  ],
+},
+"functions-modules": {
+  title: "Functions & Modules",
+  subtitle: "Write reusable code and organize large Python programs efficiently.",
+  eyebrow: "Concept 1 of 2",
+  accent: "teal",
+  icon: FunctionSquare,
+  sections: [
+    {
+      heading: "What are Functions and Modules?",
+      paragraphs: [
+        "A function is a reusable block of code that performs a specific task. Instead of writing the same code multiple times, we write it once inside a function and call it whenever needed.",
+        "A module is a Python file that contains functions, classes, and variables which can be imported into other programs. Modules help organize code into smaller, manageable pieces.",
+        "Functions and modules make Python programs easier to read, maintain, and reuse, especially in AI and software development projects.",
+      ],
+    },
+    {
+      heading: "How do Functions work?",
+      paragraphs: [
+        "Functions receive inputs called parameters, perform some operations, and optionally return a result.",
+      ],
+      bullets: [
+        "Define a function using the def keyword.",
+        "Pass input values as parameters.",
+        "Execute the function logic.",
+        "Return a result using the return statement.",
+        "Call the function whenever needed.",
+      ],
+    },
+    {
+      heading: "Why do we use Modules?",
+      paragraphs: [
+        "As programs become larger, keeping all code in a single file becomes difficult. Modules allow developers to divide programs into logical components.",
+        "Python also provides thousands of built-in and third-party modules that simplify tasks such as mathematics, data analysis, visualization, and Artificial Intelligence.",
+      ],
+      bullets: [
+        "Organize code into separate files.",
+        "Reuse code across projects.",
+        "Import built-in libraries like math and random.",
+        "Use AI libraries such as NumPy, Pandas, TensorFlow, and PyTorch.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine building an AI chatbot.",
+        "One function processes user input, another predicts the response, while another saves conversation history. Instead of placing everything in one file, each feature can be stored in a separate module.",
+        "This makes the project easier to develop, test, and maintain.",
+      ],
+    },
+    {
+      heading: "Why are Functions and Modules important?",
+      paragraphs: [
+        "Large AI applications often contain thousands of lines of code. Functions and modules help developers build scalable software by reducing duplication and improving organization.",
+      ],
+      bullets: [
+        "Reduce repeated code.",
+        "Improve readability.",
+        "Simplify debugging.",
+        "Support team collaboration.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners write long programs without using functions or separate modules, making the code difficult to understand and maintain.",
+      ],
+      bullets: [
+        "Writing repeated code instead of functions.",
+        "Creating very large functions.",
+        "Forgetting to return values.",
+        "Not organizing code into modules.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Functions make code reusable, while modules organize related code into separate files. Together, they are essential for building clean and scalable Python applications.",
+      ],
+      bullets: [
+        "Functions perform specific tasks.",
+        "Modules organize code.",
+        "Reduce code duplication.",
+        "Improve maintainability.",
+        "Essential for AI projects.",
+      ],
+    },
+  ],
+},
+"object-oriented-programming": {
+  title: "Object-Oriented Programming",
+  subtitle: "A programming approach that models real-world objects using classes and objects.",
+  eyebrow: "Concept 2 of 2",
+  accent: "coral",
+  icon: Boxes,
+  sections: [
+    {
+      heading: "What is Object-Oriented Programming?",
+      paragraphs: [
+        "Object-Oriented Programming (OOP) is a programming paradigm that organizes code using objects. Each object represents a real-world entity with its own data (attributes) and behavior (methods).",
+        "Instead of thinking only in terms of functions, OOP encourages developers to model real-world systems such as students, cars, bank accounts, or AI models as objects.",
+        "Python fully supports Object-Oriented Programming, making it one of the most widely used paradigms in software and AI development.",
+      ],
+    },
+    {
+      heading: "Core concepts of OOP",
+      paragraphs: [
+        "Every OOP program is built around a few fundamental concepts.",
+      ],
+      bullets: [
+        "Class – A blueprint used to create objects.",
+        "Object – An instance created from a class.",
+        "Attributes – Variables that store an object's data.",
+        "Methods – Functions that define an object's behavior.",
+        "Constructor (__init__) – Initializes an object when it is created.",
+      ],
+    },
+    {
+      heading: "The four pillars of OOP",
+      paragraphs: [
+        "These principles make software easier to design, reuse, and maintain.",
+      ],
+      bullets: [
+        "Encapsulation – Bundle data and methods together.",
+        "Inheritance – Create new classes from existing ones.",
+        "Polymorphism – Use the same interface for different implementations.",
+        "Abstraction – Hide unnecessary implementation details.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine creating a Student class.",
+        "Every student object has attributes such as name and roll number, and methods such as study() and attendClass(). Although every student is different, they all share the same blueprint.",
+        "Similarly, AI projects often represent datasets, models, and neural networks as objects with their own properties and methods.",
+      ],
+    },
+    {
+      heading: "Why is OOP important?",
+      paragraphs: [
+        "Most modern software frameworks and AI libraries are built using Object-Oriented Programming because it makes large applications easier to manage and extend.",
+      ],
+      bullets: [
+        "Improves code organization.",
+        "Promotes code reuse.",
+        "Simplifies maintenance.",
+        "Makes large projects scalable.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse classes with objects or use OOP even when a simple function would be sufficient.",
+      ],
+      bullets: [
+        "Confusing classes and objects.",
+        "Ignoring constructors.",
+        "Misunderstanding inheritance.",
+        "Creating unnecessary classes.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Object-Oriented Programming models real-world entities using classes and objects, making software easier to organize, reuse, and maintain.",
+      ],
+      bullets: [
+        "Classes are blueprints.",
+        "Objects are instances.",
+        "Attributes store data.",
+        "Methods define behavior.",
+        "Foundation of modern Python development.",
+      ],
+    },
+  ],
+},
+"file-handling": {
+  title: "File Handling",
+  subtitle: "Store, read, and manage data permanently using files in Python.",
+  eyebrow: "Concept 1 of 2",
+  accent: "teal",
+  icon: FileText,
+  sections: [
+    {
+      heading: "What is File Handling?",
+      paragraphs: [
+        "File Handling is the process of reading from and writing to files stored on a computer. Unlike variables, whose values disappear when a program ends, files allow data to be saved permanently.",
+        "Python provides built-in functions that make it easy to create, open, read, write, and update files.",
+        "In AI and software development, file handling is commonly used to store datasets, model outputs, logs, reports, and configuration files.",
+      ],
+    },
+    {
+      heading: "Common File Operations",
+      paragraphs: [
+        "Python supports several operations for working with files efficiently.",
+      ],
+      bullets: [
+        "Open a file.",
+        "Read data from a file.",
+        "Write new data to a file.",
+        "Append data without deleting existing content.",
+        "Close the file after use.",
+      ],
+    },
+    {
+      heading: "File Modes in Python",
+      paragraphs: [
+        "When opening a file, different modes specify how the file should be accessed.",
+      ],
+      bullets: [
+        "r – Read an existing file.",
+        "w – Write to a file (overwrites existing content).",
+        "a – Append data to the end of a file.",
+        "x – Create a new file.",
+        "rb / wb – Read or write binary files.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine building an AI application that predicts house prices.",
+        "After making predictions, the program saves the results into a CSV file so they can be reviewed later. Every time new predictions are generated, the application can append them to the same file instead of losing previous results.",
+        "This is one of the most common uses of file handling in AI projects.",
+      ],
+    },
+    {
+      heading: "Why is File Handling important?",
+      paragraphs: [
+        "Most real-world applications need to store information permanently. File handling enables programs to save user data, datasets, reports, and logs for future use.",
+      ],
+      bullets: [
+        "Stores data permanently.",
+        "Loads datasets for AI models.",
+        "Saves reports and logs.",
+        "Supports data sharing between programs.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners forget to close files properly or overwrite important data by using the wrong file mode.",
+      ],
+      bullets: [
+        "Using write mode instead of append mode.",
+        "Forgetting to close files.",
+        "Ignoring file paths.",
+        "Not handling file-related errors.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "File handling allows Python programs to store and retrieve data permanently, making it an essential skill for software development and AI projects.",
+      ],
+      bullets: [
+        "Reads and writes files.",
+        "Stores data permanently.",
+        "Supports multiple file modes.",
+        "Essential for AI datasets and reports.",
+        "Foundation of data persistence.",
+      ],
+    },
+  ],
+},
+"exception-handling": {
+  title: "Exception Handling",
+  subtitle: "Write reliable Python programs that can handle unexpected errors gracefully.",
+  eyebrow: "Concept 2 of 2",
+  accent: "coral",
+  icon: ShieldAlert,
+  sections: [
+    {
+      heading: "What is Exception Handling?",
+      paragraphs: [
+        "Exception Handling is the process of detecting and managing errors that occur while a program is running. Instead of crashing, the program can respond appropriately and continue executing whenever possible.",
+        "Python provides the try, except, else, and finally keywords to handle exceptions safely.",
+        "Proper exception handling makes applications more robust, user-friendly, and easier to debug.",
+      ],
+    },
+    {
+      heading: "How does Exception Handling work?",
+      paragraphs: [
+        "Python executes code inside a try block. If an error occurs, control immediately moves to the matching except block, where the error can be handled.",
+      ],
+      bullets: [
+        "try – Contains code that may generate an error.",
+        "except – Handles the exception.",
+        "else – Executes if no exception occurs.",
+        "finally – Always executes, whether an error occurs or not.",
+      ],
+    },
+    {
+      heading: "Common Exceptions in Python",
+      paragraphs: [
+        "Python raises different exceptions depending on the type of error encountered.",
+      ],
+      bullets: [
+        "ZeroDivisionError – Dividing by zero.",
+        "FileNotFoundError – File does not exist.",
+        "ValueError – Invalid value provided.",
+        "TypeError – Invalid data type used.",
+        "IndexError – Invalid list index accessed.",
+        "KeyError – Missing dictionary key.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a calculator application where the user accidentally enters zero as the denominator.",
+        "Without exception handling, the program would stop with an error. With a try-except block, the program can display a friendly message asking the user to enter a different number and continue running.",
+      ],
+    },
+    {
+      heading: "Why is Exception Handling important?",
+      paragraphs: [
+        "Real-world applications constantly encounter unexpected situations such as invalid user input, missing files, or network failures. Exception handling allows programs to recover from these situations instead of crashing.",
+      ],
+      bullets: [
+        "Prevents program crashes.",
+        "Improves user experience.",
+        "Makes debugging easier.",
+        "Builds reliable applications.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners catch every exception using a generic except block, making it difficult to identify the real cause of errors.",
+      ],
+      bullets: [
+        "Using bare except without specifying the exception.",
+        "Ignoring exception messages.",
+        "Writing code that hides important errors.",
+        "Using exceptions instead of proper validation.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Exception handling allows Python programs to detect, manage, and recover from errors without unexpectedly terminating the application.",
+      ],
+      bullets: [
+        "Handles runtime errors.",
+        "Uses try and except blocks.",
+        "Improves program reliability.",
+        "Prevents unexpected crashes.",
+        "Essential for professional software development.",
+      ],
+    },
+  ],
+},
+decorators: {
+  title: "Decorators",
+  subtitle: "A powerful Python feature that lets you extend the behavior of functions without changing their original code.",
+  eyebrow: "Concept 1 of 2",
+  accent: "teal",
+  icon: Wand2,
+  sections: [
+    {
+      heading: "What are Decorators?",
+      paragraphs: [
+        "A Decorator is a special Python function that adds new functionality to another function without modifying its original implementation.",
+        "Decorators work because functions in Python are first-class objects—they can be passed as arguments, returned from other functions, and assigned to variables.",
+        "They are commonly used to add features such as logging, authentication, timing, validation, and caching in a clean and reusable way.",
+      ],
+    },
+    {
+      heading: "How do Decorators work?",
+      paragraphs: [
+        "A decorator wraps an existing function inside another function. Whenever the original function is called, the decorator executes additional code before or after it.",
+      ],
+      bullets: [
+        "Define a decorator function.",
+        "Accept another function as an argument.",
+        "Wrap the original function.",
+        "Execute extra functionality.",
+        "Return the enhanced function.",
+      ],
+    },
+    {
+      heading: "Why are Decorators useful?",
+      paragraphs: [
+        "Instead of rewriting the same code inside multiple functions, decorators allow developers to add common functionality once and reuse it everywhere.",
+        "They help keep programs modular, readable, and easier to maintain.",
+      ],
+      bullets: [
+        "Reduce code duplication.",
+        "Improve code reusability.",
+        "Keep business logic clean.",
+        "Add functionality without modifying existing code.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a teacher who checks every student's assignment before submission.",
+        "Instead of asking every student to perform the same checks individually, the teacher automatically reviews each assignment before accepting it.",
+        "Similarly, a decorator automatically performs additional tasks whenever a function is executed.",
+      ],
+    },
+    {
+      heading: "Where are Decorators used?",
+      paragraphs: [
+        "Decorators are widely used in modern Python frameworks and production applications.",
+      ],
+      bullets: [
+        "Logging function calls.",
+        "Authentication and authorization.",
+        "Performance measurement.",
+        "Caching results.",
+        "Input validation.",
+        "Flask and Django web frameworks.",
+        "Machine Learning pipelines.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners find decorators confusing because they involve functions returning other functions. Understanding first-class functions makes decorators much easier to learn.",
+      ],
+      bullets: [
+        "Confusing decorators with normal functions.",
+        "Forgetting to return the wrapper function.",
+        "Not understanding function arguments.",
+        "Using decorators when a simple function is sufficient.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Decorators enhance existing functions by adding new behavior without changing the original code, making applications cleaner and more reusable.",
+      ],
+      bullets: [
+        "Extend function behavior.",
+        "Do not modify original code.",
+        "Promote reusable programming.",
+        "Widely used in Python frameworks.",
+        "Powerful feature for clean software design.",
+      ],
+    },
+  ],
+},
+"generators-iterators": {
+  title: "Generators & Iterators",
+  subtitle: "Efficiently process large amounts of data one item at a time instead of loading everything into memory.",
+  eyebrow: "Concept 2 of 2",
+  accent: "coral",
+  icon: RefreshCw,
+  sections: [
+    {
+      heading: "What are Iterators and Generators?",
+      paragraphs: [
+        "An Iterator is an object that allows you to traverse a collection one element at a time. Instead of accessing all data at once, iterators return each item sequentially.",
+        "A Generator is a special type of iterator created using the yield keyword. Unlike regular functions that return all values immediately, generators produce values only when they are needed.",
+        "This approach makes Python programs much more memory-efficient when working with large datasets.",
+      ],
+    },
+    {
+      heading: "How do they work?",
+      paragraphs: [
+        "Iterators and generators produce one value at a time, allowing programs to process data without storing the entire collection in memory.",
+      ],
+      bullets: [
+        "Iterators return items one by one.",
+        "Generators use the yield keyword.",
+        "Values are generated only when requested.",
+        "Memory is reused efficiently.",
+        "Suitable for processing large datasets.",
+      ],
+    },
+    {
+      heading: "Why are Generators useful?",
+      paragraphs: [
+        "Loading millions of records into memory at once can slow down applications or even cause them to crash.",
+        "Generators solve this problem by generating each value only when it is required, making programs faster and more memory-efficient.",
+      ],
+      bullets: [
+        "Reduce memory usage.",
+        "Process large files efficiently.",
+        "Improve application performance.",
+        "Support streaming data processing.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine reading a very large book.",
+        "Instead of memorizing every page before you begin reading, you read one page at a time. This requires much less memory and effort.",
+        "Generators work in the same way by producing one value whenever the program asks for it.",
+      ],
+    },
+    {
+      heading: "Where are Generators and Iterators used?",
+      paragraphs: [
+        "They are commonly used in applications that handle continuous or very large amounts of data.",
+      ],
+      bullets: [
+        "Reading large files.",
+        "Streaming data.",
+        "Machine Learning datasets.",
+        "Data pipelines.",
+        "Web scraping.",
+        "Log processing.",
+        "Real-time analytics.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners expect generators to behave like lists. Once a generator has produced all of its values, it cannot be reused unless a new generator is created.",
+      ],
+      bullets: [
+        "Confusing generators with lists.",
+        "Using return instead of yield.",
+        "Trying to reuse an exhausted generator.",
+        "Ignoring the memory advantages of generators.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Iterators and generators allow Python to process data one item at a time, making programs significantly more efficient when working with large datasets.",
+      ],
+      bullets: [
+        "Generate values lazily.",
+        "Save memory.",
+        "Process data efficiently.",
+        "Ideal for large datasets.",
+        "Essential for scalable Python applications.",
+      ],
+    },
+  ],
+},
+"virtual-environments": {
+  title: "Virtual Environments",
+  subtitle: "Create isolated Python workspaces so every project has its own dependencies.",
+  eyebrow: "Concept 1 of 3",
+  accent: "teal",
+  icon: Boxes,
+  sections: [
+    {
+      heading: "What are Virtual Environments?",
+      paragraphs: [
+        "A Virtual Environment is an isolated Python workspace that contains its own interpreter, libraries, and installed packages. It allows different projects to use different versions of the same package without conflicting with each other.",
+        "Instead of installing every library globally on your computer, each project maintains its own independent environment.",
+        "Virtual environments are considered a best practice for Python development and are widely used in AI, web development, and data science projects.",
+      ],
+    },
+    {
+      heading: "Why do we need Virtual Environments?",
+      paragraphs: [
+        "Different projects often require different versions of the same library. Installing everything globally can create dependency conflicts and break existing applications.",
+      ],
+      bullets: [
+        "Isolate project dependencies.",
+        "Avoid package version conflicts.",
+        "Keep projects organized.",
+        "Make projects easier to share with others.",
+      ],
+    },
+    {
+      heading: "How does a Virtual Environment work?",
+      paragraphs: [
+        "A virtual environment creates a separate folder containing its own Python executable and installed packages. When activated, Python automatically uses that isolated environment instead of the global installation.",
+      ],
+      bullets: [
+        "Create a virtual environment.",
+        "Activate the environment.",
+        "Install project-specific packages.",
+        "Develop the application.",
+        "Deactivate the environment when finished.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine working on two AI projects. One requires TensorFlow 2.12, while another needs TensorFlow 2.18.",
+        "Without virtual environments, installing one version could overwrite the other and break one of the projects. With separate virtual environments, each project works independently without conflicts.",
+      ],
+    },
+    {
+      heading: "Why are Virtual Environments important?",
+      paragraphs: [
+        "Professional developers use virtual environments to ensure projects remain stable, reproducible, and easy to deploy on different systems.",
+      ],
+      bullets: [
+        "Prevent dependency conflicts.",
+        "Improve project portability.",
+        "Support team collaboration.",
+        "Essential for professional development.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners install packages globally for every project, which often leads to version conflicts and difficult-to-debug errors.",
+      ],
+      bullets: [
+        "Not creating a virtual environment.",
+        "Installing packages globally.",
+        "Forgetting to activate the environment.",
+        "Not saving project dependencies.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A virtual environment isolates project dependencies, allowing every Python project to have its own libraries and package versions.",
+      ],
+      bullets: [
+        "Creates isolated workspaces.",
+        "Prevents dependency conflicts.",
+        "Keeps projects independent.",
+        "Industry best practice.",
+        "Essential for AI development.",
+      ],
+    },
+  ],
+},
+"package-management": {
+  title: "Package Management",
+  subtitle: "Install, update, and manage Python libraries efficiently for your projects.",
+  eyebrow: "Concept 2 of 3",
+  accent: "coral",
+  icon: Package,
+  sections: [
+    {
+      heading: "What is Package Management?",
+      paragraphs: [
+        "Package Management is the process of installing, updating, removing, and managing external Python libraries used in applications.",
+        "Python has thousands of open-source packages that provide ready-made functionality, allowing developers to build powerful applications without writing everything from scratch.",
+        "Tools like pip make it easy to download and manage these packages.",
+      ],
+    },
+    {
+      heading: "Why do we need Packages?",
+      paragraphs: [
+        "Instead of building every feature manually, developers can use existing libraries that have already been tested and optimized.",
+      ],
+      bullets: [
+        "Reuse existing code.",
+        "Save development time.",
+        "Access AI and data science libraries.",
+        "Simplify software development.",
+      ],
+    },
+    {
+      heading: "Common Package Management Tasks",
+      paragraphs: [
+        "Python provides simple commands for managing packages throughout a project's lifecycle.",
+      ],
+      bullets: [
+        "Install packages using pip.",
+        "Upgrade existing packages.",
+        "Uninstall unused packages.",
+        "View installed packages.",
+        "Store dependencies in requirements.txt.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you're building an image classification model.",
+        "Instead of implementing matrix operations yourself, you install libraries such as NumPy, OpenCV, and TensorFlow using pip. These libraries provide optimized tools that greatly reduce development time.",
+      ],
+    },
+    {
+      heading: "Why is Package Management important?",
+      paragraphs: [
+        "Modern AI applications depend on dozens of external libraries. Managing these dependencies correctly ensures applications remain stable and reproducible across different systems.",
+      ],
+      bullets: [
+        "Simplifies dependency management.",
+        "Supports reproducible projects.",
+        "Speeds up development.",
+        "Essential for AI ecosystems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners install packages without checking compatibility or forget to record dependencies, making projects difficult to reproduce later.",
+      ],
+      bullets: [
+        "Ignoring package versions.",
+        "Not using requirements.txt.",
+        "Installing unnecessary packages.",
+        "Mixing global and virtual environment packages.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Package management allows developers to easily install and maintain the external libraries required for modern Python applications.",
+      ],
+      bullets: [
+        "Manages Python libraries.",
+        "Uses pip for installation.",
+        "Tracks project dependencies.",
+        "Simplifies development.",
+        "Essential for AI projects.",
+      ],
+    },
+  ],
+},
+"git-github-basics": {
+  title: "Git & GitHub Basics",
+  subtitle: "Track code changes, collaborate with others, and manage software projects professionally.",
+  eyebrow: "Concept 3 of 3",
+  accent: "gold",
+  icon: GitBranch,
+  sections: [
+    {
+      heading: "What are Git and GitHub?",
+      paragraphs: [
+        "Git is a distributed version control system that tracks changes made to source code over time. It allows developers to save project history, restore previous versions, and collaborate efficiently.",
+        "GitHub is a cloud-based platform that hosts Git repositories, making it easy to share projects, collaborate with teams, and contribute to open-source software.",
+        "Together, Git and GitHub have become essential tools for modern software and AI development.",
+      ],
+    },
+    {
+      heading: "Basic Git Workflow",
+      paragraphs: [
+        "Developers typically follow the same sequence of steps while working on a project.",
+      ],
+      bullets: [
+        "Initialize or clone a repository.",
+        "Modify project files.",
+        "Stage changes using git add.",
+        "Save changes using git commit.",
+        "Push commits to GitHub.",
+        "Pull the latest updates from collaborators.",
+      ],
+    },
+    {
+      heading: "Why do we use Git?",
+      paragraphs: [
+        "Git maintains a complete history of every change made to a project. If something goes wrong, developers can easily compare versions or restore previous code.",
+      ],
+      bullets: [
+        "Track code history.",
+        "Collaborate with teams.",
+        "Manage project versions.",
+        "Support open-source development.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine two developers working on the same AI application.",
+        "One develops the user interface while the other builds the machine learning model. Git allows both developers to work independently and later combine their changes safely into a single project.",
+      ],
+    },
+    {
+      heading: "Why is GitHub important?",
+      paragraphs: [
+        "GitHub provides online storage for repositories, supports collaboration through pull requests, and integrates with deployment, testing, and CI/CD tools used by professional development teams.",
+      ],
+      bullets: [
+        "Cloud repository hosting.",
+        "Team collaboration.",
+        "Open-source contributions.",
+        "Portfolio for developers.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners forget to commit regularly or push changes without reviewing them, making it difficult to track progress and resolve conflicts.",
+      ],
+      bullets: [
+        "Skipping meaningful commit messages.",
+        "Forgetting to pull before pushing.",
+        "Committing generated or unnecessary files.",
+        "Ignoring .gitignore.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Git tracks your project's history, while GitHub helps you store, share, and collaborate on that project with others.",
+      ],
+      bullets: [
+        "Git tracks code changes.",
+        "GitHub hosts repositories.",
+        "Supports collaboration.",
+        "Maintains version history.",
+        "Essential for professional software development.",
+      ],
+    },
+  ],
+},
+"linear-algebra": {
+  title: "Linear Algebra",
+  subtitle: "The mathematical language that powers Machine Learning and Deep Learning.",
+  eyebrow: "Concept 1 of 3",
+  accent: "teal",
+  icon: Sigma,
+  sections: [
+    {
+      heading: "What is Linear Algebra?",
+      paragraphs: [
+        "Linear Algebra is a branch of mathematics that studies vectors, matrices, and linear equations. It provides the mathematical foundation for almost every Machine Learning and Deep Learning algorithm.",
+        "In Artificial Intelligence, data, images, text, and even neural network weights are represented using vectors and matrices. Linear Algebra allows computers to perform calculations on this data efficiently.",
+        "Without Linear Algebra, modern AI systems such as image recognition, recommendation systems, and language models would not be possible.",
+      ],
+    },
+    {
+      heading: "Why is Linear Algebra important in AI?",
+      paragraphs: [
+        "AI models process enormous amounts of numerical data. Linear Algebra provides efficient mathematical operations that allow these computations to be performed quickly.",
+      ],
+      bullets: [
+        "Represents datasets mathematically.",
+        "Powers Neural Networks.",
+        "Supports Machine Learning algorithms.",
+        "Enables efficient numerical computation.",
+      ],
+    },
+    {
+      heading: "Key concepts you'll learn",
+      paragraphs: [
+        "Linear Algebra consists of several important mathematical concepts that appear repeatedly throughout AI.",
+      ],
+      bullets: [
+        "Scalars.",
+        "Vectors.",
+        "Matrices.",
+        "Matrix operations.",
+        "Linear transformations.",
+        "Dot products.",
+        "Eigenvalues and eigenvectors (advanced).",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a student database where every student's marks in Mathematics, Science, and English are stored.",
+        "Instead of storing each value separately, the entire dataset can be represented as a matrix. AI algorithms can then process thousands of students simultaneously using matrix operations.",
+        "This ability to handle large datasets efficiently is one reason Linear Algebra is so important in AI.",
+      ],
+    },
+    {
+      heading: "Where is Linear Algebra used?",
+      paragraphs: [
+        "Linear Algebra is used throughout Artificial Intelligence and Data Science.",
+      ],
+      bullets: [
+        "Machine Learning.",
+        "Deep Learning.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Recommendation Systems.",
+        "Robotics.",
+        "Scientific Computing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think Linear Algebra is only academic mathematics, but almost every AI library performs Linear Algebra operations behind the scenes.",
+      ],
+      bullets: [
+        "Skipping Linear Algebra fundamentals.",
+        "Memorizing formulas without understanding.",
+        "Confusing vectors with matrices.",
+        "Ignoring practical AI applications.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Linear Algebra is the mathematical foundation of Artificial Intelligence. Every AI model uses vectors, matrices, and matrix operations to process and learn from data.",
+      ],
+      bullets: [
+        "Foundation of AI mathematics.",
+        "Represents data efficiently.",
+        "Supports Neural Networks.",
+        "Essential for Machine Learning.",
+        "Used in every modern AI system.",
+      ],
+    },
+  ],
+},
+matrices: {
+  title: "Matrices",
+  subtitle: "Tables of numbers that allow AI systems to process large amounts of data efficiently.",
+  eyebrow: "Concept 2 of 3",
+  accent: "coral",
+  icon: Table2,
+  sections: [
+    {
+      heading: "What is a Matrix?",
+      paragraphs: [
+        "A Matrix is a rectangular arrangement of numbers organized into rows and columns. It is one of the most important mathematical structures used in Artificial Intelligence.",
+        "Matrices allow computers to store and process large datasets efficiently. Images, datasets, neural network weights, and transformations are all represented as matrices.",
+        "Instead of performing calculations one value at a time, AI systems perform operations on entire matrices simultaneously.",
+      ],
+    },
+    {
+      heading: "Basic Matrix Operations",
+      paragraphs: [
+        "Several operations are commonly performed on matrices in AI applications.",
+      ],
+      bullets: [
+        "Matrix addition.",
+        "Matrix subtraction.",
+        "Scalar multiplication.",
+        "Matrix multiplication.",
+        "Transpose of a matrix.",
+      ],
+    },
+    {
+      heading: "Why are Matrices important in AI?",
+      paragraphs: [
+        "Neural networks perform millions of matrix multiplications every second during training and prediction.",
+        "Modern AI hardware such as GPUs is specifically optimized for fast matrix computations.",
+      ],
+      bullets: [
+        "Represent datasets.",
+        "Store neural network weights.",
+        "Speed up computations.",
+        "Enable efficient AI processing.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine storing the marks of 100 students in five different subjects.",
+        "Instead of creating separate variables for every mark, all values can be stored in a single matrix where rows represent students and columns represent subjects.",
+        "This allows AI algorithms to process the entire dataset efficiently.",
+      ],
+    },
+    {
+      heading: "Where are Matrices used?",
+      paragraphs: [
+        "Matrices appear throughout AI and computer science.",
+      ],
+      bullets: [
+        "Machine Learning datasets.",
+        "Image processing.",
+        "Neural Networks.",
+        "Computer Graphics.",
+        "Recommendation Systems.",
+        "Scientific simulations.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse element-wise multiplication with matrix multiplication, even though they produce completely different results.",
+      ],
+      bullets: [
+        "Mixing rows and columns.",
+        "Confusing matrix multiplication with element-wise multiplication.",
+        "Ignoring matrix dimensions.",
+        "Applying invalid operations.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Matrices organize large amounts of numerical data and enable fast mathematical operations, making them one of the most important tools in Artificial Intelligence.",
+      ],
+      bullets: [
+        "Organize data in rows and columns.",
+        "Support efficient computation.",
+        "Used by Neural Networks.",
+        "Essential for AI mathematics.",
+        "Foundation of matrix operations.",
+      ],
+    },
+  ],
+},
+vectors: {
+  title: "Vectors",
+  subtitle: "Ordered collections of numbers used to represent data, features, and directions in AI.",
+  eyebrow: "Concept 3 of 3",
+  accent: "gold",
+  icon: ArrowRightLeft,
+  sections: [
+    {
+      heading: "What is a Vector?",
+      paragraphs: [
+        "A Vector is an ordered collection of numbers representing a quantity with one or more dimensions. In Artificial Intelligence, vectors are commonly used to represent data points, features, and mathematical quantities.",
+        "Every row in a dataset, every word embedding, and every image feature can be represented as a vector.",
+        "Vectors are one of the most fundamental building blocks of Machine Learning and Deep Learning.",
+      ],
+    },
+    {
+      heading: "How are Vectors used?",
+      paragraphs: [
+        "Vectors store multiple values together so mathematical operations can be performed efficiently.",
+      ],
+      bullets: [
+        "Represent feature values.",
+        "Store coordinates.",
+        "Represent words using embeddings.",
+        "Perform mathematical operations.",
+      ],
+    },
+    {
+      heading: "Common Vector Operations",
+      paragraphs: [
+        "AI algorithms frequently perform operations on vectors while processing data.",
+      ],
+      bullets: [
+        "Vector addition.",
+        "Vector subtraction.",
+        "Scalar multiplication.",
+        "Dot product.",
+        "Magnitude of a vector.",
+        "Normalization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine predicting whether a student will pass an exam.",
+        "Each student can be represented by a vector containing attendance, assignment marks, study hours, and previous exam scores.",
+        "Machine Learning algorithms analyze these vectors to identify patterns and make predictions.",
+      ],
+    },
+    {
+      heading: "Where are Vectors used?",
+      paragraphs: [
+        "Vectors are used in almost every area of Artificial Intelligence.",
+      ],
+      bullets: [
+        "Machine Learning.",
+        "Deep Learning.",
+        "Word embeddings.",
+        "Recommendation systems.",
+        "Computer Vision.",
+        "Search engines.",
+        "Generative AI.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think vectors are only arrows from school mathematics, but in AI they are primarily used to represent numerical data and features.",
+      ],
+      bullets: [
+        "Confusing vectors with matrices.",
+        "Ignoring vector dimensions.",
+        "Misunderstanding the dot product.",
+        "Thinking vectors only represent direction.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Vectors represent data efficiently and are the primary mathematical structure used by AI models to understand and process information.",
+      ],
+      bullets: [
+        "Represent numerical data.",
+        "Store feature values.",
+        "Support mathematical operations.",
+        "Foundation of Machine Learning.",
+        "Used throughout modern AI.",
+      ],
+    },
+  ],
+},
+"eigenvalues-eigenvectors": {
+  title: "Eigenvalues & Eigenvectors",
+  subtitle: "Special vectors that reveal the most important directions in data transformations.",
+  eyebrow: "Concept 1 of 3",
+  accent: "teal",
+  icon: Compass,
+  sections: [
+    {
+      heading: "What are Eigenvalues and Eigenvectors?",
+      paragraphs: [
+        "Eigenvectors are special vectors whose direction remains unchanged when a matrix transformation is applied. Although their length may change, they continue pointing in the same direction.",
+        "The amount by which an eigenvector is stretched or compressed is called its Eigenvalue.",
+        "These concepts help AI systems identify the most important patterns and directions hidden inside data.",
+      ],
+    },
+    {
+      heading: "Why are they important in AI?",
+      paragraphs: [
+        "Many Machine Learning algorithms analyze large datasets with hundreds or thousands of features. Eigenvalues and eigenvectors help reduce this complexity while preserving the most useful information.",
+      ],
+      bullets: [
+        "Power Principal Component Analysis (PCA).",
+        "Reduce data dimensions.",
+        "Identify important patterns.",
+        "Improve computational efficiency.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine stretching a rubber sheet in different directions.",
+        "Most arrows drawn on the sheet change both their length and direction. However, a few arrows continue pointing in exactly the same direction while only becoming longer or shorter.",
+        "Those special arrows are eigenvectors, and the stretching factor is the eigenvalue.",
+      ],
+    },
+    {
+      heading: "Where are Eigenvalues and Eigenvectors used?",
+      paragraphs: [
+        "These concepts appear in many AI and scientific computing applications.",
+      ],
+      bullets: [
+        "Principal Component Analysis (PCA).",
+        "Image compression.",
+        "Face recognition.",
+        "Recommendation systems.",
+        "Computer Vision.",
+        "Scientific simulations.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners focus only on memorizing formulas instead of understanding that eigenvectors represent important directions and eigenvalues measure their importance.",
+      ],
+      bullets: [
+        "Memorizing without visualization.",
+        "Confusing vectors with eigenvectors.",
+        "Ignoring practical AI applications.",
+        "Thinking every vector is an eigenvector.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Eigenvectors identify important directions in transformed data, while eigenvalues indicate how significant those directions are.",
+      ],
+      bullets: [
+        "Special vectors.",
+        "Special scaling values.",
+        "Essential for PCA.",
+        "Reduce data complexity.",
+        "Important in Machine Learning.",
+      ],
+    },
+  ],
+},
+"calculus-basics": {
+  title: "Calculus Basics",
+  subtitle: "The mathematics of change that enables AI models to learn and improve.",
+  eyebrow: "Concept 2 of 3",
+  accent: "coral",
+  icon: FunctionSquare,
+  sections: [
+    {
+      heading: "What is Calculus?",
+      paragraphs: [
+        "Calculus is a branch of mathematics that studies change and motion. In Artificial Intelligence, it helps measure how model outputs change when inputs or parameters change.",
+        "Machine Learning algorithms continuously adjust millions of parameters during training, and calculus provides the mathematical tools needed to make these adjustments efficiently.",
+        "Without calculus, modern Deep Learning models would not be able to learn from data.",
+      ],
+    },
+    {
+      heading: "Why is Calculus important in AI?",
+      paragraphs: [
+        "AI models learn by minimizing errors. Calculus helps determine how parameters should be adjusted to reduce those errors step by step.",
+      ],
+      bullets: [
+        "Measures rates of change.",
+        "Supports model optimization.",
+        "Powers Gradient Descent.",
+        "Enables Deep Learning.",
+      ],
+    },
+    {
+      heading: "Key concepts of Calculus",
+      paragraphs: [
+        "Although calculus is a large subject, only a few concepts are essential for understanding AI.",
+      ],
+      bullets: [
+        "Functions.",
+        "Limits.",
+        "Derivatives.",
+        "Gradients.",
+        "Optimization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine cycling uphill.",
+        "At every point, the steepness of the road tells you how difficult it is to continue. Similarly, calculus measures the steepness of mathematical functions so AI models know which direction reduces errors the fastest.",
+      ],
+    },
+    {
+      heading: "Where is Calculus used?",
+      paragraphs: [
+        "Calculus appears throughout Artificial Intelligence and scientific computing.",
+      ],
+      bullets: [
+        "Neural Networks.",
+        "Gradient Descent.",
+        "Backpropagation.",
+        "Optimization algorithms.",
+        "Physics simulations.",
+        "Robotics.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think they need advanced calculus before learning AI. In reality, understanding the basic intuition behind derivatives and optimization is sufficient for getting started.",
+      ],
+      bullets: [
+        "Fearing calculus unnecessarily.",
+        "Memorizing formulas without intuition.",
+        "Ignoring graphical interpretations.",
+        "Thinking AI requires advanced mathematics from day one.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Calculus helps AI models understand how changes in parameters affect predictions, allowing them to improve through learning.",
+      ],
+      bullets: [
+        "Studies change.",
+        "Measures function behavior.",
+        "Supports optimization.",
+        "Essential for Deep Learning.",
+        "Foundation of model training.",
+      ],
+    },
+  ],
+},
+"derivatives": {
+  title: "Derivatives",
+  subtitle: "The mathematical tool that tells AI models which direction to move for better predictions.",
+  eyebrow: "Concept 3 of 3",
+  accent: "gold",
+  icon: TrendingUp,
+  sections: [
+    {
+      heading: "What is a Derivative?",
+      paragraphs: [
+        "A Derivative measures how quickly a function changes with respect to its input. It tells us the slope or steepness of a curve at any specific point.",
+        "In Artificial Intelligence, derivatives help determine how much each model parameter contributes to prediction errors.",
+        "By using derivatives, Machine Learning algorithms know how to adjust their parameters to improve accuracy.",
+      ],
+    },
+    {
+      heading: "Why are Derivatives important in AI?",
+      paragraphs: [
+        "During training, AI models repeatedly calculate derivatives to determine the best direction for reducing prediction errors.",
+      ],
+      bullets: [
+        "Measure slope.",
+        "Guide parameter updates.",
+        "Power Gradient Descent.",
+        "Enable Backpropagation.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine standing on a hill while trying to reach the lowest point.",
+        "The slope beneath your feet tells you which direction goes downhill. If the slope is steep, you move carefully; if it is flat, you're close to the bottom.",
+        "Similarly, derivatives tell AI models which direction reduces prediction error most effectively.",
+      ],
+    },
+    {
+      heading: "Where are Derivatives used?",
+      paragraphs: [
+        "Derivatives are used whenever AI models need to learn from data.",
+      ],
+      bullets: [
+        "Gradient Descent.",
+        "Backpropagation.",
+        "Neural Networks.",
+        "Machine Learning optimization.",
+        "Deep Learning.",
+        "Scientific computing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think derivatives are only theoretical mathematics, but they are actually calculated millions of times during the training of modern AI models.",
+      ],
+      bullets: [
+        "Ignoring graphical intuition.",
+        "Memorizing differentiation rules only.",
+        "Confusing derivatives with gradients.",
+        "Thinking derivatives are optional in Deep Learning.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A derivative measures the slope of a function and guides AI models toward better parameter values by indicating the direction that reduces prediction error.",
+      ],
+      bullets: [
+        "Measures slope.",
+        "Guides optimization.",
+        "Used in Gradient Descent.",
+        "Essential for Backpropagation.",
+        "Foundation of AI learning.",
+      ],
+    },
+  ],
+},
+"partial-derivatives": {
+  title: "Partial Derivatives",
+  subtitle: "Measure how one variable affects an output while keeping all other variables constant.",
+  eyebrow: "Concept 1 of 4",
+  accent: "teal",
+  icon: GitBranch,
+  sections: [
+    {
+      heading: "What are Partial Derivatives?",
+      paragraphs: [
+        "A Partial Derivative measures how a function changes with respect to one variable while keeping all the other variables constant.",
+        "Unlike ordinary derivatives, which work with functions having only one variable, partial derivatives are used when functions depend on multiple variables.",
+        "Since AI models contain thousands or even millions of parameters, partial derivatives are essential for understanding how each parameter affects the model's output.",
+      ],
+    },
+    {
+      heading: "Why are Partial Derivatives important in AI?",
+      paragraphs: [
+        "Neural networks learn by adjusting many weights simultaneously. Partial derivatives tell us how changing one weight affects the prediction while keeping all other weights unchanged.",
+      ],
+      bullets: [
+        "Update neural network weights.",
+        "Power Backpropagation.",
+        "Support Gradient Descent.",
+        "Optimize complex AI models.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine baking a cake where the taste depends on sugar, butter, and flour.",
+        "If you only increase the amount of sugar while keeping the butter and flour unchanged, you're measuring how sugar alone affects the taste.",
+        "A partial derivative works the same way by measuring the effect of one variable while holding the others constant.",
+      ],
+    },
+    {
+      heading: "Where are Partial Derivatives used?",
+      paragraphs: [
+        "Partial derivatives are fundamental to modern Machine Learning and optimization algorithms.",
+      ],
+      bullets: [
+        "Backpropagation.",
+        "Gradient Descent.",
+        "Deep Learning.",
+        "Optimization.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse ordinary derivatives with partial derivatives, forgetting that AI models usually involve many variables rather than just one.",
+      ],
+      bullets: [
+        "Confusing derivatives with partial derivatives.",
+        "Ignoring multiple variables.",
+        "Memorizing formulas without visualization.",
+        "Not relating them to neural network weights.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Partial derivatives measure the effect of changing one variable at a time, making them essential for training neural networks with millions of parameters.",
+      ],
+      bullets: [
+        "Works with multiple variables.",
+        "Measures one variable at a time.",
+        "Foundation of Backpropagation.",
+        "Supports AI optimization.",
+        "Essential for Deep Learning.",
+      ],
+    },
+  ],
+},
+probability: {
+  title: "Probability",
+  subtitle: "Measure the likelihood of events and make predictions under uncertainty.",
+  eyebrow: "Concept 2 of 4",
+  accent: "coral",
+  icon: Dice5,
+  sections: [
+    {
+      heading: "What is Probability?",
+      paragraphs: [
+        "Probability is the branch of mathematics that measures how likely an event is to occur. It helps quantify uncertainty using values between 0 and 1, where 0 means impossible and 1 means certain.",
+        "Artificial Intelligence uses probability to make predictions when outcomes are uncertain rather than guaranteed.",
+        "From spam detection to weather forecasting, probability helps AI estimate the most likely outcome.",
+      ],
+    },
+    {
+      heading: "Why is Probability important in AI?",
+      paragraphs: [
+        "AI systems rarely know answers with complete certainty. Instead, they estimate the probability of different outcomes and choose the most likely one.",
+      ],
+      bullets: [
+        "Handle uncertainty.",
+        "Support predictions.",
+        "Estimate confidence scores.",
+        "Power probabilistic models.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine predicting whether it will rain tomorrow.",
+        "Instead of saying it will definitely rain, a weather model may predict an 80% chance of rain.",
+        "Similarly, an AI model might predict that an email has a 95% probability of being spam.",
+      ],
+    },
+    {
+      heading: "Where is Probability used?",
+      paragraphs: [
+        "Probability plays a major role across Artificial Intelligence.",
+      ],
+      bullets: [
+        "Spam detection.",
+        "Recommendation systems.",
+        "Medical diagnosis.",
+        "Speech recognition.",
+        "Weather prediction.",
+        "Machine Learning classification.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse probability with certainty. A high probability means an event is likely, not guaranteed.",
+      ],
+      bullets: [
+        "Confusing probability with certainty.",
+        "Ignoring uncertainty.",
+        "Misinterpreting confidence scores.",
+        "Assuming probabilities always equal reality.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Probability allows AI systems to make intelligent decisions even when complete certainty is impossible.",
+      ],
+      bullets: [
+        "Measures likelihood.",
+        "Represents uncertainty.",
+        "Supports AI predictions.",
+        "Used in Machine Learning.",
+        "Foundation of probabilistic reasoning.",
+      ],
+    },
+  ],
+},
+statistics: {
+  title: "Statistics",
+  subtitle: "Understand, summarize, and analyze data before training AI models.",
+  eyebrow: "Concept 3 of 4",
+  accent: "gold",
+  icon: BarChart3,
+  sections: [
+    {
+      heading: "What is Statistics?",
+      paragraphs: [
+        "Statistics is the science of collecting, organizing, analyzing, and interpreting data. It helps us understand patterns, trends, and relationships hidden within datasets.",
+        "Before training any Machine Learning model, data scientists use statistics to explore, clean, and summarize their data.",
+        "Good statistical analysis often leads to better AI models and more accurate predictions.",
+      ],
+    },
+    {
+      heading: "Important Statistical Concepts",
+      paragraphs: [
+        "Several statistical measures are used regularly in AI and data analysis.",
+      ],
+      bullets: [
+        "Mean.",
+        "Median.",
+        "Mode.",
+        "Variance.",
+        "Standard Deviation.",
+        "Distribution.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a teacher analyzing the marks of an entire class.",
+        "Instead of looking at every student's marks individually, the teacher calculates the average score, identifies the highest and lowest marks, and measures how much the marks vary.",
+        "Statistics provides these summary measures, helping us understand the entire dataset quickly.",
+      ],
+    },
+    {
+      heading: "Why is Statistics important in AI?",
+      paragraphs: [
+        "Statistics helps identify data quality issues, detect outliers, understand feature distributions, and evaluate model performance.",
+      ],
+      bullets: [
+        "Analyze datasets.",
+        "Detect outliers.",
+        "Understand feature distributions.",
+        "Evaluate AI models.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners jump directly into model training without first understanding the data statistically.",
+      ],
+      bullets: [
+        "Ignoring data exploration.",
+        "Confusing mean and median.",
+        "Ignoring outliers.",
+        "Misinterpreting variance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Statistics helps transform raw data into meaningful information, making it one of the most important foundations of Machine Learning.",
+      ],
+      bullets: [
+        "Summarizes data.",
+        "Identifies patterns.",
+        "Supports data analysis.",
+        "Improves AI models.",
+        "Essential before Machine Learning.",
+      ],
+    },
+  ],
+},
+"bayes-theorem": {
+  title: "Bayes' Theorem",
+  subtitle: "Update probabilities using new evidence to make smarter AI decisions.",
+  eyebrow: "Concept 4 of 4",
+  accent: "purple",
+  icon: BrainCircuit,
+  sections: [
+    {
+      heading: "What is Bayes' Theorem?",
+      paragraphs: [
+        "Bayes' Theorem is a mathematical rule that calculates the probability of an event after considering new evidence.",
+        "Instead of relying only on initial assumptions, Bayes' Theorem continuously updates beliefs as additional information becomes available.",
+        "This ability to learn from new evidence makes Bayes' Theorem extremely useful in Artificial Intelligence and Machine Learning.",
+      ],
+    },
+    {
+      heading: "Why is Bayes' Theorem important in AI?",
+      paragraphs: [
+        "Many AI systems continuously receive new information. Bayes' Theorem helps update predictions based on this incoming evidence.",
+      ],
+      bullets: [
+        "Updates probabilities.",
+        "Supports decision-making.",
+        "Handles uncertain information.",
+        "Powers probabilistic classifiers.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a doctor diagnosing a disease.",
+        "Before performing a medical test, the doctor estimates the likelihood that a patient has the disease. After seeing the test result, the doctor updates that probability.",
+        "Bayes' Theorem mathematically explains how this updated belief should be calculated.",
+      ],
+    },
+    {
+      heading: "Where is Bayes' Theorem used?",
+      paragraphs: [
+        "Bayesian reasoning is widely used in Artificial Intelligence and data science.",
+      ],
+      bullets: [
+        "Spam email detection.",
+        "Medical diagnosis.",
+        "Recommendation systems.",
+        "Fraud detection.",
+        "Machine Learning classification.",
+        "Predictive analytics.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse prior probability with posterior probability, forgetting that Bayes' Theorem updates beliefs using new evidence.",
+      ],
+      bullets: [
+        "Ignoring prior probability.",
+        "Confusing prior and posterior probabilities.",
+        "Treating probabilities as fixed values.",
+        "Memorizing the formula without understanding its intuition.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Bayes' Theorem improves predictions by updating probabilities whenever new evidence becomes available, making AI systems more accurate and adaptive.",
+      ],
+      bullets: [
+        "Updates beliefs.",
+        "Uses new evidence.",
+        "Supports probabilistic AI.",
+        "Foundation of Bayesian learning.",
+        "Widely used in Machine Learning.",
         ],
-      },
-      {
-        heading: "Why this was such a big leap",
-        bullets: [
-          "Much faster to train, since steps don't have to happen strictly one after another",
-          "Attention lets the model connect distant words directly — 'it' can link straight back to a noun many sentences earlier",
-          "This is the architecture underneath GPT, and most other modern large language models",
-        ],
-      },
-    ],
-    handsOnPrompt:
-      "In the lab, you'll highlight which words in a sentence a model's attention would likely focus on to understand one specific word.",
-  },
+    },
+  ],
+},
+  "data-collection": {
+  title: "Data Collection",
+  subtitle: "Gathering the right data is the first step toward building intelligent AI systems.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Database,
+  sections: [
+    {
+      heading: "What is Data Collection?",
+      paragraphs: [
+        "Data Collection is the process of gathering raw information from various sources that can be used to train Artificial Intelligence and Machine Learning models.",
+        "The quality and quantity of collected data directly affect how well an AI model learns and performs.",
+        "Without sufficient and relevant data, even the most advanced algorithms cannot produce accurate predictions.",
+      ],
+    },
+    {
+      heading: "Why is Data Collection important in AI?",
+      paragraphs: [
+        "AI models learn patterns from examples, making high-quality data the foundation of every successful AI application.",
+      ],
+      bullets: [
+        "Provides training examples.",
+        "Improves model accuracy.",
+        "Reduces bias when data is diverse.",
+        "Helps models generalize to new situations.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine you're building an AI model that recognizes cats and dogs.",
+        "You first collect thousands of images of both animals from cameras, websites, or public datasets. These images become the training data that teaches the model how to distinguish between them.",
+      ],
+    },
+    {
+      heading: "Where is Data Collection used?",
+      paragraphs: [
+        "Every AI project begins with collecting relevant data from different sources.",
+      ],
+      bullets: [
+        "Self-driving cars collecting road images.",
+        "Healthcare collecting patient records.",
+        "E-commerce collecting customer behavior.",
+        "Social media collecting user interactions.",
+        "Finance collecting transaction history.",
+        "Smart devices collecting sensor data.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners believe that collecting more data always leads to better AI models, but poor-quality or biased data can actually reduce performance.",
+      ],
+      bullets: [
+        "Collecting irrelevant data.",
+        "Ignoring data quality.",
+        "Using biased datasets.",
+        "Collecting too little data.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Good AI starts with good data. Collecting relevant, diverse, and high-quality data is the foundation of every successful Machine Learning project.",
+      ],
+      bullets: [
+        "Quality over quantity.",
+        "Relevant data matters.",
+        "Diverse data improves fairness.",
+        "Foundation of AI training.",
+        "First step in every ML pipeline.",
+      ],
+    },
+  ],
+},
+ "data-cleaning": {
+  title: "Data Cleaning",
+  subtitle: "Transform messy data into reliable information before training AI models.",
+  eyebrow: "Concept 2 of 3",
+  accent: "green",
+  icon: BrushCleaning,
+  sections: [
+    {
+      heading: "What is Data Cleaning?",
+      paragraphs: [
+        "Data Cleaning is the process of identifying and fixing errors, inconsistencies, duplicate records, and missing values in a dataset.",
+        "Real-world data is often incomplete or noisy, making cleaning an essential step before model training.",
+        "A clean dataset allows Machine Learning algorithms to learn meaningful patterns instead of incorrect information.",
+      ],
+    },
+    {
+      heading: "Why is Data Cleaning important in AI?",
+      paragraphs: [
+        "AI models are only as good as the data they learn from. Cleaning improves both accuracy and reliability.",
+      ],
+      bullets: [
+        "Removes incorrect data.",
+        "Handles missing values.",
+        "Improves prediction accuracy.",
+        "Reduces noise in datasets.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a dataset contains customer ages like 25, 30, 29, and one value of 250.",
+        "Since 250 is clearly an incorrect age, Data Cleaning identifies and corrects or removes such outliers before training the AI model.",
+      ],
+    },
+    {
+      heading: "Where is Data Cleaning used?",
+      paragraphs: [
+        "Every Machine Learning project includes a data cleaning stage before model training.",
+      ],
+      bullets: [
+        "Healthcare records.",
+        "Financial transactions.",
+        "Customer databases.",
+        "Sensor data.",
+        "Retail sales data.",
+        "Survey responses.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners skip data cleaning and directly train models, leading to poor performance and inaccurate predictions.",
+      ],
+      bullets: [
+        "Ignoring missing values.",
+        "Keeping duplicate records.",
+        "Leaving incorrect entries unchanged.",
+        "Removing too much useful data.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Clean data helps AI models learn correctly. Spending time cleaning data often improves performance more than changing algorithms.",
+      ],
+      bullets: [
+        "Clean before training.",
+        "Fix errors.",
+        "Handle missing values.",
+        "Remove duplicates.",
+        "Improve model reliability.",
+      ],
+    },
+  ],
+},
+"feature-engineering": {
+  title: "Feature Engineering",
+  subtitle: "Create meaningful inputs that help AI models learn patterns more effectively.",
+  eyebrow: "Concept 3 of 3",
+  accent: "orange",
+  icon: Sparkles,
+  sections: [
+    {
+      heading: "What is Feature Engineering?",
+      paragraphs: [
+        "Feature Engineering is the process of selecting, transforming, or creating new features from raw data to improve Machine Learning model performance.",
+        "Instead of feeding raw data directly into a model, we prepare features that better represent the underlying patterns.",
+        "Well-designed features often have a greater impact on accuracy than choosing a more complex algorithm.",
+      ],
+    },
+    {
+      heading: "Why is Feature Engineering important in AI?",
+      paragraphs: [
+        "Meaningful features make it easier for Machine Learning models to recognize patterns and make accurate predictions.",
+      ],
+      bullets: [
+        "Improves model accuracy.",
+        "Highlights important information.",
+        "Reduces irrelevant data.",
+        "Helps models learn faster.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you have a customer's Date of Birth.",
+        "Instead of using the full date, you calculate the customer's age. Age is often much more useful for prediction than the raw date itself, making it a better feature.",
+      ],
+    },
+    {
+      heading: "Where is Feature Engineering used?",
+      paragraphs: [
+        "Feature Engineering is used across almost every Machine Learning application.",
+      ],
+      bullets: [
+        "House price prediction.",
+        "Credit risk analysis.",
+        "Recommendation systems.",
+        "Fraud detection.",
+        "Medical diagnosis.",
+        "Customer churn prediction.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use every available feature without considering whether it actually helps the model learn.",
+      ],
+      bullets: [
+        "Using irrelevant features.",
+        "Creating data leakage.",
+        "Ignoring feature scaling.",
+        "Overengineering unnecessary features.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Feature Engineering transforms raw data into meaningful information that allows AI models to make smarter and more accurate predictions.",
+      ],
+      bullets: [
+        "Better features, better models.",
+        "Transform raw data.",
+        "Remove unnecessary information.",
+        "Improve prediction accuracy.",
+        "One of the most valuable ML skills.",
+      ],
+    },
+  ],
+},
+"numpy": {
+  title: "NumPy",
+  subtitle: "The fundamental library for fast numerical computing in Python.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Calculator,
+  sections: [
+    {
+      heading: "What is NumPy?",
+      paragraphs: [
+        "NumPy (Numerical Python) is an open-source Python library used for numerical computing and mathematical operations.",
+        "It introduces the powerful ndarray (N-dimensional array), which stores data more efficiently than Python lists.",
+        "NumPy forms the foundation of many AI, Machine Learning, and Data Science libraries such as Pandas, Scikit-learn, TensorFlow, and PyTorch.",
+      ],
+    },
+    {
+      heading: "Why is NumPy important in AI?",
+      paragraphs: [
+        "Machine Learning algorithms perform millions of mathematical calculations. NumPy makes these computations fast and efficient.",
+      ],
+      bullets: [
+        "Fast array operations.",
+        "Efficient memory usage.",
+        "Supports linear algebra.",
+        "Performs statistical computations.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you have marks of 10,000 students.",
+        "Instead of calculating the average using loops, NumPy can compute it in a single optimized function call, making the operation much faster.",
+      ],
+    },
+    {
+      heading: "Where is NumPy used?",
+      paragraphs: [
+        "NumPy is the backbone of scientific computing and AI development.",
+      ],
+      bullets: [
+        "Machine Learning.",
+        "Deep Learning.",
+        "Data Analysis.",
+        "Image Processing.",
+        "Scientific Computing.",
+        "Statistical Analysis.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners continue using Python lists for numerical computations without realizing NumPy is significantly faster and more efficient.",
+      ],
+      bullets: [
+        "Using Python lists instead of arrays.",
+        "Ignoring array shapes.",
+        "Mixing incompatible dimensions.",
+        "Overusing loops instead of vectorized operations.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "NumPy provides high-performance arrays and mathematical operations that make AI and Data Science applications efficient and scalable.",
+      ],
+      bullets: [
+        "Fast computations.",
+        "Powerful arrays.",
+        "Foundation of AI libraries.",
+        "Optimized mathematical operations.",
+        "Essential for Machine Learning.",
+      ],
+    },
+  ],
+},
+"pandas": {
+  title: "Pandas",
+  subtitle: "Organize, analyze, and manipulate data with ease before building AI models.",
+  eyebrow: "Concept 2 of 3",
+  accent: "green",
+  icon: Table,
+  sections: [
+    {
+      heading: "What is Pandas?",
+      paragraphs: [
+        "Pandas is a Python library used for loading, organizing, cleaning, and analyzing structured data.",
+        "It introduces powerful data structures like DataFrame and Series, making it easy to work with rows and columns.",
+        "Pandas is one of the most widely used libraries in Data Science and Machine Learning.",
+      ],
+    },
+    {
+      heading: "Why is Pandas important in AI?",
+      paragraphs: [
+        "Before training an AI model, data usually needs to be cleaned, filtered, and transformed. Pandas simplifies these tasks.",
+      ],
+      bullets: [
+        "Loads datasets easily.",
+        "Cleans messy data.",
+        "Handles missing values.",
+        "Performs data analysis.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine you have a CSV file containing student marks.",
+        "Using Pandas, you can load the file, remove missing values, calculate average scores, and prepare the data for Machine Learning in just a few lines of code.",
+      ],
+    },
+    {
+      heading: "Where is Pandas used?",
+      paragraphs: [
+        "Pandas is used in almost every Data Science workflow.",
+      ],
+      bullets: [
+        "Data Cleaning.",
+        "Exploratory Data Analysis (EDA).",
+        "Business Analytics.",
+        "Financial Analysis.",
+        "Healthcare Data.",
+        "Machine Learning preprocessing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners edit datasets manually instead of using Pandas functions that automate the process.",
+      ],
+      bullets: [
+        "Ignoring missing values.",
+        "Using incorrect column names.",
+        "Not understanding DataFrames.",
+        "Modifying data unintentionally.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Pandas makes working with structured data simple, allowing AI developers to focus on building better models instead of manually organizing datasets.",
+      ],
+      bullets: [
+        "Easy data manipulation.",
+        "Powerful DataFrames.",
+        "Essential for preprocessing.",
+        "Simplifies analysis.",
+        "Core library in Data Science.",
+      ],
+    },
+  ],
+},
+"data-visualization": {
+  title: "Data Visualization",
+  subtitle: "Turn numbers into meaningful charts that reveal patterns and insights.",
+  eyebrow: "Concept 3 of 3",
+  accent: "purple",
+  icon: BarChart3,
+  sections: [
+    {
+      heading: "What is Data Visualization?",
+      paragraphs: [
+        "Data Visualization is the process of representing data using charts, graphs, and plots to make information easier to understand.",
+        "Instead of analyzing thousands of numbers, visualizations help us quickly identify trends, patterns, and relationships.",
+        "It is an essential step in Data Science, Machine Learning, and business decision-making.",
+      ],
+    },
+    {
+      heading: "Why is Data Visualization important in AI?",
+      paragraphs: [
+        "Visualizing data helps us understand the dataset before training a Machine Learning model and evaluate results afterward.",
+      ],
+      bullets: [
+        "Finds hidden patterns.",
+        "Detects outliers.",
+        "Explains model results.",
+        "Supports better decision-making.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you have monthly sales data for an entire year.",
+        "A line chart immediately shows whether sales are increasing or decreasing, making trends much easier to understand than looking at raw numbers.",
+      ],
+    },
+    {
+      heading: "Where is Data Visualization used?",
+      paragraphs: [
+        "Visualization is widely used across industries to communicate insights effectively.",
+      ],
+      bullets: [
+        "Business dashboards.",
+        "Machine Learning analysis.",
+        "Healthcare reports.",
+        "Financial analytics.",
+        "Scientific research.",
+        "Marketing analytics.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners choose the wrong chart type, making their data difficult to interpret.",
+      ],
+      bullets: [
+        "Using incorrect chart types.",
+        "Adding too many colors.",
+        "Ignoring labels and legends.",
+        "Displaying cluttered visualizations.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A good visualization transforms complex datasets into clear and meaningful insights, helping both humans and AI practitioners make informed decisions.",
+      ],
+      bullets: [
+        "Visualize before modeling.",
+        "Choose the right chart.",
+        "Keep charts simple.",
+        "Reveal patterns quickly.",
+        "Improve communication of insights.",
+      ],
+    },
+  ],
+},
+"exploratory-data-analysis": {
+  title: "Exploratory Data Analysis",
+  subtitle: "Understand your data before building Machine Learning models.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Search,
+  sections: [
+    {
+      heading: "What is Exploratory Data Analysis (EDA)?",
+      paragraphs: [
+        "Exploratory Data Analysis (EDA) is the process of examining, summarizing, and visualizing data to understand its characteristics before applying Machine Learning algorithms.",
+        "EDA helps identify patterns, relationships, missing values, and unusual observations that may affect model performance.",
+        "It is one of the most important steps in the Data Science workflow because understanding the data leads to better decisions and better models.",
+      ],
+    },
+    {
+      heading: "Why is EDA important in AI?",
+      paragraphs: [
+        "Machine Learning models learn from data. EDA ensures the data is suitable for training and helps uncover valuable insights.",
+      ],
+      bullets: [
+        "Understands data distribution.",
+        "Finds hidden patterns.",
+        "Identifies data quality issues.",
+        "Improves model performance.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you're predicting house prices.",
+        "Before training the model, you create charts to understand the relationship between house size, location, and price. This helps identify which features are most important.",
+      ],
+    },
+    {
+      heading: "Where is EDA used?",
+      paragraphs: [
+        "EDA is performed before every Machine Learning project.",
+      ],
+      bullets: [
+        "Business analytics.",
+        "Healthcare research.",
+        "Finance.",
+        "Customer analytics.",
+        "Sales forecasting.",
+        "Scientific research.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners skip EDA and directly train models, often leading to poor predictions because they don't fully understand the data.",
+      ],
+      bullets: [
+        "Skipping visualization.",
+        "Ignoring correlations.",
+        "Not checking distributions.",
+        "Overlooking data quality issues.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "EDA is like investigating a dataset before solving a problem. The better you understand your data, the better your AI model will perform.",
+      ],
+      bullets: [
+        "Explore before modeling.",
+        "Visualize the data.",
+        "Find patterns.",
+        "Detect issues early.",
+        "Foundation of successful AI projects.",
+      ],
+    },
+  ],
+},
+
+"missing-values": {
+  title: "Missing Values",
+  subtitle: "Handle incomplete data to build more reliable AI models.",
+  eyebrow: "Concept 2 of 3",
+  accent: "green",
+  icon: FileWarning,
+  sections: [
+    {
+      heading: "What are Missing Values?",
+      paragraphs: [
+        "Missing values are data points that are absent or unavailable in a dataset.",
+        "They may occur because of human errors, system failures, incomplete surveys, or unavailable information.",
+        "Handling missing values properly is essential because many Machine Learning algorithms cannot work with incomplete data.",
+      ],
+    },
+    {
+      heading: "Why are Missing Values important in AI?",
+      paragraphs: [
+        "Incomplete data can reduce model accuracy and lead to incorrect predictions if not handled properly.",
+      ],
+      bullets: [
+        "Improves data quality.",
+        "Prevents model errors.",
+        "Increases prediction accuracy.",
+        "Ensures reliable analysis.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a student dataset where some students haven't entered their age.",
+        "Before training a model, you may replace the missing ages with the average age or remove those incomplete records if appropriate.",
+      ],
+    },
+    {
+      heading: "Where are Missing Values handled?",
+      paragraphs: [
+        "Handling missing data is a standard preprocessing step in Data Science and AI.",
+      ],
+      bullets: [
+        "Healthcare datasets.",
+        "Financial records.",
+        "Customer databases.",
+        "Survey data.",
+        "IoT sensor data.",
+        "Machine Learning preprocessing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners either ignore missing values or delete too much data without considering the impact on the dataset.",
+      ],
+      bullets: [
+        "Ignoring missing values.",
+        "Deleting too many rows.",
+        "Using inappropriate replacement values.",
+        "Assuming missing data has no impact.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Missing values should never be ignored. Proper handling improves data quality and helps AI models make more accurate predictions.",
+      ],
+      bullets: [
+        "Detect missing data.",
+        "Choose the right treatment.",
+        "Improve data quality.",
+        "Prevent training errors.",
+        "Essential preprocessing step.",
+      ],
+    },
+  ],
+},
+"outlier-detection": {
+  title: "Outlier Detection",
+  subtitle: "Identify unusual data points that can affect AI model performance.",
+  eyebrow: "Concept 3 of 3",
+  accent: "orange",
+  icon: Radar,
+  sections: [
+    {
+      heading: "What is Outlier Detection?",
+      paragraphs: [
+        "Outlier Detection is the process of identifying data points that are significantly different from the rest of the dataset.",
+        "Outliers may result from measurement errors, data entry mistakes, or genuinely rare events.",
+        "Detecting outliers helps improve data quality and ensures Machine Learning models are not influenced by abnormal values.",
+      ],
+    },
+    {
+      heading: "Why is Outlier Detection important in AI?",
+      paragraphs: [
+        "Extreme values can distort statistical analysis and negatively impact Machine Learning models.",
+      ],
+      bullets: [
+        "Improves model accuracy.",
+        "Reduces noise.",
+        "Detects abnormal behavior.",
+        "Enhances data quality.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose the salaries in a dataset range from ₹25,000 to ₹150,000, but one record shows ₹5,000,000.",
+        "This unusually high value is an outlier that should be investigated before training the model.",
+      ],
+    },
+    {
+      heading: "Where is Outlier Detection used?",
+      paragraphs: [
+        "Outlier detection is widely used wherever unusual patterns need to be identified.",
+      ],
+      bullets: [
+        "Fraud detection.",
+        "Healthcare diagnosis.",
+        "Network security.",
+        "Manufacturing quality control.",
+        "Financial analytics.",
+        "Sensor monitoring.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners remove every outlier automatically, even though some outliers represent valuable real-world events.",
+      ],
+      bullets: [
+        "Removing all outliers blindly.",
+        "Ignoring genuine anomalies.",
+        "Confusing noise with important data.",
+        "Not investigating unusual values.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Outliers deserve investigation, not automatic deletion. Understanding why they exist leads to better data and more reliable AI models.",
+      ],
+      bullets: [
+        "Detect unusual values.",
+        "Investigate before removing.",
+        "Improve data quality.",
+        "Reduce model bias.",
+        "Support accurate predictions.",
+      ],
+    },
+  ],
+},
+"ml-pipeline": {
+  title: "Machine Learning Pipeline",
+  subtitle: "A step-by-step workflow for building reliable Machine Learning models.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Workflow,
+  sections: [
+    {
+      heading: "What is a Machine Learning Pipeline?",
+      paragraphs: [
+        "A Machine Learning Pipeline is a structured sequence of steps used to develop, train, evaluate, and deploy a Machine Learning model.",
+        "Instead of treating each task separately, the pipeline organizes the entire workflow into a repeatable and efficient process.",
+        "Following a pipeline ensures consistency, reduces errors, and makes Machine Learning projects easier to maintain and improve.",
+      ],
+    },
+    {
+      heading: "Why is a Machine Learning Pipeline important?",
+      paragraphs: [
+        "A well-defined pipeline helps data scientists build reliable AI systems while saving time and reducing manual work.",
+      ],
+      bullets: [
+        "Organizes the ML workflow.",
+        "Improves reproducibility.",
+        "Reduces manual errors.",
+        "Simplifies deployment and maintenance.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine you're building a house price prediction model.",
+        "You first collect data, clean it, engineer useful features, train the model, evaluate its performance, and finally deploy it for users. These steps together form the Machine Learning Pipeline.",
+      ],
+    },
+    {
+      heading: "Where is the ML Pipeline used?",
+      paragraphs: [
+        "Every Machine Learning project follows some form of pipeline.",
+      ],
+      bullets: [
+        "Recommendation systems.",
+        "Fraud detection.",
+        "Medical diagnosis.",
+        "Self-driving cars.",
+        "Customer churn prediction.",
+        "Sales forecasting.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners jump directly to model training without properly preparing or understanding the data.",
+      ],
+      bullets: [
+        "Skipping data preprocessing.",
+        "Ignoring model evaluation.",
+        "Not separating training and testing data.",
+        "Deploying without proper validation.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Machine Learning is more than just training a model. A complete pipeline ensures every step contributes to building a reliable AI solution.",
+      ],
+      bullets: [
+        "Follow a structured workflow.",
+        "Prepare data carefully.",
+        "Evaluate before deployment.",
+        "Repeat and improve.",
+        "Foundation of every ML project.",
+      ],
+    },
+  ],
+},
+"supervised-learning-2": {
+  title: "Supervised Learning",
+  subtitle: "Learn from labeled examples to make accurate predictions.",
+  eyebrow: "Concept 2 of 3",
+  accent: "green",
+  icon: GraduationCap,
+  sections: [
+    {
+      heading: "What is Supervised Learning?",
+      paragraphs: [
+        "Supervised Learning is a type of Machine Learning where the model learns from labeled data, meaning every input already has a correct output.",
+        "The goal is to discover the relationship between inputs and outputs so the model can make predictions on new, unseen data.",
+        "It is the most widely used Machine Learning approach for prediction and classification tasks.",
+      ],
+    },
+    {
+      heading: "Why is Supervised Learning important?",
+      paragraphs: [
+        "Many real-world AI applications rely on learning from historical examples with known outcomes.",
+      ],
+      bullets: [
+        "Produces accurate predictions.",
+        "Learns from labeled data.",
+        "Supports classification and regression.",
+        "Widely used in real-world AI.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you have thousands of emails labeled as 'Spam' or 'Not Spam'.",
+        "The model learns patterns from these labeled examples and can classify new incoming emails automatically.",
+      ],
+    },
+    {
+      heading: "Where is Supervised Learning used?",
+      paragraphs: [
+        "Supervised Learning powers many everyday AI applications.",
+      ],
+      bullets: [
+        "Email spam detection.",
+        "House price prediction.",
+        "Medical diagnosis.",
+        "Image classification.",
+        "Credit scoring.",
+        "Speech recognition.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think more complex models always perform better, even when the training data is limited or poor in quality.",
+      ],
+      bullets: [
+        "Using poor-quality labels.",
+        "Overfitting the model.",
+        "Ignoring test data.",
+        "Using insufficient training data.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Supervised Learning teaches AI using examples with known answers, allowing it to predict outcomes for new data.",
+      ],
+      bullets: [
+        "Uses labeled data.",
+        "Learns input-output relationships.",
+        "Supports prediction tasks.",
+        "Most common ML technique.",
+        "Foundation of modern AI applications.",
+      ],
+    },
+  ],
+},
+
+"unsupervised-learning-2": {
+  title: "Unsupervised Learning",
+  subtitle: "Discover hidden patterns and relationships without labeled data.",
+  eyebrow: "Concept 3 of 3",
+  accent: "purple",
+  icon: Network,
+  sections: [
+    {
+      heading: "What is Unsupervised Learning?",
+      paragraphs: [
+        "Unsupervised Learning is a type of Machine Learning where the model learns from unlabeled data without knowing the correct answers.",
+        "Instead of making predictions, the model identifies hidden structures, patterns, or groups within the data.",
+        "It is commonly used for clustering, dimensionality reduction, and anomaly detection.",
+      ],
+    },
+    {
+      heading: "Why is Unsupervised Learning important?",
+      paragraphs: [
+        "Much of the world's data is unlabeled, making unsupervised learning valuable for discovering meaningful insights automatically.",
+      ],
+      bullets: [
+        "Finds hidden patterns.",
+        "Groups similar data.",
+        "Works without labels.",
+        "Supports data exploration.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine an online shopping website with millions of customers but no predefined customer categories.",
+        "An unsupervised learning algorithm automatically groups customers based on similar shopping behavior, helping businesses create personalized marketing campaigns.",
+      ],
+    },
+    {
+      heading: "Where is Unsupervised Learning used?",
+      paragraphs: [
+        "Unsupervised Learning is widely used for discovering patterns in large datasets.",
+      ],
+      bullets: [
+        "Customer segmentation.",
+        "Recommendation systems.",
+        "Fraud detection.",
+        "Market basket analysis.",
+        "Document clustering.",
+        "Anomaly detection.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners expect unsupervised learning to produce predefined labels, but its goal is to discover patterns rather than predict known outcomes.",
+      ],
+      bullets: [
+        "Expecting labeled outputs.",
+        "Choosing the wrong number of clusters.",
+        "Ignoring feature scaling.",
+        "Misinterpreting discovered groups.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Unsupervised Learning explores unlabeled data to uncover hidden structures, making it a powerful tool for understanding complex datasets.",
+      ],
+      bullets: [
+        "Uses unlabeled data.",
+        "Discovers hidden patterns.",
+        "Groups similar observations.",
+        "Supports exploratory analysis.",
+        "Essential for pattern discovery.",
+      ],
+    },
+  ],
+},
+
+"regression": {
+  title: "Regression",
+  subtitle: "Predict continuous numerical values using Machine Learning.",
+  eyebrow: "Concept 2 of 4",
+  accent: "blue",
+  icon: TrendingUp,
+  sections: [
+    {
+      heading: "What is Regression?",
+      paragraphs: [
+        "Regression is a Supervised Learning technique used to predict continuous numerical values.",
+        "Instead of predicting categories, regression estimates values such as prices, temperatures, salaries, or sales.",
+        "The model learns the relationship between input features and a continuous output variable.",
+      ],
+    },
+    {
+      heading: "Why is Regression important in AI?",
+      paragraphs: [
+        "Many business and scientific problems involve predicting quantities rather than categories.",
+      ],
+      bullets: [
+        "Predicts numerical values.",
+        "Finds relationships between variables.",
+        "Supports forecasting.",
+        "Measures trends over time.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you want to predict the price of a house based on its size, location, and number of bedrooms.",
+        "A regression model learns from previous house sales and estimates the price of a new house.",
+      ],
+    },
+    {
+      heading: "Where is Regression used?",
+      paragraphs: [
+        "Regression is widely used for prediction and forecasting.",
+      ],
+      bullets: [
+        "House price prediction.",
+        "Sales forecasting.",
+        "Weather prediction.",
+        "Stock price estimation.",
+        "Energy consumption forecasting.",
+        "Salary prediction.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use regression even when the target variable represents categories instead of numerical values.",
+      ],
+      bullets: [
+        "Using regression for classification tasks.",
+        "Ignoring outliers.",
+        "Overfitting the model.",
+        "Using irrelevant features.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Regression predicts continuous values, making it one of the most commonly used Machine Learning techniques.",
+      ],
+      bullets: [
+        "Predicts numbers.",
+        "Uses labeled data.",
+        "Learns relationships.",
+        "Supports forecasting.",
+        "Core supervised learning algorithm.",
+      ],
+    },
+  ],
+},
+"classification": {
+  title: "Classification",
+  subtitle: "Predict categories or labels by learning from labeled examples.",
+  eyebrow: "Concept 3 of 4",
+  accent: "green",
+  icon: Tags,
+  sections: [
+    {
+      heading: "What is Classification?",
+      paragraphs: [
+        "Classification is a Supervised Learning technique used to predict predefined categories or labels.",
+        "The model learns from labeled examples and assigns new data to one of the known classes.",
+        "Classification problems can involve two classes (binary classification) or multiple classes (multiclass classification).",
+      ],
+    },
+    {
+      heading: "Why is Classification important in AI?",
+      paragraphs: [
+        "Many real-world AI applications require identifying which category an object belongs to.",
+      ],
+      bullets: [
+        "Predicts categories.",
+        "Learns from labeled data.",
+        "Supports decision-making.",
+        "Works for binary and multiclass problems.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine an email application that labels incoming emails as 'Spam' or 'Not Spam'.",
+        "The model learns from previously labeled emails and automatically classifies new messages.",
+      ],
+    },
+    {
+      heading: "Where is Classification used?",
+      paragraphs: [
+        "Classification is one of the most common Machine Learning tasks.",
+      ],
+      bullets: [
+        "Spam detection.",
+        "Face recognition.",
+        "Disease diagnosis.",
+        "Sentiment analysis.",
+        "Handwritten digit recognition.",
+        "Fraud detection.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners confuse classification with regression because both are supervised learning techniques.",
+      ],
+      bullets: [
+        "Predicting numbers instead of categories.",
+        "Using incorrect evaluation metrics.",
+        "Ignoring class imbalance.",
+        "Using poor-quality labels.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Classification predicts labels or categories, making it essential for recognition and decision-making tasks in AI.",
+      ],
+      bullets: [
+        "Predicts categories.",
+        "Uses labeled data.",
+        "Binary or multiclass.",
+        "Widely used in AI.",
+        "Foundation of intelligent decision systems.",
+      ],
+    },
+  ],
+},
+"clustering": {
+  title: "Clustering",
+  subtitle: "Group similar data points together without predefined labels.",
+  eyebrow: "Concept 4 of 4",
+  accent: "purple",
+  icon: Group,
+  sections: [
+    {
+      heading: "What is Clustering?",
+      paragraphs: [
+        "Clustering is an Unsupervised Learning technique that groups similar data points based on their characteristics.",
+        "Unlike classification, clustering does not use labeled data. Instead, it discovers hidden groups automatically.",
+        "The goal is to organize similar observations into meaningful clusters.",
+      ],
+    },
+    {
+      heading: "Why is Clustering important in AI?",
+      paragraphs: [
+        "Clustering helps uncover hidden patterns in large datasets where labels are unavailable.",
+      ],
+      bullets: [
+        "Discovers natural groups.",
+        "Works without labels.",
+        "Finds hidden patterns.",
+        "Supports data exploration.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose an online store has millions of customers but no customer categories.",
+        "A clustering algorithm groups customers based on purchasing behavior, helping the business create personalized marketing strategies.",
+      ],
+    },
+    {
+      heading: "Where is Clustering used?",
+      paragraphs: [
+        "Clustering is widely used to organize and analyze large datasets.",
+      ],
+      bullets: [
+        "Customer segmentation.",
+        "Image segmentation.",
+        "Document organization.",
+        "Recommendation systems.",
+        "Market analysis.",
+        "Anomaly detection.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners assume clustering always produces meaningful groups, even when the data has no natural structure.",
+      ],
+      bullets: [
+        "Choosing the wrong number of clusters.",
+        "Ignoring feature scaling.",
+        "Misinterpreting clusters.",
+        "Treating clusters as predefined labels.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Clustering automatically groups similar data without labels, making it a powerful tool for discovering hidden insights.",
+      ],
+      bullets: [
+        "Uses unlabeled data.",
+        "Groups similar observations.",
+        "Finds hidden patterns.",
+        "Supports exploratory analysis.",
+        "Essential unsupervised learning technique.",
+      ],
+    },
+  ],
+},
+"random-forest": {
+  title: "Random Forest",
+  subtitle: "Combine multiple decision trees to make more accurate and reliable predictions.",
+  eyebrow: "Algorithm 1 of 5",
+  accent: "green",
+  icon: Trees,
+  sections: [
+    {
+      heading: "What is Random Forest?",
+      paragraphs: [
+        "Random Forest is a Supervised Learning algorithm that combines many Decision Trees to make predictions.",
+        "Instead of relying on a single tree, it creates multiple trees using different subsets of the data and combines their predictions.",
+        "This ensemble approach improves accuracy and reduces the chances of overfitting.",
+      ],
+    },
+    {
+      heading: "Why is Random Forest important in AI?",
+      paragraphs: [
+        "By combining multiple models, Random Forest produces more robust and reliable predictions than a single Decision Tree.",
+      ],
+      bullets: [
+        "High prediction accuracy.",
+        "Reduces overfitting.",
+        "Works for classification and regression.",
+        "Handles large datasets well.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine asking 100 experienced doctors for a diagnosis instead of relying on just one doctor's opinion.",
+        "The final decision is based on the majority opinion, making the prediction more reliable. Random Forest follows the same principle.",
+      ],
+    },
+    {
+      heading: "Where is Random Forest used?",
+      paragraphs: [
+        "Random Forest is widely used in real-world Machine Learning applications.",
+      ],
+      bullets: [
+        "Fraud detection.",
+        "Disease diagnosis.",
+        "Credit risk analysis.",
+        "Customer churn prediction.",
+        "Stock market prediction.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners assume adding more trees always improves performance, even though it can increase computation without significant benefits.",
+      ],
+      bullets: [
+        "Using too many trees.",
+        "Ignoring feature importance.",
+        "Not tuning hyperparameters.",
+        "Using poor-quality training data.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Random Forest combines multiple Decision Trees to produce more accurate, stable, and reliable predictions.",
+      ],
+      bullets: [
+        "Ensemble learning.",
+        "Multiple Decision Trees.",
+        "Higher accuracy.",
+        "Less overfitting.",
+        "Powerful supervised algorithm.",
+      ],
+    },
+  ],
+},
+"svm": {
+  title: "Support Vector Machine (SVM)",
+  subtitle: "Find the best boundary that separates different classes of data.",
+  eyebrow: "Algorithm 2 of 5",
+  accent: "blue",
+  icon: SplitSquareVertical,
+  sections: [
+    {
+      heading: "What is Support Vector Machine (SVM)?",
+      paragraphs: [
+        "Support Vector Machine (SVM) is a Supervised Learning algorithm primarily used for classification tasks.",
+        "It works by finding the optimal boundary, called a hyperplane, that separates different classes with the maximum possible margin.",
+        "A larger margin generally helps the model classify new data more accurately.",
+      ],
+    },
+    {
+      heading: "Why is SVM important in AI?",
+      paragraphs: [
+        "SVM performs well on high-dimensional datasets and is effective when classes are clearly separable.",
+      ],
+      bullets: [
+        "Finds optimal decision boundaries.",
+        "Works well with high-dimensional data.",
+        "Effective for classification.",
+        "Can handle non-linear data using kernels.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine drawing a line that separates red and blue balls placed on a table.",
+        "SVM finds the line that leaves the maximum distance from both groups, making future classification more reliable.",
+      ],
+    },
+    {
+      heading: "Where is SVM used?",
+      paragraphs: [
+        "SVM is commonly used for classification tasks with complex datasets.",
+      ],
+      bullets: [
+        "Face recognition.",
+        "Text classification.",
+        "Spam detection.",
+        "Medical diagnosis.",
+        "Image classification.",
+        "Handwriting recognition.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners forget to scale features before training an SVM, which can significantly reduce its performance.",
+      ],
+      bullets: [
+        "Ignoring feature scaling.",
+        "Choosing the wrong kernel.",
+        "Using very large datasets without optimization.",
+        "Overlooking parameter tuning.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "SVM finds the best boundary that separates classes, making it a powerful algorithm for classification problems.",
+      ],
+      bullets: [
+        "Maximum margin classifier.",
+        "Uses support vectors.",
+        "Works with kernels.",
+        "Powerful for classification.",
+        "Excellent for high-dimensional data.",
+      ],
+    },
+  ],
+},
+"naive-bayes": {
+  title: "Naive Bayes",
+  subtitle: "Predict categories using probability and Bayes' Theorem.",
+  eyebrow: "Algorithm 3 of 5",
+  accent: "purple",
+  icon: BrainCircuit,
+  sections: [
+    {
+      heading: "What is Naive Bayes?",
+      paragraphs: [
+        "Naive Bayes is a Supervised Learning algorithm based on Bayes' Theorem.",
+        "It predicts the probability that an input belongs to each class and chooses the class with the highest probability.",
+        "The term 'Naive' comes from assuming that all input features are independent of each other, which simplifies calculations.",
+      ],
+    },
+    {
+      heading: "Why is Naive Bayes important in AI?",
+      paragraphs: [
+        "Despite its simple assumptions, Naive Bayes performs remarkably well for many text and classification tasks.",
+      ],
+      bullets: [
+        "Fast and efficient.",
+        "Probability-based predictions.",
+        "Works well with text data.",
+        "Easy to train.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose an email contains words like 'Prize', 'Win', and 'Free'.",
+        "Naive Bayes calculates the probability that the email is spam based on these words and predicts the most likely category.",
+      ],
+    },
+    {
+      heading: "Where is Naive Bayes used?",
+      paragraphs: [
+        "Naive Bayes is especially useful for text-related Machine Learning tasks.",
+      ],
+      bullets: [
+        "Spam filtering.",
+        "Sentiment analysis.",
+        "Document classification.",
+        "News categorization.",
+        "Recommendation systems.",
+        "Medical diagnosis.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners assume Naive Bayes requires perfectly independent features, even though it often works well when this assumption is not completely true.",
+      ],
+      bullets: [
+        "Misunderstanding feature independence.",
+        "Ignoring feature preprocessing.",
+        "Using poor-quality labels.",
+        "Choosing inappropriate feature representations.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Naive Bayes uses probability and Bayes' Theorem to make fast and effective classification decisions.",
+      ],
+      bullets: [
+        "Probability-based algorithm.",
+        "Uses Bayes' Theorem.",
+        "Fast classification.",
+        "Excellent for text data.",
+        "Simple yet powerful.",
+      ],
+    },
+  ],
+},
+"k-means": {
+  title: "K-Means Clustering",
+  subtitle: "Automatically group similar data into meaningful clusters.",
+  eyebrow: "Algorithm 4 of 5",
+  accent: "orange",
+  icon: Grid2X2,
+  sections: [
+    {
+      heading: "What is K-Means Clustering?",
+      paragraphs: [
+        "K-Means is an Unsupervised Learning algorithm used to divide data into K distinct clusters.",
+        "The algorithm groups similar data points together by repeatedly assigning them to the nearest cluster center and updating the centers.",
+        "Its goal is to ensure that data points within the same cluster are as similar as possible.",
+      ],
+    },
+    {
+      heading: "Why is K-Means important in AI?",
+      paragraphs: [
+        "K-Means helps discover hidden patterns in unlabeled data without requiring predefined categories.",
+      ],
+      bullets: [
+        "Automatically groups data.",
+        "Works without labels.",
+        "Simple and efficient.",
+        "Useful for pattern discovery.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a shopping website with thousands of customers.",
+        "K-Means automatically groups customers with similar buying habits, helping businesses create personalized marketing campaigns.",
+      ],
+    },
+    {
+      heading: "Where is K-Means used?",
+      paragraphs: [
+        "K-Means is widely used for clustering and segmentation tasks.",
+      ],
+      bullets: [
+        "Customer segmentation.",
+        "Image compression.",
+        "Market analysis.",
+        "Document clustering.",
+        "Recommendation systems.",
+        "Pattern recognition.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners choose the number of clusters randomly without evaluating whether it fits the data.",
+      ],
+      bullets: [
+        "Choosing the wrong K value.",
+        "Ignoring feature scaling.",
+        "Assuming clusters are always meaningful.",
+        "Stopping optimization too early.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "K-Means groups similar observations together, making it one of the most popular clustering algorithms.",
+      ],
+      bullets: [
+        "Groups similar data.",
+        "Uses cluster centroids.",
+        "Requires choosing K.",
+        "Unsupervised learning.",
+        "Excellent for segmentation.",
+      ],
+    },
+  ],
+},
+"pca": {
+  title: "Principal Component Analysis (PCA)",
+  subtitle: "Reduce data dimensions while preserving the most important information.",
+  eyebrow: "Algorithm 5 of 5",
+  accent: "teal",
+  icon: Layers3,
+  sections: [
+    {
+      heading: "What is Principal Component Analysis (PCA)?",
+      paragraphs: [
+        "Principal Component Analysis (PCA) is a dimensionality reduction technique used to simplify large datasets.",
+        "It transforms many correlated features into a smaller number of new features called principal components while preserving most of the important information.",
+        "Reducing dimensions makes Machine Learning models faster, easier to visualize, and sometimes more accurate.",
+      ],
+    },
+    {
+      heading: "Why is PCA important in AI?",
+      paragraphs: [
+        "Many real-world datasets contain hundreds of features. PCA helps reduce complexity without losing valuable information.",
+      ],
+      bullets: [
+        "Reduces dimensionality.",
+        "Removes redundant information.",
+        "Speeds up model training.",
+        "Improves data visualization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a dataset contains 100 different measurements for each customer.",
+        "PCA can combine related measurements into a few principal components that capture most of the important patterns while reducing complexity.",
+      ],
+    },
+    {
+      heading: "Where is PCA used?",
+      paragraphs: [
+        "PCA is widely used before training Machine Learning models on high-dimensional datasets.",
+      ],
+      bullets: [
+        "Image recognition.",
+        "Face recognition.",
+        "Data compression.",
+        "Genomics.",
+        "Recommendation systems.",
+        "Data visualization.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners believe PCA selects the most important original features, whereas it actually creates new combined features called principal components.",
+      ],
+      bullets: [
+        "Confusing features with components.",
+        "Applying PCA before scaling data.",
+        "Keeping too few components.",
+        "Ignoring interpretability.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "PCA simplifies complex datasets by creating fewer, information-rich components that retain most of the original data's variance.",
+      ],
+      bullets: [
+        "Reduces dimensions.",
+        "Creates principal components.",
+        "Preserves important information.",
+        "Improves efficiency.",
+        "Powerful preprocessing technique.",
+      ],
+    },
+  ],
+},
+"traintest-split": {
+  title: "Train/Test Split",
+  subtitle: "Evaluate Machine Learning models using data they have never seen before.",
+  eyebrow: "Concept 1 of 5",
+  accent: "blue",
+  icon: Split,
+  sections: [
+    {
+      heading: "What is Train/Test Split?",
+      paragraphs: [
+        "Train/Test Split is the process of dividing a dataset into two separate parts: one for training the model and another for evaluating its performance.",
+        "The training set teaches the model patterns from the data, while the test set measures how well the model performs on unseen examples.",
+        "Separating the data helps ensure that the model can generalize to new data rather than simply memorizing the training examples.",
+      ],
+    },
+    {
+      heading: "Why is Train/Test Split important in AI?",
+      paragraphs: [
+        "Testing on unseen data provides a realistic measure of how the model will perform in real-world situations.",
+      ],
+      bullets: [
+        "Measures generalization.",
+        "Prevents data leakage.",
+        "Detects overfitting.",
+        "Provides fair model evaluation.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine preparing for an exam using practice questions.",
+        "The practice questions are your training data, while the final exam represents the test data. A good score on the final exam shows you've truly learned rather than memorized.",
+      ],
+    },
+    {
+      heading: "Where is Train/Test Split used?",
+      paragraphs: [
+        "Every supervised Machine Learning project begins by splitting the dataset before training.",
+      ],
+      bullets: [
+        "Image classification.",
+        "Spam detection.",
+        "House price prediction.",
+        "Medical diagnosis.",
+        "Fraud detection.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners accidentally evaluate their model using the same data it was trained on, resulting in overly optimistic performance.",
+      ],
+      bullets: [
+        "Testing on training data.",
+        "Data leakage.",
+        "Using very small test sets.",
+        "Ignoring randomization.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Always evaluate a Machine Learning model using data it has never seen before to measure its true performance.",
+      ],
+      bullets: [
+        "Train on one set.",
+        "Test on another.",
+        "Measure generalization.",
+        "Avoid memorization.",
+        "Essential evaluation step.",
+      ],
+    },
+  ],
+},
+"cross-validation": {
+  title: "Cross Validation",
+  subtitle: "Evaluate models more reliably by testing them on multiple data splits.",
+  eyebrow: "Concept 2 of 5",
+  accent: "green",
+  icon: RefreshCw,
+  sections: [
+    {
+      heading: "What is Cross Validation?",
+      paragraphs: [
+        "Cross Validation is a model evaluation technique that repeatedly splits the dataset into different training and validation sets.",
+        "The most common approach is K-Fold Cross Validation, where the data is divided into K equal parts and each part is used once as the validation set.",
+        "The final performance is calculated by averaging the results from all folds, providing a more reliable estimate.",
+      ],
+    },
+    {
+      heading: "Why is Cross Validation important in AI?",
+      paragraphs: [
+        "Using multiple data splits reduces the chance that evaluation depends on one lucky or unlucky train/test split.",
+      ],
+      bullets: [
+        "Produces reliable evaluation.",
+        "Uses data efficiently.",
+        "Reduces evaluation bias.",
+        "Improves model selection.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you divide your dataset into five equal parts.",
+        "The model trains on four parts and validates on the remaining one. This process repeats five times until every part has been used for validation once.",
+      ],
+    },
+    {
+      heading: "Where is Cross Validation used?",
+      paragraphs: [
+        "Cross Validation is commonly used when comparing Machine Learning models and tuning hyperparameters.",
+      ],
+      bullets: [
+        "Model comparison.",
+        "Hyperparameter tuning.",
+        "Academic research.",
+        "Medical AI.",
+        "Financial prediction.",
+        "Small datasets.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners perform preprocessing before cross validation, which can accidentally leak information into the validation data.",
+      ],
+      bullets: [
+        "Data leakage.",
+        "Using too few folds.",
+        "Ignoring computation cost.",
+        "Applying preprocessing incorrectly.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Cross Validation evaluates a model multiple times using different data splits, making performance estimates more trustworthy.",
+      ],
+      bullets: [
+        "Multiple train-test splits.",
+        "Reliable evaluation.",
+        "Reduces bias.",
+        "Better model selection.",
+        "Widely used in ML.",
+      ],
+    },
+  ],
+},
+"hyperparameter-tuning": {
+  title: "Hyperparameter Tuning",
+  subtitle: "Find the best settings to improve Machine Learning model performance.",
+  eyebrow: "Concept 3 of 5",
+  accent: "purple",
+  icon: SlidersHorizontal,
+  sections: [
+    {
+      heading: "What is Hyperparameter Tuning?",
+      paragraphs: [
+        "Hyperparameter Tuning is the process of finding the best configuration for a Machine Learning algorithm before training.",
+        "Unlike model parameters, which are learned automatically, hyperparameters are chosen by the developer.",
+        "Selecting the right hyperparameters can significantly improve model accuracy and generalization.",
+      ],
+    },
+    {
+      heading: "Why is Hyperparameter Tuning important in AI?",
+      paragraphs: [
+        "Even the best algorithm may perform poorly if its hyperparameters are not properly configured.",
+      ],
+      bullets: [
+        "Improves accuracy.",
+        "Reduces overfitting.",
+        "Optimizes model performance.",
+        "Helps select the best model.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose you're using K-Nearest Neighbors.",
+        "Choosing K = 1 may overfit the data, while K = 100 may underfit. Hyperparameter tuning helps identify the value of K that gives the best results.",
+      ],
+    },
+    {
+      heading: "Where is Hyperparameter Tuning used?",
+      paragraphs: [
+        "Hyperparameter tuning is performed for almost every Machine Learning algorithm.",
+      ],
+      bullets: [
+        "Decision Trees.",
+        "Random Forest.",
+        "SVM.",
+        "Neural Networks.",
+        "Gradient Boosting.",
+        "K-Nearest Neighbors.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use default settings without exploring whether better hyperparameter values exist.",
+      ],
+      bullets: [
+        "Using default values only.",
+        "Testing too few combinations.",
+        "Ignoring validation results.",
+        "Overfitting during tuning.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Hyperparameter tuning helps unlock the full potential of a Machine Learning model by selecting the best settings before training.",
+      ],
+      bullets: [
+        "Tune before final training.",
+        "Optimize performance.",
+        "Improve generalization.",
+        "Compare multiple settings.",
+        "Essential optimization step.",
+      ],
+    },
+  ],
+},
+"precision": {
+  title: "Precision",
+  subtitle: "Measure how many positive predictions made by the model are actually correct.",
+  eyebrow: "Concept 4 of 5",
+  accent: "orange",
+  icon: Target,
+  sections: [
+    {
+      heading: "What is Precision?",
+      paragraphs: [
+        "Precision is an evaluation metric used for classification models.",
+        "It measures the proportion of predicted positive cases that are actually positive.",
+        "A high precision means the model makes very few false positive predictions.",
+      ],
+    },
+    {
+      heading: "Why is Precision important in AI?",
+      paragraphs: [
+        "Precision is especially important when false alarms are expensive or undesirable.",
+      ],
+      bullets: [
+        "Measures prediction quality.",
+        "Reduces false positives.",
+        "Improves decision-making.",
+        "Useful for classification tasks.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose an email filter marks 100 emails as spam.",
+        "If 95 are actually spam and 5 are genuine emails, the model has high precision because most positive predictions are correct.",
+      ],
+    },
+    {
+      heading: "Where is Precision used?",
+      paragraphs: [
+        "Precision is important whenever false positive predictions have serious consequences.",
+      ],
+      bullets: [
+        "Spam detection.",
+        "Medical diagnosis.",
+        "Fraud detection.",
+        "Cybersecurity.",
+        "Quality inspection.",
+        "Content moderation.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners optimize only for precision while ignoring recall, leading to models that miss many true positive cases.",
+      ],
+      bullets: [
+        "Ignoring recall.",
+        "Optimizing one metric only.",
+        "Misinterpreting precision as accuracy.",
+        "Not considering class imbalance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Precision answers the question: 'Of all the positive predictions the model made, how many were actually correct?'",
+      ],
+      bullets: [
+        "Focuses on false positives.",
+        "Higher is better.",
+        "Classification metric.",
+        "Measures prediction quality.",
+        "Works with recall for evaluation.",
+      ],
+    },
+  ],
+},
+"recall": {
+  title: "Recall",
+  subtitle: "Measure how many actual positive cases the model successfully finds.",
+  eyebrow: "Concept 5 of 5",
+  accent: "coral",
+  icon: SearchCheck,
+  sections: [
+    {
+      heading: "What is Recall?",
+      paragraphs: [
+        "Recall is an evaluation metric that measures how many actual positive cases are correctly identified by the model.",
+        "It focuses on reducing false negatives, ensuring that important positive cases are not missed.",
+        "A high recall means the model successfully detects most of the actual positive instances.",
+      ],
+    },
+    {
+      heading: "Why is Recall important in AI?",
+      paragraphs: [
+        "Recall is critical in situations where missing a positive case could have serious consequences.",
+      ],
+      bullets: [
+        "Measures detection ability.",
+        "Reduces false negatives.",
+        "Improves safety.",
+        "Essential for sensitive applications.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a medical test for detecting cancer.",
+        "If 100 patients actually have cancer and the model correctly identifies 98 of them, it has a high recall because very few cases were missed.",
+      ],
+    },
+    {
+      heading: "Where is Recall used?",
+      paragraphs: [
+        "Recall is especially important in applications where missing a positive case is costly.",
+      ],
+      bullets: [
+        "Medical diagnosis.",
+        "Fraud detection.",
+        "Disease screening.",
+        "Cybersecurity.",
+        "Safety monitoring.",
+        "Disaster prediction.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners maximize recall without considering precision, which can result in too many false positive predictions.",
+      ],
+      bullets: [
+        "Ignoring precision.",
+        "Confusing recall with accuracy.",
+        "Not balancing evaluation metrics.",
+        "Overlooking class imbalance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Recall answers the question: 'Of all the actual positive cases, how many did the model correctly identify?'",
+      ],
+      bullets: [
+        "Focuses on false negatives.",
+        "Higher is better.",
+        "Measures detection rate.",
+        "Important for critical systems.",
+        "Complements precision.",
+      ],
+    },
+  ],
+},
+"f1-score": {
+  title: "F1 Score",
+  subtitle: "Balance precision and recall with a single performance metric.",
+  eyebrow: "Concept 1 of 4",
+  accent: "blue",
+  icon: Scale,
+  sections: [
+    {
+      heading: "What is F1 Score?",
+      paragraphs: [
+        "F1 Score is a classification evaluation metric that combines Precision and Recall into a single value.",
+        "It is the harmonic mean of Precision and Recall, giving equal importance to both metrics.",
+        "The F1 Score is especially useful when working with imbalanced datasets where accuracy alone can be misleading.",
+      ],
+    },
+    {
+      heading: "Why is F1 Score important in AI?",
+      paragraphs: [
+        "F1 Score helps evaluate models that need both high precision and high recall.",
+      ],
+      bullets: [
+        "Balances Precision and Recall.",
+        "Works well with imbalanced datasets.",
+        "Provides a single evaluation metric.",
+        "Measures overall classification quality.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a disease detection model identifies most patients correctly but also produces some false alarms.",
+        "The F1 Score combines Precision and Recall to show how well the model performs overall instead of focusing on only one metric.",
+      ],
+    },
+    {
+      heading: "Where is F1 Score used?",
+      paragraphs: [
+        "F1 Score is commonly used when both false positives and false negatives matter.",
+      ],
+      bullets: [
+        "Medical diagnosis.",
+        "Spam detection.",
+        "Fraud detection.",
+        "Sentiment analysis.",
+        "Cybersecurity.",
+        "Information retrieval.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners rely only on accuracy and ignore F1 Score, especially when dealing with imbalanced datasets.",
+      ],
+      bullets: [
+        "Ignoring class imbalance.",
+        "Using accuracy alone.",
+        "Confusing F1 with accuracy.",
+        "Optimizing only Precision or Recall.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "F1 Score provides a balanced measure of a classification model by combining Precision and Recall into one metric.",
+      ],
+      bullets: [
+        "Balances Precision and Recall.",
+        "Useful for imbalanced data.",
+        "Single evaluation metric.",
+        "Higher is better.",
+        "Essential classification metric.",
+      ],
+    },
+  ],
+},
+"roc-curve": {
+  title: "ROC Curve",
+  subtitle: "Visualize how well a classification model separates different classes.",
+  eyebrow: "Concept 2 of 4",
+  accent: "green",
+  icon: LineChart,
+  sections: [
+    {
+      heading: "What is the ROC Curve?",
+      paragraphs: [
+        "The Receiver Operating Characteristic (ROC) Curve is a graph used to evaluate the performance of a binary classification model.",
+        "It plots the True Positive Rate (Recall) against the False Positive Rate at different classification thresholds.",
+        "A model with a curve closer to the top-left corner generally performs better at distinguishing between classes.",
+      ],
+    },
+    {
+      heading: "Why is the ROC Curve important in AI?",
+      paragraphs: [
+        "The ROC Curve helps compare classification models and choose an appropriate decision threshold.",
+      ],
+      bullets: [
+        "Visualizes model performance.",
+        "Compares classifiers.",
+        "Evaluates different thresholds.",
+        "Shows class separation ability.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine testing different confidence levels for a spam detection system.",
+        "The ROC Curve shows how changing the decision threshold affects the number of correctly detected spam emails and false alarms.",
+      ],
+    },
+    {
+      heading: "Where is the ROC Curve used?",
+      paragraphs: [
+        "ROC Curves are widely used for evaluating binary classification models.",
+      ],
+      bullets: [
+        "Medical diagnosis.",
+        "Fraud detection.",
+        "Spam filtering.",
+        "Credit risk analysis.",
+        "Cybersecurity.",
+        "Machine Learning model comparison.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners interpret the ROC Curve without considering class imbalance or the application's specific requirements.",
+      ],
+      bullets: [
+        "Ignoring AUC score.",
+        "Using ROC for highly imbalanced datasets without caution.",
+        "Misunderstanding thresholds.",
+        "Comparing models incorrectly.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "The ROC Curve shows how well a classifier distinguishes between positive and negative classes across different thresholds.",
+      ],
+      bullets: [
+        "Plots TPR vs FPR.",
+        "Evaluates classifiers.",
+        "Threshold independent.",
+        "Often paired with AUC.",
+        "Visual performance metric.",
+      ],
+    },
+  ],
+},
+"confusion-matrix": {
+  title: "Confusion Matrix",
+  subtitle: "Understand exactly where a classification model makes correct and incorrect predictions.",
+  eyebrow: "Concept 3 of 4",
+  accent: "purple",
+  icon: Grid2X2,
+  sections: [
+    {
+      heading: "What is a Confusion Matrix?",
+      paragraphs: [
+        "A Confusion Matrix is a table that summarizes the performance of a classification model.",
+        "It shows the number of True Positives, True Negatives, False Positives, and False Negatives.",
+        "These values form the basis for calculating evaluation metrics such as Precision, Recall, Accuracy, and F1 Score.",
+      ],
+    },
+    {
+      heading: "Why is the Confusion Matrix important in AI?",
+      paragraphs: [
+        "It provides detailed insight into the types of mistakes a model makes instead of giving only a single accuracy value.",
+      ],
+      bullets: [
+        "Shows prediction errors.",
+        "Calculates evaluation metrics.",
+        "Analyzes classification performance.",
+        "Identifies model weaknesses.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a disease detection model correctly identifies 90 sick patients and 850 healthy patients but misses 10 sick patients and incorrectly labels 50 healthy people as sick.",
+        "A Confusion Matrix organizes these results, making it easy to analyze the model's performance.",
+      ],
+    },
+    {
+      heading: "Where is the Confusion Matrix used?",
+      paragraphs: [
+        "It is used to evaluate almost every classification model.",
+      ],
+      bullets: [
+        "Medical diagnosis.",
+        "Spam detection.",
+        "Fraud detection.",
+        "Face recognition.",
+        "Sentiment analysis.",
+        "Quality inspection.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners focus only on overall accuracy and ignore the detailed information available in the Confusion Matrix.",
+      ],
+      bullets: [
+        "Ignoring False Positives.",
+        "Ignoring False Negatives.",
+        "Using only accuracy.",
+        "Misinterpreting matrix values.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "The Confusion Matrix explains exactly how a classification model performs by breaking predictions into four meaningful categories.",
+      ],
+      bullets: [
+        "TP, TN, FP, FN.",
+        "Foundation of evaluation metrics.",
+        "Shows prediction errors.",
+        "Useful for model improvement.",
+        "Essential for classification analysis.",
+      ],
+    },
+  ],
+},
+"bias-variance-tradeoff": {
+  title: "Bias-Variance Tradeoff",
+  subtitle: "Balance underfitting and overfitting to build models that generalize well.",
+  eyebrow: "Concept 4 of 4",
+  accent: "orange",
+  icon: Workflow,
+  sections: [
+    {
+      heading: "What is the Bias-Variance Tradeoff?",
+      paragraphs: [
+        "The Bias-Variance Tradeoff describes the balance between two common sources of prediction error in Machine Learning.",
+        "High bias occurs when a model is too simple and fails to capture important patterns, leading to underfitting.",
+        "High variance occurs when a model is too complex and memorizes the training data, leading to overfitting. The goal is to find the right balance between the two.",
+      ],
+    },
+    {
+      heading: "Why is the Bias-Variance Tradeoff important in AI?",
+      paragraphs: [
+        "Understanding this tradeoff helps developers choose models that perform well on both training and unseen data.",
+      ],
+      bullets: [
+        "Prevents underfitting.",
+        "Prevents overfitting.",
+        "Improves generalization.",
+        "Guides model selection.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine studying for an exam.",
+        "If you study only a few topics, you'll likely perform poorly because you haven't learned enough (high bias). If you memorize every practice question instead of understanding the concepts, you'll struggle with new questions (high variance). The ideal approach is to understand the concepts well enough to solve unseen problems.",
+      ],
+    },
+    {
+      heading: "Where is the Bias-Variance Tradeoff used?",
+      paragraphs: [
+        "This concept is considered whenever building or optimizing Machine Learning models.",
+      ],
+      bullets: [
+        "Model selection.",
+        "Hyperparameter tuning.",
+        "Decision Trees.",
+        "Neural Networks.",
+        "Ensemble learning.",
+        "Model optimization.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners try to maximize training accuracy without checking whether the model generalizes well to new data.",
+      ],
+      bullets: [
+        "Ignoring validation performance.",
+        "Overfitting training data.",
+        "Choosing overly simple models.",
+        "Focusing only on training accuracy.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "A good Machine Learning model finds the balance between bias and variance, allowing it to learn meaningful patterns without memorizing the training data.",
+      ],
+      bullets: [
+        "High bias → Underfitting.",
+        "High variance → Overfitting.",
+        "Balance both errors.",
+        "Improve generalization.",
+        "Core ML optimization concept.",
+      ],
+    },
+  ],
+},
+"artificial-neural-networks": {
+  title: "Artificial Neural Networks",
+  subtitle: "Learn how interconnected artificial neurons work together to solve complex problems.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Network,
+  sections: [
+    {
+      heading: "What are Artificial Neural Networks?",
+      paragraphs: [
+        "Artificial Neural Networks (ANNs) are Machine Learning models inspired by the structure and functioning of the human brain.",
+        "An ANN consists of interconnected artificial neurons organized into layers: an input layer, one or more hidden layers, and an output layer.",
+        "Each neuron processes information, passes it to the next layer, and together they learn complex patterns from data.",
+      ],
+    },
+    {
+      heading: "Why are Artificial Neural Networks important in AI?",
+      paragraphs: [
+        "Neural Networks form the foundation of modern Deep Learning and power many of today's most advanced AI systems.",
+      ],
+      bullets: [
+        "Learns complex patterns.",
+        "Handles non-linear problems.",
+        "Automatically extracts features.",
+        "Foundation of Deep Learning.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine recognizing handwritten digits.",
+        "Instead of manually defining rules for every digit, a Neural Network learns the important patterns directly from thousands of labeled images and predicts the correct digit for new images.",
+      ],
+    },
+    {
+      heading: "Where are Artificial Neural Networks used?",
+      paragraphs: [
+        "Neural Networks are used across nearly every modern AI application.",
+      ],
+      bullets: [
+        "Image recognition.",
+        "Speech recognition.",
+        "Natural Language Processing.",
+        "Recommendation systems.",
+        "Medical diagnosis.",
+        "Autonomous vehicles.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners believe Neural Networks always outperform simpler algorithms, even when the dataset is small or the problem is relatively simple.",
+      ],
+      bullets: [
+        "Using Neural Networks for very small datasets.",
+        "Ignoring data preprocessing.",
+        "Choosing overly complex architectures.",
+        "Expecting instant high accuracy.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Artificial Neural Networks learn by adjusting the connections between neurons, allowing them to recognize complex patterns that traditional algorithms may struggle to capture.",
+      ],
+      bullets: [
+        "Inspired by the brain.",
+        "Built from layers of neurons.",
+        "Learns complex relationships.",
+        "Foundation of Deep Learning.",
+        "Drives modern AI systems.",
+      ],
+    },
+  ],
+},
+
+"artificial-neural-networks-1": {
+  title: "Artificial Neural Networks",
+  subtitle: "Learn how interconnected artificial neurons work together to solve complex problems.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: Network,
+  sections: [
+    {
+      heading: "What are Artificial Neural Networks?",
+      paragraphs: [
+        "Artificial Neural Networks (ANNs) are Machine Learning models inspired by the structure and functioning of the human brain.",
+        "An ANN consists of interconnected artificial neurons organized into layers: an input layer, one or more hidden layers, and an output layer.",
+        "Each neuron processes information, passes it to the next layer, and together they learn complex patterns from data.",
+      ],
+    },
+    {
+      heading: "Why are Artificial Neural Networks important in AI?",
+      paragraphs: [
+        "Neural Networks form the foundation of modern Deep Learning and power many of today's most advanced AI systems.",
+      ],
+      bullets: [
+        "Learns complex patterns.",
+        "Handles non-linear problems.",
+        "Automatically extracts features.",
+        "Foundation of Deep Learning.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine recognizing handwritten digits.",
+        "Instead of manually defining rules for every digit, a Neural Network learns the important patterns directly from thousands of labeled images and predicts the correct digit for new images.",
+      ],
+    },
+    {
+      heading: "Where are Artificial Neural Networks used?",
+      paragraphs: [
+        "Neural Networks are used across nearly every modern AI application.",
+      ],
+      bullets: [
+        "Image recognition.",
+        "Speech recognition.",
+        "Natural Language Processing.",
+        "Recommendation systems.",
+        "Medical diagnosis.",
+        "Autonomous vehicles.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners believe Neural Networks always outperform simpler algorithms, even when the dataset is small or the problem is relatively simple.",
+      ],
+      bullets: [
+        "Using Neural Networks for very small datasets.",
+        "Ignoring data preprocessing.",
+        "Choosing overly complex architectures.",
+        "Expecting instant high accuracy.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Artificial Neural Networks learn by adjusting the connections between neurons, allowing them to recognize complex patterns that traditional algorithms may struggle to capture.",
+      ],
+      bullets: [
+        "Inspired by the brain.",
+        "Built from layers of neurons.",
+        "Learns complex relationships.",
+        "Foundation of Deep Learning.",
+        "Drives modern AI systems.",
+      ],
+    },
+  ],
+},
+"backpropagation": {
+  title: "Backpropagation",
+  subtitle: "Teach Neural Networks by correcting errors and updating weights.",
+  eyebrow: "Concept 3 of 3",
+  accent: "purple",
+  icon: RotateCcw,
+  sections: [
+    {
+      heading: "What is Backpropagation?",
+      paragraphs: [
+        "Backpropagation is the learning algorithm used to train Artificial Neural Networks.",
+        "After the network makes a prediction, the error between the predicted output and the actual output is calculated.",
+        "This error is propagated backward through the network to adjust the weights, helping the model make more accurate predictions in future iterations.",
+      ],
+    },
+    {
+      heading: "Why is Backpropagation important in AI?",
+      paragraphs: [
+        "Without Backpropagation, Neural Networks would never improve their predictions because their weights would remain unchanged.",
+      ],
+      bullets: [
+        "Learns from mistakes.",
+        "Updates network weights.",
+        "Reduces prediction error.",
+        "Improves model accuracy.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a student solving a math problem.",
+        "After seeing the correct answer, the student identifies mistakes, learns from them, and performs better next time. Backpropagation works similarly by correcting the network's errors after every prediction.",
+      ],
+    },
+    {
+      heading: "Where is Backpropagation used?",
+      paragraphs: [
+        "Backpropagation is used to train almost every Deep Learning model.",
+      ],
+      bullets: [
+        "Image recognition.",
+        "Natural Language Processing.",
+        "Speech recognition.",
+        "Computer Vision.",
+        "Recommendation systems.",
+        "Generative AI.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners think Backpropagation is the same as Forward Propagation, even though Backpropagation is responsible for learning by updating weights.",
+      ],
+      bullets: [
+        "Confusing Forward and Backpropagation.",
+        "Ignoring the loss function.",
+        "Misunderstanding gradient updates.",
+        "Assuming weights never change.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Backpropagation teaches a Neural Network by sending errors backward and adjusting weights so that future predictions become more accurate.",
+      ],
+      bullets: [
+        "Learns from errors.",
+        "Updates weights.",
+        "Uses gradients.",
+        "Reduces loss.",
+        "Core Deep Learning algorithm.",
+      ],
+    },
+  ],
+},
+"gradient-descent": {
+  title: "Gradient Descent",
+  subtitle: "Optimize Neural Networks by minimizing prediction errors step by step.",
+  eyebrow: "Concept 1 of 3",
+  accent: "blue",
+  icon: TrendingDown,
+  sections: [
+    {
+      heading: "What is Gradient Descent?",
+      paragraphs: [
+        "Gradient Descent is an optimization algorithm used to train Machine Learning and Deep Learning models.",
+        "Its goal is to minimize the loss (error) by repeatedly adjusting the model's weights in the direction that reduces the error the most.",
+        "With each iteration, the model gradually moves closer to the optimal solution, improving its predictions.",
+      ],
+    },
+    {
+      heading: "Why is Gradient Descent important in AI?",
+      paragraphs: [
+        "Without Gradient Descent, Neural Networks would not know how to improve after making incorrect predictions.",
+      ],
+      bullets: [
+        "Minimizes prediction error.",
+        "Updates model weights.",
+        "Improves learning.",
+        "Foundation of Deep Learning optimization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine standing on top of a mountain in thick fog and trying to reach the lowest point.",
+        "You take small steps downhill based on the slope beneath your feet. Similarly, Gradient Descent follows the direction of the steepest decrease in loss until it reaches the minimum.",
+      ],
+    },
+    {
+      heading: "Where is Gradient Descent used?",
+      paragraphs: [
+        "Gradient Descent is used to train almost every modern Machine Learning and Deep Learning model.",
+      ],
+      bullets: [
+        "Artificial Neural Networks.",
+        "Deep Learning.",
+        "Linear Regression.",
+        "Logistic Regression.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners choose an inappropriate learning rate, causing the model to learn too slowly or fail to converge.",
+      ],
+      bullets: [
+        "Using a very high learning rate.",
+        "Using a very low learning rate.",
+        "Stopping training too early.",
+        "Ignoring convergence behavior.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Gradient Descent improves a model by repeatedly adjusting its weights to reduce prediction error until the best solution is found.",
+      ],
+      bullets: [
+        "Minimizes loss.",
+        "Uses gradients.",
+        "Updates weights.",
+        "Iterative optimization.",
+        "Essential for Deep Learning.",
+      ],
+    },
+  ],
+},
+"optimizers": {
+  title: "Optimizers",
+  subtitle: "Improve how Neural Networks learn by updating weights efficiently.",
+  eyebrow: "Concept 2 of 3",
+  accent: "green",
+  icon: Gauge,
+  sections: [
+    {
+      heading: "What are Optimizers?",
+      paragraphs: [
+        "Optimizers are algorithms that update a Neural Network's weights during training to minimize the loss function.",
+        "While Gradient Descent provides the basic optimization idea, modern optimizers improve speed, stability, and convergence.",
+        "Popular optimizers include SGD (Stochastic Gradient Descent), Momentum, RMSProp, and Adam.",
+      ],
+    },
+    {
+      heading: "Why are Optimizers important in AI?",
+      paragraphs: [
+        "Choosing the right optimizer can significantly improve training speed and model performance.",
+      ],
+      bullets: [
+        "Speeds up learning.",
+        "Reduces training time.",
+        "Improves convergence.",
+        "Enhances model performance.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine two cyclists trying to reach the bottom of a hill.",
+        "One rides carefully at a constant speed, while the other intelligently adjusts speed and direction to reach the destination faster. Modern optimizers work similarly by improving the basic Gradient Descent process.",
+      ],
+    },
+    {
+      heading: "Where are Optimizers used?",
+      paragraphs: [
+        "Optimizers are used whenever Neural Networks are trained.",
+      ],
+      bullets: [
+        "Deep Learning.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Speech Recognition.",
+        "Generative AI.",
+        "Reinforcement Learning.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners always use the default optimizer without understanding how different optimizers affect training.",
+      ],
+      bullets: [
+        "Using the wrong optimizer.",
+        "Ignoring learning rate settings.",
+        "Stopping training too early.",
+        "Not comparing optimizer performance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Optimizers determine how a Neural Network learns by deciding the best way to update its weights during training.",
+      ],
+      bullets: [
+        "Updates weights.",
+        "Improves Gradient Descent.",
+        "Faster convergence.",
+        "Better learning.",
+        "Essential for Deep Learning.",
+      ],
+    },
+  ],
+},
+"activation-functions-2": {
+  title: "Activation Functions",
+  subtitle: "Introduce non-linearity so Neural Networks can learn complex patterns.",
+  eyebrow: "Concept 3 of 3",
+  accent: "purple",
+  icon: Zap,
+  sections: [
+    {
+      heading: "What are Activation Functions?",
+      paragraphs: [
+        "Activation Functions are mathematical functions applied to the output of each neuron in a Neural Network.",
+        "They determine whether a neuron should pass information to the next layer by transforming its input into a meaningful output.",
+        "Without activation functions, Neural Networks would behave like simple linear models and fail to learn complex relationships.",
+      ],
+    },
+    {
+      heading: "Why are Activation Functions important in AI?",
+      paragraphs: [
+        "Activation functions allow Deep Learning models to solve complex, non-linear problems that cannot be handled using simple linear equations.",
+      ],
+      bullets: [
+        "Introduce non-linearity.",
+        "Enable complex learning.",
+        "Improve model performance.",
+        "Support Deep Learning architectures.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a security gate that only opens when certain conditions are met.",
+        "Similarly, an activation function decides whether a neuron's output should be passed to the next layer based on the input it receives.",
+      ],
+    },
+    {
+      heading: "Where are Activation Functions used?",
+      paragraphs: [
+        "Activation functions are used in every modern Neural Network architecture.",
+      ],
+      bullets: [
+        "Image classification.",
+        "Speech recognition.",
+        "Language translation.",
+        "Object detection.",
+        "Generative AI.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use the same activation function for every layer without considering the problem or network architecture.",
+      ],
+      bullets: [
+        "Choosing inappropriate activation functions.",
+        "Ignoring output layer requirements.",
+        "Using Sigmoid everywhere.",
+        "Not understanding vanishing gradients.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Activation functions give Neural Networks the ability to learn complex, non-linear relationships, making Deep Learning possible.",
+      ],
+      bullets: [
+        "Adds non-linearity.",
+        "Controls neuron output.",
+        "Essential for Deep Learning.",
+        "Improves learning capability.",
+        "Common examples: ReLU, Sigmoid, Tanh, Softmax.",
+      ],
+    },
+  ],
+},
+"loss-functions": {
+  title: "Loss Functions",
+  subtitle: "Measure how far a model's predictions are from the correct answers.",
+  eyebrow: "Concept 1 of 4",
+  accent: "blue",
+  icon: Target,
+  sections: [
+    {
+      heading: "What are Loss Functions?",
+      paragraphs: [
+        "A Loss Function is a mathematical function that measures the difference between a model's predicted output and the actual target value.",
+        "It provides a numerical score representing how well or poorly the model is performing during training.",
+        "The objective of training is to minimize this loss so the model can make more accurate predictions.",
+      ],
+    },
+    {
+      heading: "Why are Loss Functions important in AI?",
+      paragraphs: [
+        "Loss functions provide the feedback that tells a model whether its predictions are improving or getting worse.",
+      ],
+      bullets: [
+        "Measures prediction error.",
+        "Guides model learning.",
+        "Works with Gradient Descent.",
+        "Improves prediction accuracy.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a model predicts that a house costs ₹48 lakh, but its actual price is ₹50 lakh.",
+        "The loss function calculates the error between these values. During training, the model adjusts its weights to reduce this error over time.",
+      ],
+    },
+    {
+      heading: "Where are Loss Functions used?",
+      paragraphs: [
+        "Loss functions are used whenever Machine Learning or Deep Learning models are trained.",
+      ],
+      bullets: [
+        "Linear Regression.",
+        "Neural Networks.",
+        "Image classification.",
+        "Language models.",
+        "Speech recognition.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners choose the wrong loss function for their problem, leading to poor model performance.",
+      ],
+      bullets: [
+        "Using regression loss for classification.",
+        "Ignoring the output type.",
+        "Confusing loss with accuracy.",
+        "Optimizing the wrong objective.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Loss functions tell the model how wrong its predictions are, enabling it to learn by minimizing those errors.",
+      ],
+      bullets: [
+        "Measures prediction error.",
+        "Guides learning.",
+        "Minimized during training.",
+        "Essential for optimization.",
+        "Foundation of model training.",
+      ],
+    },
+  ],
+},
+"regularization": {
+  title: "Regularization",
+  subtitle: "Prevent overfitting so models perform well on unseen data.",
+  eyebrow: "Concept 2 of 4",
+  accent: "green",
+  icon: Shield,
+  sections: [
+    {
+      heading: "What is Regularization?",
+      paragraphs: [
+        "Regularization is a technique used to reduce overfitting by preventing a model from becoming unnecessarily complex.",
+        "It adds a penalty to the loss function, encouraging the model to keep its weights smaller and simpler.",
+        "Common regularization methods include L1 Regularization (Lasso) and L2 Regularization (Ridge).",
+      ],
+    },
+    {
+      heading: "Why is Regularization important in AI?",
+      paragraphs: [
+        "Regularization helps models generalize better by reducing their tendency to memorize the training data.",
+      ],
+      bullets: [
+        "Reduces overfitting.",
+        "Improves generalization.",
+        "Simplifies models.",
+        "Produces more reliable predictions.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a student who memorizes every answer instead of understanding the concepts.",
+        "While they may perform well on practice questions, they'll struggle with new ones. Regularization encourages the model to learn general patterns instead of memorizing examples.",
+      ],
+    },
+    {
+      heading: "Where is Regularization used?",
+      paragraphs: [
+        "Regularization is widely used in Machine Learning and Deep Learning models.",
+      ],
+      bullets: [
+        "Linear Regression.",
+        "Logistic Regression.",
+        "Neural Networks.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners apply too much regularization, causing the model to become overly simple and underfit the data.",
+      ],
+      bullets: [
+        "Using excessive regularization.",
+        "Ignoring underfitting.",
+        "Choosing incorrect penalty values.",
+        "Not validating performance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Regularization controls model complexity so it learns meaningful patterns instead of memorizing the training data.",
+      ],
+      bullets: [
+        "Prevents overfitting.",
+        "Controls complexity.",
+        "Improves generalization.",
+        "Uses L1 and L2 penalties.",
+        "Better real-world performance.",
+      ],
+    },
+  ],
+},
+"batch-normalization": {
+  title: "Batch Normalization",
+  subtitle: "Normalize intermediate outputs to train Neural Networks faster and more reliably.",
+  eyebrow: "Concept 3 of 4",
+  accent: "purple",
+  icon: Layers,
+  sections: [
+    {
+      heading: "What is Batch Normalization?",
+      paragraphs: [
+        "Batch Normalization is a technique that normalizes the outputs of a layer before passing them to the next layer during training.",
+        "By keeping the values within a stable range, it helps Neural Networks learn more efficiently and consistently.",
+        "It also allows the use of higher learning rates, making training faster and often improving model performance.",
+      ],
+    },
+    {
+      heading: "Why is Batch Normalization important in AI?",
+      paragraphs: [
+        "Batch Normalization improves training stability and helps Deep Learning models converge more quickly.",
+      ],
+      bullets: [
+        "Speeds up training.",
+        "Stabilizes learning.",
+        "Improves convergence.",
+        "Reduces sensitivity to initialization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine students entering a classroom with very different levels of preparation.",
+        "A quick revision session brings everyone to a similar understanding before the lesson begins. Batch Normalization works similarly by standardizing data flowing through the network.",
+      ],
+    },
+    {
+      heading: "Where is Batch Normalization used?",
+      paragraphs: [
+        "Batch Normalization is commonly used in modern Deep Learning architectures.",
+      ],
+      bullets: [
+        "Convolutional Neural Networks (CNNs).",
+        "Deep Neural Networks.",
+        "Image classification.",
+        "Object detection.",
+        "Generative AI.",
+        "Speech recognition.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners assume Batch Normalization completely eliminates overfitting, even though other techniques like Dropout may still be needed.",
+      ],
+      bullets: [
+        "Confusing normalization with regularization.",
+        "Incorrect layer placement.",
+        "Ignoring batch size effects.",
+        "Expecting it to solve every training issue.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Batch Normalization keeps activations stable during training, helping Neural Networks learn faster and more effectively.",
+      ],
+      bullets: [
+        "Normalizes activations.",
+        "Speeds up training.",
+        "Improves stability.",
+        "Works with Deep Learning.",
+        "Boosts convergence.",
+      ],
+    },
+  ],
+},
+"dropout": {
+  title: "Dropout",
+  subtitle: "Reduce overfitting by temporarily disabling neurons during training.",
+  eyebrow: "Concept 4 of 4",
+  accent: "orange",
+  icon: CircleOff,
+  sections: [
+    {
+      heading: "What is Dropout?",
+      paragraphs: [
+        "Dropout is a regularization technique used in Neural Networks to reduce overfitting.",
+        "During training, it randomly disables a fraction of neurons in each iteration, preventing the network from relying too heavily on specific neurons.",
+        "This encourages the network to learn more robust and generalized features.",
+      ],
+    },
+    {
+      heading: "Why is Dropout important in AI?",
+      paragraphs: [
+        "Dropout helps Neural Networks perform better on unseen data by reducing memorization of the training set.",
+      ],
+      bullets: [
+        "Prevents overfitting.",
+        "Improves generalization.",
+        "Builds robust models.",
+        "Works well with deep networks.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a team working on a project where different members are occasionally absent.",
+        "The remaining team members must adapt and learn multiple responsibilities instead of depending on one person. Dropout trains Neural Networks in a similar way by temporarily removing neurons during learning.",
+      ],
+    },
+    {
+      heading: "Where is Dropout used?",
+      paragraphs: [
+        "Dropout is widely used in Deep Learning models with many layers.",
+      ],
+      bullets: [
+        "Deep Neural Networks.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Speech Recognition.",
+        "Generative AI.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners apply Dropout during model evaluation, even though it should only be active during training.",
+      ],
+      bullets: [
+        "Using Dropout during inference.",
+        "Applying excessive dropout rates.",
+        "Confusing it with Batch Normalization.",
+        "Using Dropout in every layer unnecessarily.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Dropout randomly disables neurons during training, making Neural Networks more robust and less likely to overfit.",
+      ],
+      bullets: [
+        "Randomly disables neurons.",
+        "Prevents overfitting.",
+        "Improves generalization.",
+        "Training-only technique.",
+        "Essential Deep Learning regularization method.",
+      ],
+    },
+  ],
+},
+"activation-functions-dropout": {
+  title: "Activation Functions",
+  subtitle: "Introduce non-linearity so Neural Networks can learn complex patterns.",
+  eyebrow: "Concept 3 of 3",
+  accent: "purple",
+  icon: Zap,
+  sections: [
+    {
+      heading: "What are Activation Functions?",
+      paragraphs: [
+        "Activation Functions are mathematical functions applied to the output of each neuron in a Neural Network.",
+        "They determine whether a neuron should pass information to the next layer by transforming its input into a meaningful output.",
+        "Without activation functions, Neural Networks would behave like simple linear models and fail to learn complex relationships.",
+      ],
+    },
+    {
+      heading: "Why are Activation Functions important in AI?",
+      paragraphs: [
+        "Activation functions allow Deep Learning models to solve complex, non-linear problems that cannot be handled using simple linear equations.",
+      ],
+      bullets: [
+        "Introduce non-linearity.",
+        "Enable complex learning.",
+        "Improve model performance.",
+        "Support Deep Learning architectures.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a security gate that only opens when certain conditions are met.",
+        "Similarly, an activation function decides whether a neuron's output should be passed to the next layer based on the input it receives.",
+      ],
+    },
+    {
+      heading: "Where are Activation Functions used?",
+      paragraphs: [
+        "Activation functions are used in every modern Neural Network architecture.",
+      ],
+      bullets: [
+        "Image classification.",
+        "Speech recognition.",
+        "Language translation.",
+        "Object detection.",
+        "Generative AI.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners use the same activation function for every layer without considering the problem or network architecture.",
+      ],
+      bullets: [
+        "Choosing inappropriate activation functions.",
+        "Ignoring output layer requirements.",
+        "Using Sigmoid everywhere.",
+        "Not understanding vanishing gradients.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Activation functions give Neural Networks the ability to learn complex, non-linear relationships, making Deep Learning possible.",
+      ],
+      bullets: [
+        "Adds non-linearity.",
+        "Controls neuron output.",
+        "Essential for Deep Learning.",
+        "Improves learning capability.",
+        "Common examples: ReLU, Sigmoid, Tanh, Softmax.",
+      ],
+    },
+  ],
+},
+"loss-functions": {
+  title: "Loss Functions",
+  subtitle: "Measure how far a model's predictions are from the correct answers.",
+  eyebrow: "Concept 1 of 4",
+  accent: "blue",
+  icon: Target,
+  sections: [
+    {
+      heading: "What are Loss Functions?",
+      paragraphs: [
+        "A Loss Function is a mathematical function that measures the difference between a model's predicted output and the actual target value.",
+        "It provides a numerical score representing how well or poorly the model is performing during training.",
+        "The objective of training is to minimize this loss so the model can make more accurate predictions.",
+      ],
+    },
+    {
+      heading: "Why are Loss Functions important in AI?",
+      paragraphs: [
+        "Loss functions provide the feedback that tells a model whether its predictions are improving or getting worse.",
+      ],
+      bullets: [
+        "Measures prediction error.",
+        "Guides model learning.",
+        "Works with Gradient Descent.",
+        "Improves prediction accuracy.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Suppose a model predicts that a house costs ₹48 lakh, but its actual price is ₹50 lakh.",
+        "The loss function calculates the error between these values. During training, the model adjusts its weights to reduce this error over time.",
+      ],
+    },
+    {
+      heading: "Where are Loss Functions used?",
+      paragraphs: [
+        "Loss functions are used whenever Machine Learning or Deep Learning models are trained.",
+      ],
+      bullets: [
+        "Linear Regression.",
+        "Neural Networks.",
+        "Image classification.",
+        "Language models.",
+        "Speech recognition.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners choose the wrong loss function for their problem, leading to poor model performance.",
+      ],
+      bullets: [
+        "Using regression loss for classification.",
+        "Ignoring the output type.",
+        "Confusing loss with accuracy.",
+        "Optimizing the wrong objective.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Loss functions tell the model how wrong its predictions are, enabling it to learn by minimizing those errors.",
+      ],
+      bullets: [
+        "Measures prediction error.",
+        "Guides learning.",
+        "Minimized during training.",
+        "Essential for optimization.",
+        "Foundation of model training.",
+      ],
+    },
+  ],
+},
+
+"regularization": {
+  title: "Regularization",
+  subtitle: "Prevent overfitting so models perform well on unseen data.",
+  eyebrow: "Concept 2 of 4",
+  accent: "green",
+  icon: Shield,
+  sections: [
+    {
+      heading: "What is Regularization?",
+      paragraphs: [
+        "Regularization is a technique used to reduce overfitting by preventing a model from becoming unnecessarily complex.",
+        "It adds a penalty to the loss function, encouraging the model to keep its weights smaller and simpler.",
+        "Common regularization methods include L1 Regularization (Lasso) and L2 Regularization (Ridge).",
+      ],
+    },
+    {
+      heading: "Why is Regularization important in AI?",
+      paragraphs: [
+        "Regularization helps models generalize better by reducing their tendency to memorize the training data.",
+      ],
+      bullets: [
+        "Reduces overfitting.",
+        "Improves generalization.",
+        "Simplifies models.",
+        "Produces more reliable predictions.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a student who memorizes every answer instead of understanding the concepts.",
+        "While they may perform well on practice questions, they'll struggle with new ones. Regularization encourages the model to learn general patterns instead of memorizing examples.",
+      ],
+    },
+    {
+      heading: "Where is Regularization used?",
+      paragraphs: [
+        "Regularization is widely used in Machine Learning and Deep Learning models.",
+      ],
+      bullets: [
+        "Linear Regression.",
+        "Logistic Regression.",
+        "Neural Networks.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners apply too much regularization, causing the model to become overly simple and underfit the data.",
+      ],
+      bullets: [
+        "Using excessive regularization.",
+        "Ignoring underfitting.",
+        "Choosing incorrect penalty values.",
+        "Not validating performance.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Regularization controls model complexity so it learns meaningful patterns instead of memorizing the training data.",
+      ],
+      bullets: [
+        "Prevents overfitting.",
+        "Controls complexity.",
+        "Improves generalization.",
+        "Uses L1 and L2 penalties.",
+        "Better real-world performance.",
+      ],
+    },
+  ],
+},
+"batch-normalization": {
+  title: "Batch Normalization",
+  subtitle: "Normalize intermediate outputs to train Neural Networks faster and more reliably.",
+  eyebrow: "Concept 3 of 4",
+  accent: "purple",
+  icon: Layers,
+  sections: [
+    {
+      heading: "What is Batch Normalization?",
+      paragraphs: [
+        "Batch Normalization is a technique that normalizes the outputs of a layer before passing them to the next layer during training.",
+        "By keeping the values within a stable range, it helps Neural Networks learn more efficiently and consistently.",
+        "It also allows the use of higher learning rates, making training faster and often improving model performance.",
+      ],
+    },
+    {
+      heading: "Why is Batch Normalization important in AI?",
+      paragraphs: [
+        "Batch Normalization improves training stability and helps Deep Learning models converge more quickly.",
+      ],
+      bullets: [
+        "Speeds up training.",
+        "Stabilizes learning.",
+        "Improves convergence.",
+        "Reduces sensitivity to initialization.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine students entering a classroom with very different levels of preparation.",
+        "A quick revision session brings everyone to a similar understanding before the lesson begins. Batch Normalization works similarly by standardizing data flowing through the network.",
+      ],
+    },
+    {
+      heading: "Where is Batch Normalization used?",
+      paragraphs: [
+        "Batch Normalization is commonly used in modern Deep Learning architectures.",
+      ],
+      bullets: [
+        "Convolutional Neural Networks (CNNs).",
+        "Deep Neural Networks.",
+        "Image classification.",
+        "Object detection.",
+        "Generative AI.",
+        "Speech recognition.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners assume Batch Normalization completely eliminates overfitting, even though other techniques like Dropout may still be needed.",
+      ],
+      bullets: [
+        "Confusing normalization with regularization.",
+        "Incorrect layer placement.",
+        "Ignoring batch size effects.",
+        "Expecting it to solve every training issue.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Batch Normalization keeps activations stable during training, helping Neural Networks learn faster and more effectively.",
+      ],
+      bullets: [
+        "Normalizes activations.",
+        "Speeds up training.",
+        "Improves stability.",
+        "Works with Deep Learning.",
+        "Boosts convergence.",
+      ],
+    },
+  ],
+},
+
+"dropout": {
+  title: "Dropout",
+  subtitle: "Reduce overfitting by temporarily disabling neurons during training.",
+  eyebrow: "Concept 4 of 4",
+  accent: "orange",
+  icon: CircleOff,
+  sections: [
+    {
+      heading: "What is Dropout?",
+      paragraphs: [
+        "Dropout is a regularization technique used in Neural Networks to reduce overfitting.",
+        "During training, it randomly disables a fraction of neurons in each iteration, preventing the network from relying too heavily on specific neurons.",
+        "This encourages the network to learn more robust and generalized features.",
+      ],
+    },
+    {
+      heading: "Why is Dropout important in AI?",
+      paragraphs: [
+        "Dropout helps Neural Networks perform better on unseen data by reducing memorization of the training set.",
+      ],
+      bullets: [
+        "Prevents overfitting.",
+        "Improves generalization.",
+        "Builds robust models.",
+        "Works well with deep networks.",
+      ],
+    },
+    {
+      heading: "Let's understand with an example",
+      paragraphs: [
+        "Imagine a team working on a project where different members are occasionally absent.",
+        "The remaining team members must adapt and learn multiple responsibilities instead of depending on one person. Dropout trains Neural Networks in a similar way by temporarily removing neurons during learning.",
+      ],
+    },
+    {
+      heading: "Where is Dropout used?",
+      paragraphs: [
+        "Dropout is widely used in Deep Learning models with many layers.",
+      ],
+      bullets: [
+        "Deep Neural Networks.",
+        "Computer Vision.",
+        "Natural Language Processing.",
+        "Speech Recognition.",
+        "Generative AI.",
+        "Recommendation systems.",
+      ],
+    },
+    {
+      heading: "Common mistakes beginners make",
+      paragraphs: [
+        "Many beginners apply Dropout during model evaluation, even though it should only be active during training.",
+      ],
+      bullets: [
+        "Using Dropout during inference.",
+        "Applying excessive dropout rates.",
+        "Confusing it with Batch Normalization.",
+        "Using Dropout in every layer unnecessarily.",
+      ],
+    },
+    {
+      heading: "Key idea to remember",
+      paragraphs: [
+        "Dropout randomly disables neurons during training, making Neural Networks more robust and less likely to overfit.",
+      ],
+      bullets: [
+        "Randomly disables neurons.",
+        "Prevents overfitting.",
+        "Improves generalization.",
+        "Training-only technique.",
+        "Essential Deep Learning regularization method.",
+      ],
+    },
+  ],
+},
+
+
+
+
+
+
+
 };
 
 /* ---------------------------- PAGE ---------------------------- */
@@ -3637,47 +9479,70 @@ export default function DynamicPage() {
   const params = useParams();
   const rawSlug = params?.slug;
   const slug = Array.isArray(rawSlug) ? rawSlug[0] : rawSlug ?? "";
-
+  
   const content = contentMap[slug];
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Helper to map abstract AI images based on keywords
+  const getSectionImage = (slugStr: string, sectionHeading?: string) => {
+    const text = (slugStr + " " + (sectionHeading || "")).toLowerCase();
+    if (text.includes("human")|| text.includes("training")) return "/ai.png";
+     if (text.includes("types")) return "/types.png";
+       if (text.includes("machines")|| text.includes("examples")) return "/ex.png";
+     if (text.includes("history") || text.includes("turn")) return "/hist.png";
+ if (text.includes("car")) return "/car.png";
+ if (text.includes("classification")) return "/car.png";
+    if (text.includes("neuron") || text.includes("network") || text.includes("deep") || text.includes("brain") || text.includes("layer") || text.includes("percep")) return "/img_neuron.jpg";
+    if (text.includes("data") || text.includes("math") || text.includes("learn") || text.includes("model") || text.includes("overfit") || text.includes("train") || text.includes("eval")) return "/img_data.jpg";
+    if (text.includes("robot") || text.includes("ai") || text.includes("machine") || text.includes("agent") )return "/img_robot.jpg";
+    if (text.includes("neuron") || text.includes("intelligence")) return "/we.png";
+    return "/img_robot.jpg"; // Default fallback
+  };
 
   if (!content) {
     return (
       <div className="topic-root">
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
-          ${STYLES}
-        `}</style>
-        <div className="topic-container" style={{ "--accent": colors.goldDeep, "--accent-border": colors.border, "--accent-soft": colors.bgSoft } as React.CSSProperties}>
-          <Link href="/" className="topic-back-btn">
-            <ChevronLeft size={18} />
-            Back to Curriculum
-          </Link>
-          <div className="topic-card" style={{ textAlign: "center" }}>
-            <h1 className="topic-title" style={{ marginBottom: 8 }}>Topic Not Found</h1>
-            <p className="topic-paragraph">
-              This topic hasn't been added yet. Please go back and select a topic from the curriculum.
-            </p>
-          </div>
-        </div>
+         <div className="topic-container">
+           <Link href="/" className="topic-back-btn">
+              <ChevronLeft size={18} />
+              Back to Curriculum
+            </Link>
+            <div className="glass-card" style={{ padding: "4rem", textAlign: "center" }}>
+              <h1 className="topic-title">Topic Not Found</h1>
+              <p className="topic-paragraph">This topic hasn't been added yet. Please select a valid topic.</p>
+            </div>
+         </div>
       </div>
     );
   }
 
   const Icon = content.icon;
-  const accent = ACCENTS[content.accent];
+  // ACCENTS is defined in the file
+  const accent = ACCENTS[content.accent] || { color: '#0f172a', border: '#e2e8f0', soft: '#f8fafc' };
   const accentVars = {
     "--accent": accent.color,
     "--accent-border": accent.border,
     "--accent-soft": accent.soft,
   } as React.CSSProperties;
 
+  const totalSlides = content.sections.length;
+  const activeSection = content.sections[currentSlide];
+
+  const nextSlide = () => setCurrentSlide(p => Math.min(p + 1, totalSlides - 1));
+  const prevSlide = () => setCurrentSlide(p => Math.max(p - 1, 0));
+
   return (
-    <div className="topic-root">
+    <div className="topic-root" style={accentVars}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap');
         ${STYLES}
       `}</style>
-      <div className="topic-container" style={accentVars}>
+      
+      {/* Dynamic Animated Glassmorphism Background */}
+      <div className="bg-blob blob-1"></div>
+      <div className="bg-blob blob-2"></div>
+      
+      <div className="topic-container">
         <Link href="/" className="topic-back-btn">
           <ChevronLeft size={18} />
           Back to Curriculum
@@ -3692,29 +9557,45 @@ export default function DynamicPage() {
           <p className="topic-subtitle">{content.subtitle}</p>
         </div>
 
-        <div className="topic-card">
-          {content.sections.map((section, i) => (
-            <div key={i} className="topic-section">
-              {section.heading && (
-                <h2 className="topic-section-heading">{section.heading}</h2>
+        <div className="glass-card">
+          <div className="slide-content">
+            <div className="slide-text">
+              <div className="slide-badge">Step {currentSlide + 1} of {totalSlides}</div>
+              {activeSection.heading && (
+                <h2 className="topic-section-heading">{activeSection.heading}</h2>
               )}
-              {section.paragraphs?.map((p, pi) => (
-                <p key={pi} className="topic-paragraph">
-                  {p}
-                </p>
+              {activeSection.paragraphs?.map((p, pi) => (
+                <p key={pi} className="topic-paragraph">{p}</p>
               ))}
-              {section.bullets && (
+              {activeSection.bullets && (
                 <ul className="topic-bullets">
-                  {section.bullets.map((b, bi) => (
+                  {activeSection.bullets.map((b, bi) => (
                     <li key={bi}>{b}</li>
                   ))}
                 </ul>
               )}
             </div>
-          ))}
-        </div>
+            
+            <div className="slide-visual">
+              <img src={getSectionImage(slug, activeSection.heading)} alt={activeSection.heading || "Visual"} className="visual-img" />
+            </div>
+          </div>
+
+          <div className="slide-controls">
+            <button className="control-btn" onClick={prevSlide} disabled={currentSlide === 0}>
+              <ChevronLeft size={18} /> Previous
+            </button>
+            <div className="progress-dots">
+              {content.sections.map((_, i) => (
+                <div key={i} className={`dot ${i === currentSlide ? 'active' : ''}`} onClick={() => setCurrentSlide(i)} />
+              ))}
+            </div>
+            <button className="control-btn primary" onClick={nextSlide} disabled={currentSlide === totalSlides - 1}>
+              Next <ChevronRight size={18} />
+            </button>
           </div>
         </div>
-    
+      </div>
+    </div>
   );
 }

@@ -20,26 +20,27 @@ import {
 } from "lucide-react";
 
 const colors = {
-  bg: "#FFF7E3",
-  bgSoft: "#FFEFC8",
+  bg: "#F0F4F8",
+  bgSoft: "#E7ECF5",
   card: "#FFFFFF",
-  cardAlt: "#F6F1FF",
-  border: "#FFD866",
-  borderSoft: "#FFE9A8",
-  gold: "#F5A623",
-  goldDeep: "#E2860A",
-  goldDeepest: "#B96A05",
-  coral: "#FF7A59",
-  coralDeep: "#E85A38",
-  purple: "#A855F7",
-  purpleDeep: "#8B34E0",
-  teal: "#2FB6A3",
-  tealDeep: "#1F9585",
-  ink: "#3A2E1E",
-  inkSoft: "#5A4B34",
-  muted: "#8A7A5C",
-  codeBg: "#2B2440",
-  codeText: "#F3EFFF",
+  cardAlt: "#F8FAFC",
+  border: "rgba(148,163,184,0.25)",
+  borderSoft: "rgba(148,163,184,0.18)",
+  borderActive: "rgba(99,102,241,0.4)",
+  gold: "#6366F1",
+  goldDeep: "#4F46E5",
+  goldDeepest: "#3730A3",
+  coral: "#F43F5E",
+  coralDeep: "#E11D48",
+  purple: "#8B5CF6",
+  purpleDeep: "#7C3AED",
+  teal: "#06B6D4",
+  tealDeep: "#0E7490",
+  ink: "#1E293B",
+  inkSoft: "#475569",
+  muted: "#94A3B8",
+  codeBg: "#1E1B31",
+  codeText: "#ECE7FF",
 };
 
 /* All layout/spacing/typography lives in plain CSS below, so this component
@@ -50,7 +51,7 @@ const STYLES = `
     width: 100%;
     padding: 32px 16px;
     background: radial-gradient(circle at 20% -10%, ${colors.bgSoft} 0%, ${colors.bg} 55%);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     box-sizing: border-box;
     position: relative;
     overflow-x: hidden;
@@ -63,11 +64,11 @@ const STYLES = `
   }
 
   /* -------------------- Decorative floating blobs -------------------- */
-  .aiel-blob { position: absolute; border-radius: 999px; filter: blur(2px); opacity: 0.32; pointer-events: none; z-index: 0; }
-  .aiel-blob-1 { width: 140px; height: 140px; background: ${colors.gold}; top: 0px; left: 4%; animation: aiel-float-a 9s ease-in-out infinite; }
-  .aiel-blob-2 { width: 90px; height: 90px; background: ${colors.coral}; top: 60px; right: 6%; animation: aiel-float-b 7s ease-in-out infinite; }
-  .aiel-blob-3 { width: 60px; height: 60px; background: ${colors.purple}; top: 220px; left: 10%; animation: aiel-float-c 8s ease-in-out infinite; }
-  .aiel-blob-4 { width: 100px; height: 100px; background: ${colors.teal}; top: 180px; right: 14%; animation: aiel-float-a 10s ease-in-out infinite; }
+  .aiel-blob { position: absolute; border-radius: 999px; filter: blur(70px); opacity: 0.3; pointer-events: none; z-index: 0; }
+  .aiel-blob-1 { width: 320px; height: 320px; background: #A5B4FC; top: -60px; left: 2%; animation: aiel-float-a 9s ease-in-out infinite; }
+  .aiel-blob-2 { width: 240px; height: 240px; background: ${colors.coral}; top: 40px; right: 4%; animation: aiel-float-b 7s ease-in-out infinite; opacity: 0.22; }
+  .aiel-blob-3 { width: 200px; height: 200px; background: ${colors.purple}; top: 260px; left: 6%; animation: aiel-float-c 8s ease-in-out infinite; opacity: 0.2; }
+  .aiel-blob-4 { width: 260px; height: 260px; background: #A5F3FC; top: 160px; right: 10%; animation: aiel-float-a 10s ease-in-out infinite; opacity: 0.25; }
   @keyframes aiel-float-a { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(10px, -18px) scale(1.06); } }
   @keyframes aiel-float-b { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-14px, 12px) scale(0.94); } }
   @keyframes aiel-float-c { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(8px, 16px); } }
@@ -76,44 +77,45 @@ const STYLES = `
 
   .topic-back-btn {
     display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; margin-bottom: 18px;
-    border-radius: 999px; background: ${colors.card}; border: 2px solid ${colors.borderSoft};
-    color: ${colors.inkSoft}; font-weight: 700; font-size: 13px; text-decoration: none;
-    transition: transform 0.15s ease, background 0.15s ease;
+    border-radius: 999px; background: rgba(255,255,255,0.72); border: 1px solid ${colors.border};
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: ${colors.inkSoft}; font-weight: 600; font-size: 13px; text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .topic-back-btn:hover { background: ${colors.borderSoft}; transform: translateX(-2px); }
+  .topic-back-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
 
   .aiel-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; margin-bottom: 28px; }
   .aiel-header-icon {
     width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: ${colors.card}; border: 2.5px solid ${colors.border};
-    box-shadow: 0 6px 0 ${colors.border};
+    background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 8px 24px rgba(99,102,241,0.18), 0 1px 3px rgba(0,0,0,0.04);
     animation: aiel-bob 3s ease-in-out infinite;
   }
   @keyframes aiel-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-4deg); } }
   .aiel-eyebrow {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
     color: ${colors.goldDeep}; margin: 4px 0 0 0;
   }
   .aiel-h1 {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
-    font-size: 28px;
-    background: linear-gradient(90deg, #D9A62B 0%, ${colors.coral} 45%, ${colors.purple} 100%);
+    font-family: 'Inter', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
+    font-size: 28px; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, ${colors.goldDeep} 0%, ${colors.purple} 55%, ${colors.coral} 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: ${colors.purple};
   }
   @media (min-width: 640px) { .aiel-h1 { font-size: 34px; } }
-  .aiel-subtitle { font-size: 15px; color: ${colors.muted}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.55; }
+  .aiel-subtitle { font-size: 15px; color: ${colors.inkSoft}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.6; }
 
   /* -------------------- Reaction toast -------------------- */
   .aiel-toast {
     position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
-    font-weight: 700; font-size: 13.5px; color: ${colors.ink}; z-index: 50;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    font-weight: 700; font-size: 13.5px; color: white; z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     animation: aiel-toast-in 0.35s ease forwards;
   }
-  .aiel-toast-up { background: linear-gradient(180deg, #B9F3E7 0%, ${colors.teal} 100%); border: 2px solid ${colors.tealDeep}; }
-  .aiel-toast-down { background: linear-gradient(180deg, #FFE0D2 0%, #FFC1A6 100%); border: 2px solid ${colors.coralDeep}; }
+  .aiel-toast-up { background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep}); }
+  .aiel-toast-down { background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); }
   @keyframes aiel-toast-in {
     0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.9); }
     60% { opacity: 1; transform: translateX(-50%) translateY(2px) scale(1.03); }
@@ -121,8 +123,8 @@ const STYLES = `
   }
 
   .aiel-progress-track {
-    width: 100%; height: 14px; border-radius: 999px; background: #FFFFFF;
-    border: 2px solid ${colors.borderSoft}; overflow: hidden; margin-bottom: 18px; position: relative;
+    width: 100%; height: 12px; border-radius: 999px; background: #FFFFFF;
+    border: 1px solid ${colors.border}; overflow: hidden; margin-bottom: 18px; position: relative;
   }
   .aiel-progress-fill {
     height: 100%; border-radius: 999px; position: relative; overflow: hidden;
@@ -143,11 +145,11 @@ const STYLES = `
   .aiel-stamp-btn {
     display: flex; align-items: center; gap: 8px;
     padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease; flex: 1; min-width: 130px; justify-content: center;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; flex: 1; min-width: 130px; justify-content: center;
   }
-  .aiel-stamp-btn:hover { transform: translateY(-2px); }
+  .aiel-stamp-btn:hover { transform: translateY(-2px); border-color: ${colors.borderActive}; }
   .aiel-stamp-label {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
     text-align: center; white-space: nowrap;
   }
   @media (max-width: 639px) {
@@ -155,41 +157,57 @@ const STYLES = `
     .aiel-stamp-btn { min-width: 0; padding: 12px; }
   }
 
-  .aiel-stage-shell { border-radius: 28px; padding: 20px; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; }
-  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
-  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .aiel-stage-tag {
-    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal};
+  .aiel-stage-shell {
+    border-radius: 24px; padding: 20px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   }
-  .aiel-stage-progress { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: ${colors.muted}; }
+  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
+  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .aiel-stage-tag {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.tealDeep};
+    background: rgba(6,182,212,0.1); padding: 5px 14px; border-radius: 999px;
+  }
+  .aiel-stage-progress {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: white;
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
+    padding: 5px 12px; border-radius: 999px;
+  }
   .aiel-stage-title {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep};
-    font-size: 24px; margin: 4px 0 8px 0;
+    font-family: 'Inter', sans-serif; font-weight: 800; color: ${colors.goldDeep};
+    font-size: 24px; margin: 10px 0 8px 0; letter-spacing: -0.01em;
   }
   @media (min-width: 640px) { .aiel-stage-title { font-size: 28px; } }
-  .aiel-stage-subtitle { font-size: 14px; color: ${colors.muted}; margin: 0 0 20px 0; }
+  .aiel-stage-subtitle { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 20px 0; line-height: 1.55; }
 
-  /* -------------------- Stage hero illustrations -------------------- */
-  .aiel-hero { display: flex; align-items: center; justify-content: center; margin-bottom: 22px; min-height: 96px; }
+  /* -------------------- Stage hero illustrations, driven by real stage content -------------------- */
+  .aiel-hero { display: flex; align-items: center; justify-content: center; margin-bottom: 22px; min-height: 74px; }
 
   /* Scoreboard (Stage 0: structured vs unstructured tally) */
   .aiel-scoreboard { display: flex; align-items: center; gap: 14px; }
   .aiel-score-crate {
     display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 22px; border-radius: 16px;
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); box-shadow: 0 5px 0 ${colors.goldDeep};
     min-width: 96px; transition: transform 0.2s ease;
+    background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep});
+    box-shadow: 0 8px 20px rgba(6,182,212,0.3);
   }
-  .aiel-score-crate-alt { background: linear-gradient(180deg, #E7D3FC 0%, ${colors.purple} 100%); box-shadow: 0 5px 0 ${colors.purpleDeep}; }
-  .aiel-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 24px; color: ${colors.ink}; line-height: 1; }
-  .aiel-score-label { font-size: 11px; font-weight: 700; color: ${colors.ink}; opacity: 0.85; }
-  .aiel-score-divider { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 13px; color: ${colors.coralDeep}; }
+  .aiel-score-crate-alt {
+    background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep});
+    box-shadow: 0 8px 20px rgba(244,63,94,0.3);
+  }
+  .aiel-score-num { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 24px; color: #fff; line-height: 1; }
+  .aiel-score-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85); }
+  .aiel-score-divider { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px; color: ${colors.muted}; }
 
   /* Spreadsheet hero (Stage 1: CSV) */
-  .aiel-sheet { border-radius: 16px; overflow: hidden; border: 2px solid ${colors.border}; box-shadow: 0 5px 0 ${colors.borderSoft}; width: 100%; max-width: 340px; }
+  .aiel-sheet { border-radius: 14px; overflow: hidden; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); width: 100%; max-width: 340px; }
   .aiel-sheet-toolbar {
-    display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: ${colors.bgSoft};
+    display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: ${colors.cardAlt};
     font-size: 11px; font-weight: 700; color: ${colors.goldDeep}; font-family: 'Menlo', 'Consolas', monospace;
+    border-bottom: 1px solid ${colors.border};
   }
   .aiel-sheet-grid { display: grid; }
   .aiel-sheet-cell {
@@ -197,30 +215,29 @@ const STYLES = `
     background: ${colors.card}; border-bottom: 1px solid ${colors.borderSoft}; border-right: 1px solid ${colors.borderSoft};
     text-align: center; transition: background 0.35s ease, color 0.35s ease;
   }
-  .aiel-sheet-head { background: ${colors.borderSoft}; font-weight: 700; color: ${colors.goldDeepest}; }
-  .aiel-sheet-hl { background: #FFEBAE; }
-  .aiel-sheet-hl-row { background: #FFEBAE; }
-  .aiel-sheet-hl-cell { background: ${colors.gold}; color: #fff; font-weight: 800; animation: aiel-cell-pulse 1.6s ease-in-out infinite; }
-  @keyframes aiel-cell-pulse {
-    0%, 100% { box-shadow: inset 0 0 0 2px ${colors.goldDeep}; }
-    50% { box-shadow: inset 0 0 0 2px ${colors.coral}; }
+  .aiel-sheet-head { background: ${colors.cardAlt}; font-weight: 700; color: ${colors.inkSoft}; }
+  .aiel-sheet-hl { background: rgba(99,102,241,0.08); }
+  .aiel-sheet-hl-row { background: rgba(99,102,241,0.08); }
+  .aiel-sheet-hl-cell {
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple}); color: #fff; font-weight: 800;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
   }
 
   /* Pixel inspector (Stage 2: Images) */
   .aiel-pixel-inspector { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .aiel-pixel-grid2 {
     display: grid; grid-template-columns: repeat(2, 46px); grid-template-rows: repeat(2, 46px); gap: 4px;
-    border-radius: 10px; overflow: hidden; box-shadow: 0 5px 0 ${colors.goldDeep};
+    border-radius: 10px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.12);
   }
   .aiel-pixel-swatch { position: relative; transition: transform 0.25s ease; }
-  .aiel-pixel-active { transform: scale(1.1); z-index: 1; box-shadow: 0 0 0 3px #fff, 0 0 0 6px ${colors.coral}; }
-  .aiel-pixel-ping { position: absolute; inset: -6px; border-radius: 6px; border: 2px solid ${colors.coral}; animation: aiel-pulse-ring 1.6s ease-out infinite; }
+  .aiel-pixel-active { transform: scale(1.1); z-index: 1; box-shadow: 0 0 0 3px #fff, 0 0 0 6px ${colors.gold}; }
+  .aiel-pixel-ping { position: absolute; inset: -6px; border-radius: 6px; border: 2px solid ${colors.gold}; animation: aiel-pulse-ring 1.6s ease-out infinite; }
   @keyframes aiel-pulse-ring { 0% { transform: scale(0.85); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 0; } }
-  .aiel-pixel-caption { font-size: 12px; color: ${colors.muted}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; }
+  .aiel-pixel-caption { font-size: 12px; color: ${colors.inkSoft}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; }
 
   /* Waveform hero (Stage 3: Audio) */
   .aiel-wave-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 320px; }
-  .aiel-wave-caption { font-size: 12px; color: ${colors.muted}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; }
+  .aiel-wave-caption { font-size: 12px; color: ${colors.inkSoft}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; }
   .aiel-wave-dot { animation: aiel-dot-pop 1.8s ease-in-out infinite; }
   @keyframes aiel-dot-pop { 0%, 100% { r: 3.4; } 50% { r: 4.4; } }
 
@@ -229,104 +246,114 @@ const STYLES = `
   .aiel-pipeline-row { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
   .aiel-pipeline-sentence {
     font-family: 'Menlo', 'Consolas', monospace; font-size: 14px; font-weight: 700; color: ${colors.ink};
-    background: ${colors.cardAlt}; padding: 8px 14px; border-radius: 10px; border: 2px solid ${colors.borderSoft};
+    background: ${colors.cardAlt}; padding: 8px 14px; border-radius: 10px; border: 1px solid ${colors.border};
   }
-  .aiel-pipeline-arrow { font-size: 16px; color: ${colors.muted}; line-height: 1; }
+  .aiel-pipeline-arrow { font-size: 13px; color: ${colors.muted}; line-height: 1; font-weight: 600; }
   .aiel-token-chip {
-    padding: 8px 14px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.border};
+    padding: 8px 14px; border-radius: 999px; background: ${colors.cardAlt}; border: 1px solid ${colors.border};
     font-family: 'Menlo', 'Consolas', monospace; font-size: 12px; font-weight: 700; color: ${colors.ink};
     opacity: 0; animation: aiel-token-in 0.5s ease forwards;
   }
   @keyframes aiel-token-in { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
   .aiel-id-chip {
-    padding: 8px 16px; border-radius: 999px; background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%);
+    padding: 8px 16px; border-radius: 999px; background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
     font-family: 'Menlo', 'Consolas', monospace; font-size: 12px; font-weight: 800; color: #fff;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
     opacity: 0; animation: aiel-token-in 0.5s ease forwards;
   }
 
-  .aiel-item-list { display: flex; flex-direction: column; gap: 12px; }
+  .aiel-item-list { display: flex; flex-direction: column; gap: 14px; }
   .aiel-item-card {
-    border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
+    border-radius: 18px; padding: 20px; background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     opacity: 0; animation: aiel-card-in 0.4s ease forwards;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
+  .aiel-item-card:hover { border-color: ${colors.borderActive}; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
   @keyframes aiel-card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .aiel-item-text { font-size: 14px; color: ${colors.ink}; margin: 0 0 12px 0; font-weight: 500; }
 
   .aiel-code-block {
     background: ${colors.codeBg}; color: ${colors.codeText}; border-radius: 14px; padding: 14px 16px;
     font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; line-height: 1.6;
-    white-space: pre; overflow-x: auto; margin: 0 0 10px 0;
+    white-space: pre; overflow-x: auto; margin: 0 0 12px 0;
   }
-  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 12px 0; font-weight: 600; }
+  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 14px 0; font-weight: 600; }
 
-  .aiel-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .aiel-choice-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .aiel-choice-btn {
-    flex: 1; font-size: 12px; font-weight: 700; padding: 12px 8px; border-radius: 999px; color: ${colors.ink};
-    box-shadow: 0 4px 0 rgba(0,0,0,0.18); transition: transform 0.12s ease, box-shadow 0.12s ease;
+    flex: 1; font-size: 12.5px; font-weight: 700; padding: 13px 10px; border-radius: 14px; color: black;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15); transition: transform 0.15s ease, box-shadow 0.15s ease;
     min-width: 100px; font-family: 'Menlo', 'Consolas', monospace;
   }
-  .aiel-choice-btn:hover { transform: translateY(-1px); }
-  .aiel-choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
-  .aiel-choice-teal { background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); }
-  .aiel-choice-coral { background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); }
-  .aiel-choice-gold { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); }
+  .aiel-choice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.2); }
+  .aiel-choice-btn:active { transform: translateY(1px); }
+  .aiel-choice-teal { background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep}); }
+  .aiel-choice-coral { background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); }
+  .aiel-choice-gold { background: linear-gradient(135deg, ${colors.gold}, ${colors.purple}); }
 
-  .aiel-feedback { display: flex; align-items: flex-start; gap: 8px; animation: aiel-card-in 0.3s ease forwards; }
-  .aiel-feedback-text { font-size: 12px; color: ${colors.muted}; margin: 0; line-height: 1.5; }
+  .aiel-feedback {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 14px;
+    animation: aiel-card-in 0.3s ease forwards;
+  }
+  .aiel-feedback-text { font-size: 12.5px; color: ${colors.inkSoft}; margin: 0; line-height: 1.55; }
   .aiel-feedback-icon { margin-top: 2px; flex-shrink: 0; }
 
-  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; }
+  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; gap: 12px; }
   .aiel-nav-back {
-    display: flex; align-items: center; gap: 4px; padding: 10px 18px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.cardAlt};
-    transition: transform 0.12s ease, background 0.15s ease;
+    display: flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.card}; border: 1px solid ${colors.border};
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .aiel-nav-back:not([disabled]):hover { background: ${colors.borderSoft}; transform: translateY(-1px); }
+  .aiel-nav-back:not([disabled]):hover { color: ${colors.gold}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
   .aiel-nav-next {
-    display: flex; align-items: center; gap: 4px; padding: 12px 22px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.ink};
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    box-shadow: 0 5px 0 ${colors.goldDeep};
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    display: flex; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .aiel-nav-next:not([disabled]):hover { transform: translateY(-1px); }
-  .aiel-nav-next:not([disabled]):active { transform: translateY(4px); box-shadow: 0 1px 0 ${colors.goldDeep}; }
+  .aiel-nav-next:not([disabled]):hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.35); }
+  .aiel-nav-next:not([disabled]):active { transform: translateY(1px); }
   .aiel-nav-next[disabled], .aiel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
 
-  .aiel-cert { border-radius: 28px; padding: 32px 20px; text-align: center; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; position: relative; overflow: hidden; }
-  @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
-  .aiel-confetti-piece { position: absolute; top: -14px; width: 8px; height: 14px; opacity: 0.9; animation: aiel-confetti-fall linear infinite; border-radius: 2px; }
-  @keyframes aiel-confetti-fall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(340px) rotate(540deg); opacity: 0; }
+  .aiel-cert {
+    border-radius: 24px; padding: 32px 20px; text-align: center;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    position: relative; overflow: hidden;
   }
+  @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
   .aiel-cert-badge {
     margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(180deg, #FFC65C 0%, ${colors.gold} 100%);
-    box-shadow: 0 6px 0 ${colors.goldDeep};
+    background: linear-gradient(135deg, #F59E0B, #F97316);
+    box-shadow: 0 10px 28px rgba(245,158,11,0.35);
     position: relative; z-index: 1;
     animation: aiel-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes aiel-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .aiel-cert-eyebrow { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .aiel-cert-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .aiel-cert-desc { font-size: 14px; color: ${colors.muted}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
+  .aiel-cert-eyebrow { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.gold}; margin: 0 0 8px 0; position: relative; z-index: 1; }
+  .aiel-cert-title { font-family: 'Inter', sans-serif; font-weight: 800; color: ${colors.ink}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
+  .aiel-cert-desc { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
   .aiel-cert-score {
     display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; position: relative; z-index: 1;
+    background: ${colors.card}; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; z-index: 1;
   }
-  .aiel-cert-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.goldDeep}; }
+  .aiel-cert-score-num { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.gold}; }
   .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
   .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
   @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(5, 1fr); } }
-  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
+  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.card}; border: 1px solid ${colors.border}; }
   .aiel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
   .aiel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
-    padding: 12px 22px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.border}; color: ${colors.ink};
-    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
+    padding: 14px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft};
+    position: relative; z-index: 1; transition: color 0.2s ease, border-color 0.2s ease;
   }
+  .aiel-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
 `;
 
 /* ---------------------------- TYPES ---------------------------- */
@@ -420,15 +447,6 @@ const TEXT_ITEMS: QuizItem[] = [
   { id: "t5", code: 'Sentence: "unbelievable"', question: "Why might a tokenizer split this into smaller pieces like 'un', 'believ', 'able' instead of one token?", options: ["To handle rare or unfamiliar words using familiar smaller pieces", "Because long words are against the rules", "To make the sentence longer on purpose"], answer: "To handle rare or unfamiliar words using familiar smaller pieces", explain: "Breaking rare words into familiar sub-pieces lets a model handle words it has never seen as one whole unit before." },
 ];
 
-const CONFETTI_COLORS = [colors.gold, colors.coral, colors.purple, colors.teal, colors.goldDeep];
-const CONFETTI_PIECES = Array.from({ length: 26 }, (_, i) => ({
-  left: (i * 137) % 100,
-  delay: (i % 10) * 0.22,
-  duration: 2.6 + ((i * 7) % 10) / 5,
-  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-  rotate: (i * 53) % 360,
-}));
-
 const POSITIVE_PHRASES = ["Nice! 🎉", "You got it!", "Sharp eye! ✨", "Exactly right!", "Great instinct!"];
 const GENTLE_PHRASES = ["Good try! 🤔", "Almost there!", "Nice guess -- see why below", "Close one!"];
 
@@ -465,7 +483,7 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
           const isCurrent = current === i;
           const bg =
             isDone || isCurrent
-              ? `linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%)`
+              ? `linear-gradient(135deg, ${colors.gold}, ${colors.purple})`
               : colors.card;
           return (
             <button
@@ -474,16 +492,16 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
               onClick={() => onJump(i)}
               style={{
                 background: bg,
-                border: `2px solid ${isDone || isCurrent ? colors.goldDeep : colors.borderSoft}`,
-                boxShadow: isDone || isCurrent ? `0 4px 0 ${colors.goldDeep}` : "none",
+                border: `1px solid ${isDone || isCurrent ? "transparent" : colors.border}`,
+                boxShadow: isDone || isCurrent ? `0 4px 15px rgba(99,102,241,0.3)` : "none",
               }}
             >
               {isDone ? (
-                <CheckCircle2 size={18} color={colors.ink} strokeWidth={2.5} />
+                <CheckCircle2 size={18} color="#fff" strokeWidth={2.5} />
               ) : (
-                <Icon size={16} color={isCurrent ? colors.ink : colors.muted} />
+                <Icon size={16} color={isCurrent ? "#fff" : colors.muted} />
               )}
-              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? colors.ink : colors.muted }}>
+              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? "#fff" : colors.muted }}>
                 {s.title}
               </span>
             </button>
@@ -547,14 +565,14 @@ function SortScoreboard({ answers }: { answers: StructureAnswerMap }) {
   const unstructuredCount = values.filter((a) => a === "unstructured").length;
   return (
     <div className="aiel-scoreboard">
-      <div className="aiel-score-crate" style={{ transform: structuredCount ? "translateY(-2px)" : undefined }}>
-        <Table2 size={22} color={colors.ink} />
+      <div className="aiel-score-crate" style={{ transform: structuredCount ? "translateY(-3px)" : undefined }}>
+        <Table2 size={22} color="#fff" />
         <span className="aiel-score-num">{structuredCount}</span>
         <span className="aiel-score-label">Structured</span>
       </div>
       <div className="aiel-score-divider">VS</div>
-      <div className="aiel-score-crate aiel-score-crate-alt" style={{ transform: unstructuredCount ? "translateY(-2px)" : undefined }}>
-        <Cloud size={22} color={colors.ink} />
+      <div className="aiel-score-crate aiel-score-crate-alt" style={{ transform: unstructuredCount ? "translateY(-3px)" : undefined }}>
+        <Cloud size={22} color="#fff" />
         <span className="aiel-score-num">{unstructuredCount}</span>
         <span className="aiel-score-label">Unstructured</span>
       </div>
@@ -723,9 +741,12 @@ function StructureList({ items, answers, onAnswer, onFeedback }: StructureListPr
                 </button>
               </div>
             ) : (
-              <div className="aiel-feedback">
+              <div
+                className="aiel-feedback"
+                style={{ background: isCorrect ? "rgba(6,182,212,0.08)" : "rgba(244,63,94,0.08)" }}
+              >
                 {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
+                  <CheckCircle2 size={16} color={colors.tealDeep} className="aiel-feedback-icon" />
                 ) : (
                   <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                 )}
@@ -776,9 +797,12 @@ function QuizList({ items, answers, onAnswer, onFeedback }: QuizListProps) {
                 ))}
               </div>
             ) : (
-              <div className="aiel-feedback">
+              <div
+                className="aiel-feedback"
+                style={{ background: isCorrect ? "rgba(6,182,212,0.08)" : "rgba(244,63,94,0.08)" }}
+              >
                 {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
+                  <CheckCircle2 size={16} color={colors.tealDeep} className="aiel-feedback-icon" />
                 ) : (
                   <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                 )}
@@ -872,7 +896,7 @@ export default function DataLab() {
   return (
     <div className="aiel-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         ${STYLES}
       `}</style>
 
@@ -1042,21 +1066,8 @@ export default function DataLab() {
         {/* CERTIFICATE */}
         {current === 5 && (
           <div className="aiel-cert">
-            {CONFETTI_PIECES.map((c, i) => (
-              <div
-                key={i}
-                className="aiel-confetti-piece"
-                style={{
-                  left: `${c.left}%`,
-                  background: c.color,
-                  animationDelay: `${c.delay}s`,
-                  animationDuration: `${c.duration}s`,
-                  transform: `rotate(${c.rotate}deg)`,
-                }}
-              />
-            ))}
             <div className="aiel-cert-badge">
-              <Award size={36} color={colors.ink} />
+              <Award size={36} color="#fff" />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
             <h2 className="aiel-cert-title">You've completed Module 2</h2>
@@ -1073,7 +1084,7 @@ export default function DataLab() {
             <div className="aiel-cert-grid">
               {STAGE_META.map((s) => (
                 <div key={s.key} className="aiel-cert-item">
-                  <CheckCircle2 size={14} color={colors.teal} />
+                  <CheckCircle2 size={14} color={colors.tealDeep} />
                   <p>{s.title}</p>
                 </div>
               ))}

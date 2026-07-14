@@ -1,532 +1,957 @@
 "use client";
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Brain,
-  BookOpen,
   Layers,
-  Rocket,
-  BarChart3,
-  Sigma,
-  GitBranch,
-  Users,
-  Compass,
-  CheckCircle2,
-  XCircle,
+  Target,
+  Sparkles,
   ChevronRight,
   ChevronLeft,
-  Award,
+  CheckCircle2,
+  XCircle,
   RotateCcw,
-  Sparkles,
-  Database,
-  Tag,
+  Award,
+  Compass,
+  GitBranch,
   TrendingUp,
-  Target,
+  Zap,
+  Gauge,
+  MapPin,
+  Trophy,
+  Star,
+  Ban,
+  Dices,
+  Play,
+  Pause,
+  RefreshCw,
+  Info,
+  Share2,
+  Bot,
+  Gamepad2,
+  SlidersHorizontal,
+  MousePointer2,
+  Database,
+  Users,
+  Rocket,
+  Mail,
+  Home as HomeIcon,
+  Stethoscope,
+  Film,
+  Car,
+  ShieldAlert,
+  Dog,
+  Cat,
+  Rabbit,
   LucideIcon,
 } from "lucide-react";
 
+/* ======================================================================
+   DESIGN TOKENS
+====================================================================== */
+
 const colors = {
-  bg: "#FFF7E3",
-  bgSoft: "#FFEFC8",
+  bg: "#F0F4F8",
+  bgSoft: "#E7ECF5",
+  bgDeep: "#E2E8F5",
   card: "#FFFFFF",
-  cardAlt: "#F6F1FF",
-  border: "#FFD866",
-  borderSoft: "#FFE9A8",
-  gold: "#F5A623",
-  goldDeep: "#E2860A",
-  goldDeepest: "#B96A05",
-  coral: "#FF7A59",
-  coralDeep: "#E85A38",
-  purple: "#A855F7",
-  purpleDeep: "#8B34E0",
-  teal: "#2FB6A3",
-  tealDeep: "#1F9585",
-  ink: "#3A2E1E",
-  inkSoft: "#5A4B34",
-  muted: "#8A7A5C",
-  codeBg: "#2B2440",
-  codeText: "#F3EFFF",
+  cardHover: "#F8FAFC",
+  cardSolid: "#F8FAFC",
+  border: "rgba(148,163,184,0.25)",
+  borderSoft: "rgba(148,163,184,0.18)",
+  borderActive: "rgba(99,102,241,0.4)",
+  purple: "#8B5CF6",
+  purpleDeep: "#7C3AED",
+  blue: "#3B82F6",
+  blueDeep: "#2563EB",
+  cyan: "#06B6D4",
+  cyanDeep: "#0E7490",
+  green: "#10B981",
+  greenDeep: "#059669",
+  coral: "#F43F5E",
+  coralDeep: "#E11D48",
+  amber: "#F59E0B",
+  amberDeep: "#F97316",
+  ink: "#1E293B",
+  inkSoft: "#475569",
+  muted: "#94A3B8",
+  codeBg: "#1E1B31",
 };
 
-/* All layout/spacing/typography lives in plain CSS below, so this component
-   has zero dependency on Tailwind being configured in the host project. */
+const GRADIENT_PBC = `linear-gradient(135deg, ${colors.purple}, ${colors.blue}, ${colors.cyan})`;
+const GRADIENT_PB = `linear-gradient(135deg, ${colors.purple}, ${colors.blue})`;
+const GRADIENT_BC = `linear-gradient(135deg, ${colors.blue}, ${colors.cyan})`;
+const GRADIENT_GREEN = `linear-gradient(135deg, ${colors.green}, ${colors.cyanDeep})`;
+const GRADIENT_CORAL = `linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep})`;
+const GRADIENT_AMBER = `linear-gradient(135deg, ${colors.amber}, ${colors.amberDeep})`;
+
+/* ======================================================================
+   STYLES
+====================================================================== */
+
 const STYLES = `
-  .aiel-root {
+  .mldl-root {
     min-height: 100vh;
     width: 100%;
-    padding: 32px 16px;
+    padding: 28px 16px 60px 16px;
     background: radial-gradient(circle at 20% -10%, ${colors.bgSoft} 0%, ${colors.bg} 55%);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     box-sizing: border-box;
     position: relative;
     overflow-x: hidden;
+    color: ${colors.ink};
   }
-  .aiel-root *, .aiel-root *::before, .aiel-root *::after { box-sizing: border-box; }
-  .aiel-root button { font-family: inherit; border: none; background: none; cursor: pointer; }
-  .aiel-root button:focus-visible { outline: 3px solid ${colors.purple}; outline-offset: 2px; }
+  .mldl-root *, .mldl-root *::before, .mldl-root *::after { box-sizing: border-box; }
+  .mldl-root button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; }
+  .mldl-root button:focus-visible { outline: 3px solid ${colors.purple}; outline-offset: 2px; }
+  .mldl-root input[type="range"] { accent-color: ${colors.purple}; }
   @media (prefers-reduced-motion: reduce) {
-    .aiel-root * { transition: none !important; animation: none !important; }
+    .mldl-root * { transition: none !important; animation: none !important; }
   }
 
-  /* -------------------- Decorative floating blobs -------------------- */
-  .aiel-blob { position: absolute; border-radius: 999px; filter: blur(2px); opacity: 0.32; pointer-events: none; z-index: 0; }
-  .aiel-blob-1 { width: 140px; height: 140px; background: ${colors.gold}; top: 0px; left: 4%; animation: aiel-float-a 9s ease-in-out infinite; }
-  .aiel-blob-2 { width: 90px; height: 90px; background: ${colors.coral}; top: 60px; right: 6%; animation: aiel-float-b 7s ease-in-out infinite; }
-  .aiel-blob-3 { width: 60px; height: 60px; background: ${colors.purple}; top: 220px; left: 10%; animation: aiel-float-c 8s ease-in-out infinite; }
-  .aiel-blob-4 { width: 100px; height: 100px; background: ${colors.teal}; top: 180px; right: 14%; animation: aiel-float-a 10s ease-in-out infinite; }
-  @keyframes aiel-float-a { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(10px, -18px) scale(1.06); } }
-  @keyframes aiel-float-b { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-14px, 12px) scale(0.94); } }
-  @keyframes aiel-float-c { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(8px, 16px); } }
-
-  .aiel-container { max-width: 760px; margin: 0 auto; position: relative; z-index: 1; }
-
-  .topic-back-btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; margin-bottom: 18px;
-    border-radius: 999px; background: ${colors.card}; border: 2px solid ${colors.borderSoft};
-    color: ${colors.inkSoft}; font-weight: 700; font-size: 13px; text-decoration: none;
-    transition: transform 0.15s ease, background 0.15s ease;
+  /* -------------------- Floating particles -------------------- */
+  .mldl-particle-field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .mldl-particle {
+    position: absolute; border-radius: 999px; opacity: 0.35; filter: blur(0.5px);
+    animation: mldl-particle-float linear infinite;
   }
-  .topic-back-btn:hover { background: ${colors.borderSoft}; transform: translateX(-2px); }
+  @keyframes mldl-particle-float {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.4; }
+    90% { opacity: 0.35; }
+    100% { transform: translateY(-120vh) translateX(20px); opacity: 0; }
+  }
 
-  .aiel-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; margin-bottom: 28px; }
-  .aiel-header-icon {
-    width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
+  .mldl-container { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* -------------------- Header -------------------- */
+  .mldl-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+  .mldl-back-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;
+    border-radius: 999px; background: rgba(255,255,255,0.72); border: 1px solid ${colors.border};
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: ${colors.inkSoft}; font-weight: 600; font-size: 13px; text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .mldl-back-btn:hover { color: ${colors.purpleDeep}; border-color: ${colors.borderActive}; transform: translateX(-2px); background: ${colors.cardHover}; }
+
+  .mldl-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-bottom: 26px; }
+  .mldl-header-icon {
+    width: 62px; height: 62px; border-radius: 20px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: ${colors.card}; border: 2.5px solid ${colors.border};
-    box-shadow: 0 6px 0 ${colors.border};
-    animation: aiel-bob 3s ease-in-out infinite;
+    background: ${GRADIENT_PBC};
+    box-shadow: 0 10px 30px rgba(139,92,246,0.25);
+    animation: mldl-bob 3.4s ease-in-out infinite;
   }
-  @keyframes aiel-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-4deg); } }
-  .aiel-eyebrow {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
-    color: ${colors.goldDeep}; margin: 4px 0 0 0;
-  }
-  .aiel-h1 {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
-    font-size: 26px;
-    background: linear-gradient(90deg, #D9A62B 0%, ${colors.coral} 45%, ${colors.purple} 100%);
+  @keyframes mldl-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-6px) rotate(-4deg); } }
+  .mldl-h1 {
+    font-family: 'Inter', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
+    font-size: 30px; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, ${colors.purpleDeep} 0%, ${colors.blueDeep} 55%, ${colors.cyanDeep} 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: ${colors.purple};
   }
-  @media (min-width: 640px) { .aiel-h1 { font-size: 32px; } }
-  .aiel-subtitle { font-size: 15px; color: ${colors.muted}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.55; }
+  @media (min-width: 640px) { .mldl-h1 { font-size: 38px; } }
+  .mldl-subtitle { font-size: 15px; color: ${colors.inkSoft}; max-width: 580px; margin: 0 auto; line-height: 1.6; }
 
-  /* -------------------- Reaction toast -------------------- */
-  .aiel-toast {
-    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
-    display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
-    font-weight: 700; font-size: 13.5px; color: ${colors.ink}; z-index: 50;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    animation: aiel-toast-in 0.35s ease forwards;
+  /* -------------------- Progress / stepper -------------------- */
+  .mldl-progress-track {
+    width: 100%; height: 10px; border-radius: 999px; background: #FFFFFF;
+    border: 1px solid ${colors.border}; overflow: hidden; margin-bottom: 18px; position: relative;
   }
-  .aiel-toast-up { background: linear-gradient(180deg, #B9F3E7 0%, ${colors.teal} 100%); border: 2px solid ${colors.tealDeep}; }
-  .aiel-toast-down { background: linear-gradient(180deg, #FFE0D2 0%, #FFC1A6 100%); border: 2px solid ${colors.coralDeep}; }
-  @keyframes aiel-toast-in {
+  .mldl-progress-fill {
+    height: 100%; border-radius: 999px; position: relative; overflow: hidden;
+    background: ${GRADIENT_PBC};
+    transition: width 0.4s ease;
+  }
+  .mldl-progress-fill::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+    animation: mldl-shimmer 2.2s linear infinite;
+  }
+  @keyframes mldl-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+  .mldl-stepbar { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 26px; flex-wrap: wrap; }
+  .mldl-step-btn {
+    display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-radius: 999px;
+    font-weight: 700; font-size: 12.5px; flex: 1; min-width: 96px; justify-content: center;
+    background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.muted};
+    transition: all 0.2s ease;
+  }
+  .mldl-step-btn:hover { border-color: ${colors.borderActive}; transform: translateY(-2px); }
+  .mldl-step-btn.mldl-step-active { background: ${GRADIENT_PBC}; color: #fff; border-color: transparent; box-shadow: 0 6px 18px rgba(139,92,246,0.3); }
+  .mldl-step-btn.mldl-step-done { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.35); color: ${colors.greenDeep}; }
+  .mldl-step-label { display: none; white-space: nowrap; }
+  @media (min-width: 900px) { .mldl-step-label { display: inline; } }
+
+  /* -------------------- Stage shell -------------------- */
+  .mldl-stage-shell {
+    border-radius: 24px; padding: 22px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  }
+  @media (min-width: 720px) { .mldl-stage-shell { padding: 34px; } }
+  .mldl-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+  .mldl-stage-tag {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.cyanDeep};
+    background: rgba(6,182,212,0.1); padding: 5px 14px; border-radius: 999px; border: 1px solid rgba(6,182,212,0.2);
+  }
+  .mldl-stage-title {
+    font-weight: 800; color: ${colors.purpleDeep}; font-size: 25px; margin: 10px 0 8px 0; letter-spacing: -0.01em;
+  }
+  @media (min-width: 720px) { .mldl-stage-title { font-size: 30px; } }
+  .mldl-stage-subtitle { font-size: 14.5px; color: ${colors.inkSoft}; margin: 0 0 24px 0; line-height: 1.6; max-width: 720px; }
+
+  /* -------------------- Learning type cards (Stage 0) -------------------- */
+  .mldl-type-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (min-width: 760px) { .mldl-type-grid { grid-template-columns: repeat(3, 1fr); } }
+  .mldl-type-card {
+    position: relative; border-radius: 20px; padding: 22px 18px; text-align: left; cursor: pointer;
+    background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+  }
+  .mldl-type-card:hover { transform: translateY(-4px); border-color: ${colors.borderActive}; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+  .mldl-type-card.mldl-type-active { border-color: transparent; box-shadow: 0 16px 40px rgba(139,92,246,0.22); }
+  .mldl-type-card.mldl-type-active::before {
+    content: ""; position: absolute; inset: 0; padding: 1px; border-radius: 20px;
+    background: var(--accent-gradient); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+  .mldl-type-icon-wrap {
+    width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-gradient); margin-bottom: 14px; position: relative; z-index: 1;
+    animation: mldl-icon-pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes mldl-icon-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  .mldl-type-title { font-size: 17px; font-weight: 800; color: ${colors.ink}; margin: 0 0 6px 0; position: relative; z-index: 1; }
+  .mldl-type-desc { font-size: 13px; color: ${colors.inkSoft}; margin: 0; line-height: 1.55; position: relative; z-index: 1; }
+
+  /* -------------------- Pipeline canvas -------------------- */
+  .mldl-canvas {
+    border-radius: 18px; padding: 26px 18px; background: ${colors.card};
+    border: 1px solid ${colors.borderSoft}; display: flex; flex-direction: column; align-items: center;
+    gap: 4px; min-height: 200px; justify-content: center;
+  }
+  .mldl-pipe-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .mldl-pipe-node {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 20px; border-radius: 16px;
+    background: ${colors.cardSolid}; border: 1px solid ${colors.border}; min-width: 130px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    opacity: 0; animation: mldl-fade-up 0.5s ease forwards;
+  }
+  .mldl-pipe-node-icon {
+    width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+    background: var(--accent-gradient);
+  }
+  .mldl-pipe-node-label { font-size: 12.5px; font-weight: 700; color: ${colors.ink}; text-align: center; }
+  .mldl-pipe-arrow-down { color: ${colors.muted}; font-size: 18px; margin: 2px 0; opacity: 0; animation: mldl-fade-up 0.5s ease forwards; }
+  @keyframes mldl-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* -------------------- Problem solver (Stage 1) -------------------- */
+  .mldl-problem-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 22px; }
+  @media (min-width: 640px) { .mldl-problem-grid { grid-template-columns: repeat(3, 1fr); } }
+  .mldl-problem-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; border-radius: 16px;
+    background: ${colors.card}; border: 1px solid ${colors.border}; font-size: 12px; font-weight: 700; text-align: center;
+    transition: all 0.2s ease; color: ${colors.inkSoft};
+  }
+  .mldl-problem-chip:hover { border-color: ${colors.borderActive}; transform: translateY(-2px); }
+  .mldl-problem-chip.mldl-problem-active { background: ${GRADIENT_PB}; color: #fff; border-color: transparent; box-shadow: 0 8px 20px rgba(59,130,246,0.25); }
+  .mldl-problem-chip.mldl-problem-solved { border-color: rgba(16,185,129,0.4); }
+  .mldl-problem-icon-circle {
+    width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+    background: rgba(148,163,184,0.14);
+  }
+  .mldl-problem-chip.mldl-problem-active .mldl-problem-icon-circle { background: rgba(255,255,255,0.22); }
+
+  .mldl-choice-section { margin-bottom: 18px; }
+  .mldl-choice-label { font-size: 12.5px; font-weight: 700; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+  .mldl-choice-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .mldl-pill {
+    padding: 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${colors.inkSoft};
+    background: ${colors.card}; border: 1px solid ${colors.border}; transition: all 0.18s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .mldl-pill:hover { border-color: ${colors.borderActive}; color: ${colors.ink}; transform: translateY(-1px); }
+  .mldl-pill.mldl-pill-selected { color: #fff; border-color: transparent; }
+  .mldl-pill.mldl-pill-correct { background: ${GRADIENT_GREEN} !important; box-shadow: 0 6px 16px rgba(16,185,129,0.3); }
+  .mldl-pill.mldl-pill-wrong { background: ${GRADIENT_CORAL} !important; box-shadow: 0 6px 16px rgba(244,63,94,0.3); }
+  .mldl-pill.mldl-pill-neutral-selected { background: ${GRADIENT_PB} !important; }
+  .mldl-pill[disabled] { opacity: 0.55; cursor: default; }
+
+  .mldl-feedback-box {
+    display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 16px; margin-top: 6px;
+    animation: mldl-fade-up 0.3s ease forwards; border: 1px solid;
+  }
+  .mldl-feedback-box.mldl-fb-correct { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); }
+  .mldl-feedback-box.mldl-fb-wrong { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.25); }
+  .mldl-feedback-title { font-size: 13.5px; font-weight: 800; margin: 0 0 4px 0; color: ${colors.ink}; }
+  .mldl-feedback-text { font-size: 13px; color: ${colors.inkSoft}; margin: 0; line-height: 1.55; }
+
+  /* -------------------- Algorithm playground tabs (Stage 2) -------------------- */
+  .mldl-tab-row { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+  .mldl-tab-btn {
+    display: flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 700;
+    background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft}; transition: all 0.2s ease;
+  }
+  .mldl-tab-btn:hover { border-color: ${colors.borderActive}; color: ${colors.ink}; }
+  .mldl-tab-btn.mldl-tab-active { background: ${GRADIENT_PBC}; color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(139,92,246,0.28); }
+
+  .mldl-playground-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 880px) { .mldl-playground-grid { grid-template-columns: 1.3fr 1fr; align-items: start; } }
+
+  .mldl-svg-card {
+    border-radius: 18px; background: ${colors.card}; border: 1px solid ${colors.borderSoft};
+    padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .mldl-svg-caption { font-size: 12px; color: ${colors.muted}; text-align: center; }
+
+  .mldl-side-panel { display: flex; flex-direction: column; gap: 14px; }
+  .mldl-info-card {
+    border-radius: 16px; padding: 16px 18px; background: ${colors.card}; border: 1px solid ${colors.borderSoft};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .mldl-info-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: ${colors.ink}; margin: 0 0 8px 0; }
+  .mldl-info-text { font-size: 12.5px; color: ${colors.inkSoft}; margin: 0; line-height: 1.6; }
+
+  .mldl-metric-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid ${colors.borderSoft}; }
+  .mldl-metric-row:last-child { border-bottom: none; }
+  .mldl-metric-label { font-size: 12px; color: ${colors.muted}; font-weight: 600; }
+  .mldl-metric-value { font-size: 13.5px; color: ${colors.ink}; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  .mldl-slider-block { display: flex; flex-direction: column; gap: 8px; }
+  .mldl-slider-top { display: flex; align-items: center; justify-content: space-between; }
+  .mldl-slider-top-label { font-size: 12.5px; font-weight: 700; color: ${colors.inkSoft}; }
+  .mldl-slider-top-value { font-size: 13px; font-weight: 800; color: ${colors.cyanDeep}; }
+  .mldl-slider { width: 100%; height: 6px; border-radius: 999px; background: rgba(148,163,184,0.25); appearance: none; outline: none; cursor: pointer; }
+  .mldl-slider::-webkit-slider-thumb {
+    appearance: none; width: 18px; height: 18px; border-radius: 999px; background: ${GRADIENT_PBC};
+    box-shadow: 0 2px 8px rgba(139,92,246,0.45); cursor: pointer; border: 2px solid #fff;
+  }
+  .mldl-slider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 999px; background: ${colors.purple};
+    box-shadow: 0 2px 8px rgba(139,92,246,0.45); cursor: pointer; border: 2px solid #fff;
+  }
+
+  .mldl-prob-meter { width: 100%; height: 34px; border-radius: 999px; background: rgba(148,163,184,0.16); position: relative; overflow: hidden; border: 1px solid ${colors.borderSoft}; }
+  .mldl-prob-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease, background 0.3s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; }
+  .mldl-prob-fill span { font-size: 11.5px; font-weight: 800; color: #fff; }
+
+  .mldl-tree-canvas { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+  .mldl-tree-node {
+    padding: 14px 22px; border-radius: 14px; background: ${colors.cardSolid}; border: 2px solid ${colors.border};
+    font-size: 13.5px; font-weight: 700; color: ${colors.ink}; text-align: center; transition: all 0.3s ease;
+  }
+  .mldl-tree-node.mldl-tree-node-active { border-color: ${colors.cyanDeep}; box-shadow: 0 0 0 4px rgba(6,182,212,0.12); }
+  .mldl-tree-node.mldl-tree-leaf { background: ${GRADIENT_GREEN}; color: #fff; border-color: transparent; }
+  .mldl-tree-branch-line { width: 2px; height: 22px; background: ${colors.border}; }
+  .mldl-tree-branch-line.mldl-tree-branch-active { background: ${colors.cyanDeep}; box-shadow: 0 0 8px rgba(6,182,212,0.4); }
+  .mldl-tree-answers { display: flex; gap: 10px; }
+
+  /* -------------------- Comparison (Stage 3) -------------------- */
+  .mldl-dataset-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+  .mldl-comparison-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 720px) { .mldl-comparison-grid { grid-template-columns: repeat(2, 1fr); } }
+  .mldl-compare-card {
+    border-radius: 18px; padding: 18px; background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    opacity: 0; animation: mldl-fade-up 0.4s ease forwards;
+  }
+  .mldl-compare-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mldl-compare-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--accent-gradient); }
+  .mldl-compare-name { font-size: 14.5px; font-weight: 800; color: ${colors.ink}; }
+  .mldl-compare-prediction { font-size: 12px; color: ${colors.cyanDeep}; font-weight: 700; margin: 0 0 12px 0; }
+  .mldl-bar-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 9px; }
+  .mldl-bar-top { display: flex; justify-content: space-between; font-size: 11px; color: ${colors.muted}; font-weight: 600; }
+  .mldl-bar-track { height: 7px; border-radius: 999px; background: rgba(148,163,184,0.2); overflow: hidden; }
+  .mldl-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+
+  /* -------------------- Reinforcement Maze (Stage 4) -------------------- */
+  .mldl-maze-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .mldl-maze-grid { display: grid; gap: 4px; padding: 10px; background: ${colors.card}; border-radius: 16px; border: 1px solid ${colors.borderSoft}; position: relative; }
+  .mldl-maze-cell {
+    width: 46px; height: 46px; border-radius: 8px; background: rgba(148,163,184,0.08);
+    display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid rgba(148,163,184,0.1);
+  }
+  .mldl-maze-cell.mldl-maze-obstacle { background: rgba(107,118,144,0.28); border-color: rgba(107,118,144,0.4); }
+  .mldl-maze-cell.mldl-maze-goal { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.35); }
+  .mldl-maze-cell.mldl-maze-path { background: rgba(6,182,212,0.12); }
+  .mldl-maze-robot {
+    position: absolute; width: 30px; height: 30px; border-radius: 999px; background: ${GRADIENT_PBC};
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(139,92,246,0.45);
+    transition: top 0.45s cubic-bezier(0.4,0,0.2,1), left 0.45s cubic-bezier(0.4,0,0.2,1); z-index: 2;
+  }
+  .mldl-episode-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .mldl-episode-btn {
+    padding: 9px 16px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: ${colors.inkSoft};
+    background: ${colors.card}; border: 1px solid ${colors.border}; transition: all 0.18s ease;
+  }
+  .mldl-episode-btn:hover { border-color: ${colors.borderActive}; color: ${colors.ink}; }
+  .mldl-episode-btn.mldl-episode-active { background: ${GRADIENT_PBC}; color: #fff; border-color: transparent; }
+  .mldl-reward-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .mldl-reward-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 20px; border-radius: 14px;
+    background: ${colors.card}; border: 1px solid ${colors.borderSoft}; min-width: 100px;
+  }
+  .mldl-reward-num { font-size: 20px; font-weight: 800; color: ${colors.ink}; font-variant-numeric: tabular-nums; }
+  .mldl-reward-label { font-size: 10.5px; color: ${colors.muted}; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .mldl-maze-controls { display: flex; gap: 10px; }
+  .mldl-icon-btn {
+    display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; font-size: 12.5px; font-weight: 700;
+    background: ${GRADIENT_PBC}; color: #fff; box-shadow: 0 6px 16px rgba(139,92,246,0.28);
+  }
+  .mldl-icon-btn.mldl-icon-btn-secondary { background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft}; box-shadow: none; }
+
+  /* -------------------- Challenge mode (Stage 5) -------------------- */
+  .mldl-challenge-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .mldl-score-chip { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: ${GRADIENT_AMBER}; box-shadow: 0 6px 16px rgba(245,158,11,0.28); }
+  .mldl-score-num { font-size: 16px; font-weight: 800; color: #fff; }
+  .mldl-streak-chip { display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: ${colors.card}; border: 1px solid ${colors.borderSoft}; font-size: 12.5px; font-weight: 700; color: ${colors.inkSoft}; }
+
+  .mldl-challenge-card { border-radius: 20px; padding: 22px; background: ${colors.card}; border: 1px solid ${colors.borderSoft}; margin-bottom: 18px; }
+  .mldl-challenge-icon-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .mldl-challenge-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: var(--accent-gradient); }
+  .mldl-challenge-title { font-size: 18px; font-weight: 800; color: ${colors.ink}; margin: 0; }
+  .mldl-challenge-num { font-size: 12px; color: ${colors.muted}; font-weight: 700; }
+
+  /* -------------------- Final ecosystem (Stage 6) -------------------- */
+  .mldl-ecosystem-legend { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  .mldl-legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: ${colors.inkSoft}; font-weight: 600; }
+  .mldl-legend-dot { width: 10px; height: 10px; border-radius: 999px; }
+
+  /* -------------------- Nav buttons -------------------- */
+  .mldl-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; gap: 12px; }
+  .mldl-nav-back {
+    display: flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.card}; border: 1px solid ${colors.border};
+    transition: all 0.18s ease;
+  }
+  .mldl-nav-back:not([disabled]):hover { color: ${colors.purpleDeep}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
+  .mldl-nav-next {
+    display: flex; align-items: center; gap: 6px; padding: 14px 26px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: #fff; background: ${GRADIENT_PBC};
+    box-shadow: 0 8px 22px rgba(139,92,246,0.3);
+    transition: all 0.18s ease;
+  }
+  .mldl-nav-next:not([disabled]):hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(139,92,246,0.38); }
+  .mldl-nav-next[disabled], .mldl-nav-back[disabled] { opacity: 0.4; cursor: default; }
+
+  /* -------------------- Toast -------------------- */
+  .mldl-toast {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px;
+    font-weight: 700; font-size: 13.5px; color: white; z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    animation: mldl-toast-in 0.35s ease forwards;
+  }
+  .mldl-toast-up { background: ${GRADIENT_GREEN}; }
+  .mldl-toast-down { background: ${GRADIENT_CORAL}; }
+  @keyframes mldl-toast-in {
     0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.9); }
     60% { opacity: 1; transform: translateX(-50%) translateY(2px) scale(1.03); }
     100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   }
 
-  .aiel-progress-track {
-    width: 100%; height: 14px; border-radius: 999px; background: #FFFFFF;
-    border: 2px solid ${colors.borderSoft}; overflow: hidden; margin-bottom: 18px; position: relative;
+  /* -------------------- Finish screen -------------------- */
+  .mldl-finish { border-radius: 24px; padding: 40px 22px; text-align: center; background: rgba(255,255,255,0.72); border: 1px solid ${colors.border}; backdrop-filter: blur(16px); position: relative; overflow: hidden; }
+  .mldl-finish-badge {
+    margin: 0 auto 20px auto; width: 84px; height: 84px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+    background: ${GRADIENT_AMBER}; box-shadow: 0 14px 34px rgba(245,158,11,0.35); animation: mldl-badge-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .aiel-progress-fill {
-    height: 100%; border-radius: 999px; position: relative; overflow: hidden;
-    background: linear-gradient(90deg, ${colors.gold} 0%, ${colors.coral} 100%);
-    transition: width 0.35s ease;
-  }
-  .aiel-progress-fill::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
-    animation: aiel-shimmer 2.2s linear infinite;
-  }
-  @keyframes aiel-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-  .aiel-stampbar {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 6px; margin-bottom: 28px; flex-wrap: wrap;
-  }
-  .aiel-stamp-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 10px 12px; border-radius: 999px; font-weight: 700; font-size: 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease; flex: 1; min-width: 90px; justify-content: center;
-  }
-  .aiel-stamp-btn:hover { transform: translateY(-2px); }
-  .aiel-stamp-label {
-    font-family: 'Poppins', sans-serif; font-size: 11.5px; font-weight: 700;
-    text-align: center; white-space: nowrap;
-  }
-  @media (max-width: 639px) {
-    .aiel-stamp-label { display: none; }
-    .aiel-stamp-btn { min-width: 0; padding: 10px; }
-  }
-
-  .aiel-stage-shell { border-radius: 28px; padding: 20px; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; }
-  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
-  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .aiel-stage-tag {
-    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal};
-  }
-  .aiel-stage-progress { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: ${colors.muted}; }
-  .aiel-stage-title {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep};
-    font-size: 24px; margin: 4px 0 8px 0;
-  }
-  @media (min-width: 640px) { .aiel-stage-title { font-size: 28px; } }
-  .aiel-stage-subtitle { font-size: 14px; color: ${colors.muted}; margin: 0 0 20px 0; }
-
-  /* -------------------- Stage hero illustrations -------------------- */
-  .aiel-hero { display: flex; align-items: center; justify-content: center; margin-bottom: 22px; min-height: 90px; }
-
-  /* Tally crates (ML Basics + Supervised stages) */
-  .aiel-tally-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .aiel-tally-crate {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 18px; border-radius: 16px;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.15); min-width: 84px; transition: transform 0.2s ease;
-  }
-  .aiel-tally-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 22px; color: #fff; line-height: 1; }
-  .aiel-tally-label { font-size: 10.5px; font-weight: 700; color: #fff; opacity: 0.92; text-align: center; }
-
-  /* Cluster scatter (Unsupervised) */
-  .aiel-cluster-dot { animation: aiel-hero-in 0.5s ease forwards; }
-  .aiel-cluster-caption { font-size: 12px; color: ${colors.muted}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; margin-top: 8px; }
-  @keyframes aiel-hero-in { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-  /* Agent-Environment-Reward loop (Reinforcement) */
-  .aiel-loop-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .aiel-loop-chip {
-    display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 16px; border-radius: 14px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
-  }
-  .aiel-loop-chip-name { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 800; color: ${colors.ink}; }
-  .aiel-loop-arrow { color: ${colors.muted}; }
-
-  /* Fitted line (Linear Regression) */
-  .aiel-chart-caption { font-size: 12px; color: ${colors.muted}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; margin-top: 8px; }
-
-  /* Threshold gauge (Logistic Regression) */
-  .aiel-gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 300px; }
-  .aiel-gauge-track { width: 100%; height: 16px; border-radius: 999px; background: linear-gradient(90deg, ${colors.borderSoft} 0%, ${colors.gold} 100%); position: relative; border: 2px solid ${colors.border}; }
-  .aiel-gauge-threshold { position: absolute; top: -6px; bottom: -6px; width: 2px; background: ${colors.ink}; left: 50%; }
-  .aiel-gauge-dot { position: absolute; top: -7px; width: 18px; height: 18px; border-radius: 999px; background: ${colors.coral}; border: 2px solid ${colors.coralDeep}; transform: translateX(-50%); animation: aiel-hero-in 0.5s ease forwards; }
-  .aiel-gauge-labels { display: flex; justify-content: space-between; width: 100%; font-family: 'Menlo', 'Consolas', monospace; font-size: 11px; color: ${colors.muted}; font-weight: 700; }
-
-  /* Decision tree (Decision Tree) */
-  .aiel-tree-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .aiel-tree-node {
-    padding: 8px 14px; border-radius: 10px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
-    font-size: 11.5px; font-weight: 700; color: ${colors.ink}; text-align: center;
-  }
-  .aiel-tree-node-root { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); border-color: ${colors.goldDeep}; color: ${colors.ink}; }
-  .aiel-tree-branches { display: flex; gap: 24px; margin-top: 4px; }
-  .aiel-tree-branch { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .aiel-tree-branch-label { font-size: 10px; color: ${colors.muted}; font-weight: 700; }
-  .aiel-tree-leaf { padding: 6px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 800; color: #fff; }
-
-  /* KNN neighbors */
-  .aiel-knn-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .aiel-knn-dot { animation: aiel-hero-in 0.5s ease forwards; }
-  .aiel-knn-caption { font-size: 12px; color: ${colors.muted}; text-align: center; max-width: 300px; font-weight: 600; line-height: 1.5; }
-
-  .aiel-item-list { display: flex; flex-direction: column; gap: 12px; }
-  .aiel-item-card {
-    border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
-    opacity: 0; animation: aiel-card-in 0.4s ease forwards;
-  }
-  @keyframes aiel-card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .aiel-item-text { font-size: 14px; color: ${colors.ink}; margin: 0 0 12px 0; font-weight: 500; }
-
-  .aiel-code-block {
-    background: ${colors.codeBg}; color: ${colors.codeText}; border-radius: 14px; padding: 14px 16px;
-    font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; line-height: 1.6;
-    white-space: pre; overflow-x: auto; margin: 0 0 10px 0;
-  }
-  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 12px 0; font-weight: 600; }
-
-  .aiel-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .aiel-choice-btn {
-    flex: 1; font-size: 12px; font-weight: 700; padding: 12px 8px; border-radius: 999px; color: ${colors.ink};
-    box-shadow: 0 4px 0 rgba(0,0,0,0.18); transition: transform 0.12s ease, box-shadow 0.12s ease;
-    min-width: 100px;
-  }
-  .aiel-choice-btn:hover { transform: translateY(-1px); }
-  .aiel-choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
-  .aiel-choice-teal { background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); }
-  .aiel-choice-coral { background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); }
-  .aiel-choice-gold { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); }
-  .aiel-choice-outline {
-    font-size: 12.5px; font-weight: 700; padding: 10px 14px; border-radius: 999px;
-    background: ${colors.card}; border: 2px solid ${colors.border}; color: ${colors.ink};
-    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
-  }
-  .aiel-choice-outline:hover { background: ${colors.borderSoft}; border-color: ${colors.gold}; transform: translateY(-1px); }
-
-  .aiel-feedback { display: flex; align-items: flex-start; gap: 8px; animation: aiel-card-in 0.3s ease forwards; }
-  .aiel-feedback-text { font-size: 12px; color: ${colors.muted}; margin: 0; line-height: 1.5; }
-  .aiel-feedback-icon { margin-top: 2px; flex-shrink: 0; }
-
-  .aiel-tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
-
-  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; }
-  .aiel-nav-back {
-    display: flex; align-items: center; gap: 4px; padding: 10px 18px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.cardAlt};
-    transition: transform 0.12s ease, background 0.15s ease;
-  }
-  .aiel-nav-back:not([disabled]):hover { background: ${colors.borderSoft}; transform: translateY(-1px); }
-  .aiel-nav-next {
-    display: flex; align-items: center; gap: 4px; padding: 12px 22px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.ink};
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    box-shadow: 0 5px 0 ${colors.goldDeep};
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-  }
-  .aiel-nav-next:not([disabled]):hover { transform: translateY(-1px); }
-  .aiel-nav-next:not([disabled]):active { transform: translateY(4px); box-shadow: 0 1px 0 ${colors.goldDeep}; }
-  .aiel-nav-next[disabled], .aiel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
-
-  .aiel-cert { border-radius: 28px; padding: 32px 20px; text-align: center; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; position: relative; overflow: hidden; }
-  @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
-  .aiel-confetti-piece { position: absolute; top: -14px; width: 8px; height: 14px; opacity: 0.9; animation: aiel-confetti-fall linear infinite; border-radius: 2px; }
-  @keyframes aiel-confetti-fall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(340px) rotate(540deg); opacity: 0; }
-  }
-  .aiel-cert-badge {
-    margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(180deg, #FFC65C 0%, ${colors.gold} 100%);
-    box-shadow: 0 6px 0 ${colors.goldDeep};
-    position: relative; z-index: 1;
-    animation: aiel-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes aiel-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .aiel-cert-eyebrow { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .aiel-cert-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep}; font-size: 24px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .aiel-cert-desc { font-size: 14px; color: ${colors.muted}; margin: 0 0 24px 0; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
-  .aiel-cert-score {
-    display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; position: relative; z-index: 1;
-  }
-  .aiel-cert-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.goldDeep}; }
-  .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
-  .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
-  @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(4, 1fr); } }
-  .aiel-cert-item { border-radius: 14px; padding: 10px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
-  .aiel-cert-item p { font-size: 11px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
-  .aiel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
-    padding: 12px 22px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.border}; color: ${colors.ink};
-    position: relative; z-index: 1;
-  }
+  @keyframes mldl-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+  .mldl-finish-title { font-size: 27px; font-weight: 800; color: ${colors.ink}; margin: 0 0 10px 0; }
+  .mldl-finish-desc { font-size: 14.5px; color: ${colors.inkSoft}; max-width: 480px; margin: 0 auto 26px auto; line-height: 1.6; }
+  .mldl-finish-score { display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 26px; margin-bottom: 28px; background: ${colors.card}; border: 1px solid ${colors.borderSoft}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .mldl-finish-score-num { font-size: 32px; font-weight: 800; color: ${colors.amber}; }
+  .mldl-finish-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 150px; }
+  .mldl-reset-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; padding: 13px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft}; }
+  .mldl-reset-btn:hover { color: ${colors.purpleDeep}; border-color: ${colors.borderActive}; }
 `;
 
-/* ---------------------------- TYPES ---------------------------- */
+/* ======================================================================
+   TYPES
+====================================================================== */
+
+type LearningType = "supervised" | "unsupervised" | "reinforcement";
+type AlgoId = "linear" | "logistic" | "tree" | "knn" | "clustering" | "qlearning";
 
 interface StageMetaItem {
   key: string;
   title: string;
   icon: LucideIcon;
-  tag: string;
 }
 
-type LearningStyleId = "supervised" | "unsupervised" | "reinforcement";
-
-interface StyleItem {
-  id: string;
-  text: string;
-  answer: LearningStyleId;
+interface Point {
+  x: number;
+  y: number;
 }
 
-interface StyleCategory {
-  id: LearningStyleId;
-  label: string;
-  hint: string;
-}
-
-type TaskTypeId = "classification" | "regression";
-
-interface TaskItem {
-  id: string;
-  text: string;
-  answer: TaskTypeId;
-  explain: string;
-}
-
-interface QuizItem {
-  id: string;
-  code?: string;
-  question: string;
-  options: string[];
-  answer: string;
-  explain: string;
-}
-
-type StyleAnswerMap = Record<string, LearningStyleId>;
-type TaskAnswerMap = Record<string, TaskTypeId>;
-type AnswerMap = Record<string, string>;
-
-/* ---------------------------- CONTENT DATA ---------------------------- */
+/* ======================================================================
+   CONTENT DATA
+====================================================================== */
 
 const STAGE_META: StageMetaItem[] = [
-  { key: "ml-basics", title: "ML Basics", icon: Brain, tag: "Stage 1 - Which Learning Style?" },
-  { key: "supervised", title: "Supervised", icon: BookOpen, tag: "Stage 2 - Class or Number?" },
-  { key: "unsupervised", title: "Unsupervised", icon: Layers, tag: "Stage 3 - Find the Cluster" },
-  { key: "reinforcement", title: "Reinforcement", icon: Rocket, tag: "Stage 4 - Agent & Reward" },
-  { key: "linear-regression", title: "Linear Regression", icon: BarChart3, tag: "Stage 5 - Fit the Line" },
-  { key: "logistic-regression", title: "Logistic Regression", icon: Sigma, tag: "Stage 6 - Cross the Threshold" },
-  { key: "decision-tree", title: "Decision Tree", icon: GitBranch, tag: "Stage 7 - Follow the Branches" },
-  { key: "knn", title: "KNN", icon: Users, tag: "Stage 8 - Vote With Neighbors" },
+  { key: "types", title: "Learning Types", icon: Layers },
+  { key: "problems", title: "Problem Solver", icon: Target },
+  { key: "playground", title: "Playground", icon: Gamepad2 },
+  { key: "compare", title: "Comparison", icon: Gauge },
+  { key: "rl", title: "RL Maze", icon: Bot },
+  { key: "challenge", title: "Challenge", icon: Trophy },
+  { key: "ecosystem", title: "Ecosystem", icon: Share2 },
 ];
 
-const STYLE_ITEMS: StyleItem[] = [
-  { id: "st1", text: "Predict a house's price from past sales that already list the price for each house.", answer: "supervised" },
-  { id: "st2", text: "Group customers into segments based on purchasing behavior, with no predefined labels.", answer: "unsupervised" },
-  { id: "st3", text: "Train a robot to walk by rewarding it whenever it moves forward without falling.", answer: "reinforcement" },
-  { id: "st4", text: "Classify emails as spam or not spam using thousands of already-labeled examples.", answer: "supervised" },
-  { id: "st5", text: "Discover hidden topics inside a pile of unlabeled news articles.", answer: "unsupervised" },
-  { id: "st6", text: "Teach a game-playing agent through repeated trial and error, scored after each move.", answer: "reinforcement" },
+const LEARNING_TYPES: {
+  id: LearningType;
+  title: string;
+  icon: LucideIcon;
+  gradient: string;
+  desc: string;
+  pipeline: { label: string; icon: LucideIcon }[];
+}[] = [
+  {
+    id: "supervised",
+    title: "Supervised Learning",
+    icon: Target,
+    gradient: GRADIENT_PB,
+    desc: "Learns from labeled examples to predict outcomes for new data.",
+    pipeline: [
+      { label: "Labeled Dataset", icon: Database },
+      { label: "Training", icon: Brain },
+      { label: "Prediction", icon: Sparkles },
+    ],
+  },
+  {
+    id: "unsupervised",
+    title: "Unsupervised Learning",
+    icon: Layers,
+    gradient: GRADIENT_BC,
+    desc: "Finds hidden patterns and groups in data that has no labels.",
+    pipeline: [
+      { label: "Raw Data", icon: Database },
+      { label: "Pattern Detection", icon: Compass },
+      { label: "Clusters", icon: Share2 },
+    ],
+  },
+  {
+    id: "reinforcement",
+    title: "Reinforcement Learning",
+    icon: Bot,
+    gradient: GRADIENT_AMBER,
+    desc: "An agent learns by acting, exploring, and collecting rewards.",
+    pipeline: [
+      { label: "Agent", icon: Bot },
+      { label: "Environment", icon: MapPin },
+      { label: "Reward", icon: Star },
+      { label: "Learning", icon: Brain },
+    ],
+  },
 ];
 
-const STYLE_CATEGORIES: StyleCategory[] = [
-  { id: "supervised", label: "Supervised", hint: "Learns from labeled examples" },
-  { id: "unsupervised", label: "Unsupervised", hint: "Finds structure with no labels" },
-  { id: "reinforcement", label: "Reinforcement", hint: "Learns from trial, error, and reward" },
+const ALGO_INFO: Record<AlgoId, { label: string; icon: LucideIcon; gradient: string; blurb: string }> = {
+  linear: { label: "Linear Regression", icon: TrendingUp, gradient: GRADIENT_PB, blurb: "Fits a straight line to predict a continuous number." },
+  logistic: { label: "Logistic Regression", icon: SlidersHorizontal, gradient: GRADIENT_BC, blurb: "Draws a boundary to split data into two classes." },
+  tree: { label: "Decision Tree", icon: GitBranch, gradient: GRADIENT_GREEN, blurb: "Asks a series of yes/no questions to reach a decision." },
+  knn: { label: "K-Nearest Neighbors", icon: MousePointer2, gradient: GRADIENT_AMBER, blurb: "Classifies a point by majority vote of its closest neighbors." },
+  clustering: { label: "Clustering (K-Means)", icon: Share2, gradient: GRADIENT_BC, blurb: "Groups similar unlabeled data points together." },
+  qlearning: { label: "Q-Learning (RL Agent)", icon: Bot, gradient: GRADIENT_AMBER, blurb: "Learns the best actions through trial, error, and reward." },
+};
+
+interface ProblemDef {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  correctType: LearningType;
+  correctAlgo: AlgoId;
+  algoOptions: Record<LearningType, AlgoId[]>;
+  wrongHints: Record<LearningType, string>;
+  correctHint: string;
+}
+
+const PROBLEMS: ProblemDef[] = [
+  {
+    id: "house-price",
+    title: "Predict House Price",
+    icon: HomeIcon,
+    correctType: "supervised",
+    correctAlgo: "linear",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "House prices are numeric labels attached to past sales — a perfect fit for supervised regression.",
+    wrongHints: {
+      supervised: "",
+      unsupervised: "This problem has clear price labels attached to every past house sale. Unsupervised learning needs unlabeled data — try Supervised Learning.",
+      reinforcement: "There's no agent taking actions or receiving rewards here, just historical prices to learn from. Try Supervised Learning.",
+    },
+  },
+  {
+    id: "spam-detection",
+    title: "Spam Detection",
+    icon: Mail,
+    correctType: "supervised",
+    correctAlgo: "logistic",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "Emails are already labeled Spam / Not Spam, so a supervised classifier can learn the boundary between them.",
+    wrongHints: {
+      supervised: "",
+      unsupervised: "Every email in the training set already has a Spam / Not Spam label. That's exactly what supervised learning needs — try that instead.",
+      reinforcement: "There's no environment or reward signal here, just labeled emails to learn from. Try Supervised Learning.",
+    },
+  },
+  {
+    id: "animal-classification",
+    title: "Animal Classification",
+    icon: Dog,
+    correctType: "supervised",
+    correctAlgo: "tree",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "Each animal in the training data is already labeled with its species, so a classifier like a Decision Tree works well.",
+    wrongHints: {
+      supervised: "",
+      unsupervised: "We already know each animal's species label in training — that's supervised territory, not unsupervised.",
+      reinforcement: "Classifying a fixed photo isn't a sequence of actions and rewards. Try Supervised Learning.",
+    },
+  },
+  {
+    id: "movie-recommendation",
+    title: "Movie Recommendation",
+    icon: Film,
+    correctType: "unsupervised",
+    correctAlgo: "clustering",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "Grouping viewers by similar taste — with no 'correct' genre label — is a classic unsupervised clustering task.",
+    wrongHints: {
+      supervised: "There's no ground-truth label saying which movie is 'correct' for a viewer. Try Unsupervised Learning to group similar tastes.",
+      unsupervised: "",
+      reinforcement: "This isn't about an agent taking sequential actions for reward — it's about grouping similar viewers. Try Unsupervised Learning.",
+    },
+  },
+  {
+    id: "customer-segmentation",
+    title: "Customer Segmentation",
+    icon: Users,
+    correctType: "unsupervised",
+    correctAlgo: "clustering",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "Customers aren't pre-labeled into segments — clustering discovers natural groupings on its own.",
+    wrongHints: {
+      supervised: "This problem has no labels. Try Unsupervised Learning.",
+      unsupervised: "",
+      reinforcement: "There's no reward or sequential decision-making — just raw customer data to group. Try Unsupervised Learning.",
+    },
+  },
+  {
+    id: "robot-navigation",
+    title: "Robot Navigation",
+    icon: Bot,
+    correctType: "reinforcement",
+    correctAlgo: "qlearning",
+    algoOptions: { supervised: ["linear", "logistic", "tree", "knn"], unsupervised: ["clustering"], reinforcement: ["qlearning"] },
+    correctHint: "The robot takes actions, sees results, and earns rewards — a textbook reinforcement learning loop.",
+    wrongHints: {
+      supervised: "There's no labeled 'correct move' dataset here, just trial, error, and reward. Try Reinforcement Learning.",
+      unsupervised: "This needs a feedback loop of actions and rewards, not just pattern discovery. Try Reinforcement Learning.",
+      reinforcement: "",
+    },
+  },
 ];
 
-const TASK_ITEMS: TaskItem[] = [
-  { id: "tk1", text: "Predicting tomorrow's temperature in degrees.", answer: "regression", explain: "The output is a continuous number, which is exactly what regression predicts." },
-  { id: "tk2", text: "Deciding whether an email is spam or not.", answer: "classification", explain: "The output is one of two fixed categories, which is exactly what classification predicts." },
-  { id: "tk3", text: "Predicting a house's sale price.", answer: "regression", explain: "Price is a continuous number that can take on countless possible values." },
-  { id: "tk4", text: "Detecting whether a tumor is malignant or benign.", answer: "classification", explain: "This is a choice between two fixed categories, not a number to predict." },
-  { id: "tk5", text: "Predicting how many minutes a delivery will take.", answer: "regression", explain: "Minutes is a continuous number that can vary smoothly, so this is regression." },
-  { id: "tk6", text: "Sorting a photo as either 'cat' or 'dog'.", answer: "classification", explain: "Choosing between two labeled categories is a classification task." },
+interface DatasetDef {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  metrics: Record<AlgoId, { prediction: string; trainingTime: number; speed: number; accuracy: number; interpretability: number; complexity: number }>;
+}
+
+const COMPARISON_ALGOS: AlgoId[] = ["linear", "logistic", "tree", "knn"];
+
+const DATASETS: DatasetDef[] = [
+  {
+    id: "house-price",
+    label: "House Price",
+    icon: HomeIcon,
+    metrics: {
+      linear: { prediction: "₹48.2L", trainingTime: 12, speed: 5, accuracy: 91, interpretability: 5, complexity: 1 },
+      logistic: { prediction: "Not suited", trainingTime: 14, speed: 5, accuracy: 52, interpretability: 4, complexity: 1 },
+      tree: { prediction: "₹46.8L", trainingTime: 40, speed: 4, accuracy: 85, interpretability: 4, complexity: 2 },
+      knn: { prediction: "₹49.5L", trainingTime: 8, speed: 2, accuracy: 82, interpretability: 3, complexity: 2 },
+      clustering: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+      qlearning: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+    },
+  },
+  {
+    id: "spam",
+    label: "Spam Detection",
+    icon: Mail,
+    metrics: {
+      linear: { prediction: "Not suited", trainingTime: 10, speed: 5, accuracy: 61, interpretability: 4, complexity: 1 },
+      logistic: { prediction: "Spam (94%)", trainingTime: 16, speed: 5, accuracy: 96, interpretability: 4, complexity: 2 },
+      tree: { prediction: "Spam", trainingTime: 45, speed: 4, accuracy: 92, interpretability: 5, complexity: 2 },
+      knn: { prediction: "Spam", trainingTime: 9, speed: 2, accuracy: 88, interpretability: 3, complexity: 2 },
+      clustering: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+      qlearning: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+    },
+  },
+  {
+    id: "animal",
+    label: "Animal Classification",
+    icon: Dog,
+    metrics: {
+      linear: { prediction: "Not suited", trainingTime: 11, speed: 5, accuracy: 44, interpretability: 4, complexity: 1 },
+      logistic: { prediction: "Dog (81%)", trainingTime: 15, speed: 5, accuracy: 84, interpretability: 4, complexity: 2 },
+      tree: { prediction: "Dog", trainingTime: 38, speed: 4, accuracy: 93, interpretability: 5, complexity: 2 },
+      knn: { prediction: "Dog", trainingTime: 7, speed: 2, accuracy: 90, interpretability: 3, complexity: 2 },
+      clustering: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+      qlearning: { prediction: "—", trainingTime: 0, speed: 0, accuracy: 0, interpretability: 0, complexity: 0 },
+    },
+  },
 ];
 
-const UNSUPERVISED_ITEMS: QuizItem[] = [
-  { id: "u1", code: "Customer spending:\nA: $10, $15, $12\nB: $500, $480, $510\nC: $20, $18, $22", question: "Which two customers would a clustering algorithm most likely group together?", options: ["A and C", "A and B", "B and C"], answer: "A and C", explain: "Clustering groups points whose values are close together -- A and C's spending is far closer to each other than to B's." },
-  { id: "u2", question: "What is the key difference between supervised and unsupervised learning?", options: ["Unsupervised data has no correct-answer labels attached", "Unsupervised learning always uses more data", "Supervised learning never uses real data"], answer: "Unsupervised data has no correct-answer labels attached", explain: "Supervised learning studies from an answer key; unsupervised learning has to find structure with no answer key at all." },
-  { id: "u3", question: "Which of these is a typical unsupervised learning task?", options: ["Grouping similar news articles together", "Predicting next month's rainfall in millimeters", "Classifying an email as spam or not spam"], answer: "Grouping similar news articles together", explain: "Grouping unlabeled items by similarity is a classic unsupervised task -- the other two both rely on labeled answers." },
-  { id: "u4", code: "Two clusters found in shopping data:\nCluster 1: buys diapers, baby wipes\nCluster 2: buys protein powder, running shoes", question: "What did the algorithm most likely group customers by?", options: ["Similarity in purchasing patterns", "Alphabetical order of their names", "Random chance"], answer: "Similarity in purchasing patterns", explain: "Clustering algorithms group items that behave similarly -- here, similar shopping habits." },
-  { id: "u5", question: "Why can't accuracy be measured the same way in unsupervised learning as in supervised learning?", options: ["There are no correct labels to compare predictions against", "Unsupervised algorithms never make mistakes", "Accuracy isn't a real concept in computing"], answer: "There are no correct labels to compare predictions against", explain: "Without labeled answers, there's nothing to directly check a grouping against, so accuracy has to be judged differently." },
+interface ChallengeDef {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  correctType: LearningType;
+  correctAlgo: AlgoId;
+  explanation: string;
+}
+
+const CHALLENGES: ChallengeDef[] = [
+  { id: "ch1", title: "House Price", icon: HomeIcon, correctType: "supervised", correctAlgo: "linear", explanation: "Historical sale prices are numeric labels — Linear Regression predicts a continuous value from them." },
+  { id: "ch2", title: "Medical Diagnosis", icon: Stethoscope, correctType: "supervised", correctAlgo: "logistic", explanation: "Diagnosing Healthy vs Diseased from labeled patient records is binary classification — Logistic Regression fits perfectly." },
+  { id: "ch3", title: "Fraud Detection", icon: ShieldAlert, correctType: "supervised", correctAlgo: "tree", explanation: "Past transactions are labeled Fraud / Not Fraud — a Decision Tree can learn clear, explainable rules." },
+  { id: "ch4", title: "Movie Recommendation", icon: Film, correctType: "unsupervised", correctAlgo: "clustering", explanation: "Grouping viewers with similar taste, with no correct-answer labels, is unsupervised clustering." },
+  { id: "ch5", title: "Email Spam", icon: Mail, correctType: "supervised", correctAlgo: "logistic", explanation: "Spam / Not Spam is a labeled binary outcome — Logistic Regression models that boundary directly." },
+  { id: "ch6", title: "Traffic Prediction", icon: Car, correctType: "supervised", correctAlgo: "linear", explanation: "Predicting a continuous traffic volume from historical, labeled data is a regression problem." },
+  { id: "ch7", title: "Self Driving Car", icon: Car, correctType: "reinforcement", correctAlgo: "qlearning", explanation: "The car takes continuous actions in a changing environment and learns from reward signals over time." },
+  { id: "ch8", title: "Customer Segmentation", icon: Users, correctType: "unsupervised", correctAlgo: "clustering", explanation: "There are no predefined segment labels — clustering discovers the groups directly from the data." },
 ];
 
-const REINFORCEMENT_ITEMS: QuizItem[] = [
-  { id: "r1", question: "In reinforcement learning, what is the 'agent' rewarded or penalized for?", options: ["The actions it takes", "The color of its code", "How much memory it uses"], answer: "The actions it takes", explain: "The agent learns which actions tend to lead to better outcomes by receiving rewards or penalties after each one." },
-  { id: "r2", code: "A dog is given a treat every time it sits on command.", question: "In reinforcement learning terms, what is the treat?", options: ["The reward", "The environment", "The agent"], answer: "The reward", explain: "The treat is the positive signal that reinforces the behaviour -- exactly what a reward does in RL." },
-  { id: "r3", question: "Which of these best matches reinforcement learning?", options: ["A robot learns to walk through repeated trial and error with feedback", "A model learns to classify images from thousands of labeled photos", "An algorithm groups similar customers with no labels at all"], answer: "A robot learns to walk through repeated trial and error with feedback", explain: "Trial, error, and feedback in the form of reward is the defining loop of reinforcement learning." },
-  { id: "r4", question: "What is the 'environment' in reinforcement learning?", options: ["The world or system the agent interacts with", "The programming language used", "The name of the reward function"], answer: "The world or system the agent interacts with", explain: "The environment is everything the agent acts within and receives feedback from." },
-  { id: "r5", code: "A chess-playing AI improves by playing millions of games against itself, winning or losing each time.", question: "What signal is it mainly learning from?", options: ["Win/loss outcomes acting as rewards and penalties", "Pre-labeled correct moves for every position", "Grouping similar board positions together"], answer: "Win/loss outcomes acting as rewards and penalties", explain: "No one labels the 'correct' move -- the agent learns purely from whether its games are eventually won or lost." },
+const POSITIVE_PHRASES = ["Nice! 🎉", "You got it!", "Sharp instincts! ✨", "Exactly right!", "Great call!"];
+const GENTLE_PHRASES = ["Not quite 🤔", "Close — see why below", "Good try!", "Almost there!"];
+
+/* ======================================================================
+   LINEAR REGRESSION HELPERS
+====================================================================== */
+
+function computeRegression(points: Point[]): { m: number; b: number } {
+  const n = points.length;
+  if (n === 0) return { m: 0, b: 150 };
+  const sumX = points.reduce((s, p) => s + p.x, 0);
+  const sumY = points.reduce((s, p) => s + p.y, 0);
+  const meanX = sumX / n;
+  const meanY = sumY / n;
+  let num = 0;
+  let den = 0;
+  points.forEach((p) => {
+    num += (p.x - meanX) * (p.y - meanY);
+    den += (p.x - meanX) * (p.x - meanX);
+  });
+  const m = den === 0 ? 0 : num / den;
+  const b = meanY - m * meanX;
+  return { m, b };
+}
+
+const DEFAULT_REGRESSION_POINTS: Point[] = [
+  { x: 40, y: 210 },
+  { x: 90, y: 175 },
+  { x: 140, y: 165 },
+  { x: 190, y: 120 },
+  { x: 230, y: 110 },
+  { x: 270, y: 80 },
+  { x: 320, y: 60 },
 ];
 
-const LINEAR_REGRESSION_ITEMS: QuizItem[] = [
-  { id: "lr1", code: "House size (sq ft) -> Price ($)\n1000 -> 200,000\n1500 -> 300,000\n2000 -> 400,000", question: "Following this pattern, what would linear regression predict for a 2500 sq ft house?", options: ["About $500,000", "About $250,000", "About $2,000,000"], answer: "About $500,000", explain: "Price rises by about $200 per square foot in this pattern, so continuing that straight line lands close to $500,000." },
-  { id: "lr2", question: "What kind of output does linear regression predict?", options: ["A continuous number", "A yes/no category", "A cluster label"], answer: "A continuous number", explain: "Regression always predicts a number that can vary smoothly, unlike classification's fixed categories." },
-  { id: "lr3", question: "What shape does linear regression assume the relationship between input and output follows?", options: ["A straight line", "A perfect circle", "A random scatter"], answer: "A straight line", explain: "Linear regression specifically fits the best possible straight line through the training data." },
-  { id: "lr4", question: "Why is linear regression often described as 'easy to explain'?", options: ["Each input's effect on the output is a simple, constant slope", "It never makes mistakes", "It works only on images"], answer: "Each input's effect on the output is a simple, constant slope", explain: "A constant slope means you can say something like 'each extra square foot adds about this much value' in plain language." },
-  { id: "lr5", question: "Which task fits linear regression best?", options: ["Predicting a car's fuel efficiency from its weight", "Sorting emails into spam or not spam", "Grouping shoppers into unlabeled segments"], answer: "Predicting a car's fuel efficiency from its weight", explain: "Fuel efficiency is a continuous number with a roughly proportional relationship to weight -- a natural fit for regression." },
+/* ======================================================================
+   LOGISTIC REGRESSION DATA
+====================================================================== */
+
+interface LogisticPoint {
+  x: number;
+  row: number;
+  cls: 0 | 1; // 0 = not spam, 1 = spam
+}
+
+const LOGISTIC_POINTS: LogisticPoint[] = [
+  { x: 8, row: 0, cls: 0 },
+  { x: 18, row: 1, cls: 0 },
+  { x: 22, row: 0, cls: 0 },
+  { x: 30, row: 1, cls: 0 },
+  { x: 34, row: 0, cls: 0 },
+  { x: 40, row: 1, cls: 0 },
+  { x: 46, row: 0, cls: 1 },
+  { x: 52, row: 1, cls: 0 },
+  { x: 58, row: 0, cls: 1 },
+  { x: 64, row: 1, cls: 1 },
+  { x: 70, row: 0, cls: 1 },
+  { x: 76, row: 1, cls: 1 },
+  { x: 84, row: 0, cls: 1 },
+  { x: 90, row: 1, cls: 1 },
+  { x: 96, row: 0, cls: 1 },
 ];
 
-const LOGISTIC_REGRESSION_ITEMS: QuizItem[] = [
-  { id: "lg1", code: "Model output: 0.82\nDecision threshold: 0.5", question: "What would this be classified as?", options: ["Positive class (probably yes)", "Negative class (probably no)", "Impossible to tell"], answer: "Positive class (probably yes)", explain: "Since 0.82 sits above the 0.5 threshold, the model leans strongly toward the positive class." },
-  { id: "lg2", question: "What does logistic regression output before it's turned into a class?", options: ["A probability between 0 and 1", "A raw unbounded number", "A cluster ID"], answer: "A probability between 0 and 1", explain: "Logistic regression squashes its score into a smooth probability range between 0 and 1." },
-  { id: "lg3", code: "Model output: 0.35\nDecision threshold: 0.5", question: "What would this be classified as?", options: ["Negative class (probably no)", "Positive class (probably yes)", "Both at once"], answer: "Negative class (probably no)", explain: "0.35 falls below the 0.5 threshold, so the model leans toward the negative class." },
-  { id: "lg4", question: "Despite its name, what kind of problems does logistic regression actually solve?", options: ["Classification problems, not number prediction", "Only image-related problems", "Only unsupervised problems"], answer: "Classification problems, not number prediction", explain: "Logistic regression predicts categories like yes/no, even though the word 'regression' is in its name." },
-  { id: "lg5", question: "Which task fits logistic regression best?", options: ["Predicting whether a customer will cancel their subscription (yes/no)", "Predicting a house's exact sale price", "Grouping articles by topic with no labels"], answer: "Predicting whether a customer will cancel their subscription (yes/no)", explain: "A binary yes/no outcome is exactly the kind of problem logistic regression is built for." },
+/* ======================================================================
+   DECISION TREE DATA
+====================================================================== */
+
+type TreeNodeId = "root" | "weight" | "furless" | "dog" | "cat" | "rabbit";
+
+interface TreeNode {
+  id: TreeNodeId;
+  question?: string;
+  leaf?: { label: string; icon: LucideIcon };
+  yes?: TreeNodeId;
+  no?: TreeNodeId;
+}
+
+const TREE_NODES: Record<TreeNodeId, TreeNode> = {
+  root: { id: "root", question: "Has Fur?", yes: "weight", no: "rabbit" },
+  weight: { id: "weight", question: "Weight > 20kg?", yes: "dog", no: "cat" },
+  furless: { id: "furless", leaf: { label: "Rabbit", icon: Rabbit } },
+  dog: { id: "dog", leaf: { label: "Dog", icon: Dog } },
+  cat: { id: "cat", leaf: { label: "Cat", icon: Cat } },
+  rabbit: { id: "rabbit", leaf: { label: "Rabbit", icon: Rabbit } },
+};
+
+/* ======================================================================
+   KNN DATA
+====================================================================== */
+
+interface KnnPoint {
+  x: number;
+  y: number;
+  cls: "A" | "B";
+}
+
+const KNN_DATASET: KnnPoint[] = [
+  { x: 60, y: 60, cls: "A" },
+  { x: 90, y: 40, cls: "A" },
+  { x: 50, y: 100, cls: "A" },
+  { x: 100, y: 90, cls: "A" },
+  { x: 75, y: 130, cls: "A" },
+  { x: 40, y: 150, cls: "A" },
+  { x: 280, y: 60, cls: "B" },
+  { x: 250, y: 100, cls: "B" },
+  { x: 300, y: 120, cls: "B" },
+  { x: 260, y: 160, cls: "B" },
+  { x: 320, y: 180, cls: "B" },
+  { x: 290, y: 210, cls: "B" },
 ];
 
-const DECISION_TREE_ITEMS: QuizItem[] = [
-  { id: "dt1", code: "Is income > $50,000?\n  Yes -> Is age > 30?\n    Yes -> Approve\n    No  -> Reject\n  No  -> Reject", question: "Would a 35-year-old earning $60,000 be approved by this tree?", options: ["Yes", "No", "Not enough information"], answer: "Yes", explain: "Income above $50,000 takes the 'Yes' branch, and age above 30 also takes 'Yes', leading straight to Approve." },
-  { id: "dt2", question: "How does a decision tree arrive at its final prediction?", options: ["By following a sequence of yes/no questions down to a leaf", "By averaging every possible answer at once", "By picking randomly among all options"], answer: "By following a sequence of yes/no questions down to a leaf", explain: "Each answer branches to the next question until a final prediction is reached at the bottom." },
-  { id: "dt3", question: "What problem can happen if a decision tree is allowed to grow too deep?", options: ["It can overfit, memorizing quirks instead of general patterns", "It becomes impossible to store on a computer", "It stops working on numeric data"], answer: "It can overfit, memorizing quirks instead of general patterns", explain: "An overly deep tree can carve out a rule for every single training example instead of learning the real pattern." },
-  { id: "dt4", code: "Is it raining?\n  Yes -> Bring umbrella\n  No  -> Is it sunny?\n    Yes -> Wear sunglasses\n    No  -> Just go", question: "What would this tree recommend on a cloudy, dry day?", options: ["Just go", "Bring umbrella", "Wear sunglasses"], answer: "Just go", explain: "Not raining takes the 'No' branch to the second question; not sunny either, landing on 'Just go'." },
-  { id: "dt5", question: "What is one advantage of a decision tree over many other models?", options: ["Its decision path can be read and explained step by step", "It always achieves perfect accuracy", "It requires no data at all to train"], answer: "Its decision path can be read and explained step by step", explain: "Because it's just a sequence of questions, you can literally trace why the tree made its prediction." },
+/* ======================================================================
+   MAZE DATA
+====================================================================== */
+
+const MAZE_ROWS = 6;
+const MAZE_COLS = 6;
+const MAZE_CELL = 50;
+const START_CELL = { row: 5, col: 0 };
+const GOAL_CELL = { row: 0, col: 5 };
+const OBSTACLES: [number, number][] = [
+  [1, 1],
+  [1, 2],
+  [1, 4],
+  [3, 2],
+  [3, 3],
+  [3, 4],
+  [4, 1],
 ];
 
-const KNN_ITEMS: QuizItem[] = [
-  { id: "kn1", code: "New point's 3 nearest neighbors:\nNeighbor 1: Category A\nNeighbor 2: Category A\nNeighbor 3: Category B", question: "With K=3, what would KNN predict for the new point?", options: ["Category A", "Category B", "Cannot decide"], answer: "Category A", explain: "Two out of three nearest neighbors are Category A, so the majority vote predicts Category A." },
-  { id: "kn2", question: "What does the 'K' in KNN refer to?", options: ["The number of nearest neighbors consulted", "The number of features in the dataset", "The number of classes available"], answer: "The number of nearest neighbors consulted", explain: "K is simply how many of the closest existing points get a vote in the prediction." },
-  { id: "kn3", question: "What tends to happen if K is set far too small, like K=1?", options: ["Predictions get noisy, swayed by a single odd neighbor", "Predictions become perfectly accurate every time", "The model stops working entirely"], answer: "Predictions get noisy, swayed by a single odd neighbor", explain: "With only one neighbor voting, a single unusual nearby point can completely flip the prediction." },
-  { id: "kn4", code: "New point's 5 nearest neighbors:\nCategory A: 1 vote\nCategory B: 4 votes", question: "With K=5, what would KNN predict?", options: ["Category B", "Category A", "A tie, impossible to decide"], answer: "Category B", explain: "Category B holds the clear majority of votes among the five nearest neighbors." },
-  { id: "kn5", question: "What tends to happen if K is set far too large?", options: ["Predictions get blurry, ignoring what's actually nearby", "Predictions become instantly perfect", "The algorithm requires no data at all"], answer: "Predictions get blurry, ignoring what's actually nearby", explain: "Counting too many distant points dilutes the vote, smoothing over exactly the local pattern that mattered." },
+const PATH_EXPLORING: [number, number][] = [
+  [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5],
+  [4, 5], [3, 5], [2, 5], [2, 4], [2, 3], [2, 2], [2, 1], [2, 0],
+  [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
 ];
 
-const POSITIVE_PHRASES = ["Nice! 🎉", "You got it!", "Sharp eye! ✨", "Exactly right!", "Great instinct!"];
-const GENTLE_PHRASES = ["Good try! 🤔", "Almost there!", "Nice guess -- see why below", "Close one!"];
+const PATH_IMPROVING: [number, number][] = [
+  [5, 0], [5, 1], [5, 2], [5, 3], [4, 3], [4, 2], [4, 3], [4, 4], [4, 5],
+  [3, 5], [2, 5], [1, 5], [0, 5],
+];
 
-/* ------------------------------- HELPERS ------------------------------- */
+const PATH_OPTIMAL: [number, number][] = [
+  [5, 0], [4, 0], [3, 0], [2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
+];
 
-interface StampBarProps {
+function getPathForEpisodes(episodes: number): [number, number][] {
+  if (episodes <= 1) return PATH_EXPLORING;
+  if (episodes <= 10) return PATH_IMPROVING;
+  return PATH_OPTIMAL;
+}
+
+function isObstacle(row: number, col: number): boolean {
+  return OBSTACLES.some(([r, c]) => r === row && c === col);
+}
+
+/* ======================================================================
+   SMALL SHARED COMPONENTS
+====================================================================== */
+
+function ParticleField() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 22 }, (_, i) => ({
+        left: (i * 43) % 100,
+        size: 2 + (i % 4),
+        duration: 14 + (i % 9) * 2.2,
+        delay: (i % 10) * 1.3,
+        color: [colors.purple, colors.blue, colors.cyan][i % 3],
+      })),
+    []
+  );
+  return (
+    <div className="mldl-particle-field">
+      {particles.map((p, i) => (
+        <span
+          key={i}
+          className="mldl-particle"
+          style={{
+            left: `${p.left}%`,
+            bottom: `-5%`,
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface StepBarProps {
   current: number;
   completed: boolean[];
   onJump: (idx: number) => void;
 }
 
-function StampBar({ current, completed, onJump }: StampBarProps) {
+function StepBar({ current, completed, onJump }: StepBarProps) {
   const doneCount = completed.filter(Boolean).length;
   const pct = (doneCount / STAGE_META.length) * 100;
   return (
     <div>
-      <div className="aiel-progress-track">
-        <div className="aiel-progress-fill" style={{ width: `${pct}%` }} />
+      <div className="mldl-progress-track">
+        <div className="mldl-progress-fill" style={{ width: `${pct}%` }} />
       </div>
-      <div className="aiel-stampbar">
+      <div className="mldl-stepbar">
         {STAGE_META.map((s, i) => {
           const Icon = s.icon;
           const isDone = completed[i];
           const isCurrent = current === i;
-          const bg =
-            isDone || isCurrent
-              ? `linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%)`
-              : colors.card;
           return (
             <button
               key={s.key}
-              className="aiel-stamp-btn"
+              className={`mldl-step-btn ${isCurrent ? "mldl-step-active" : ""} ${isDone && !isCurrent ? "mldl-step-done" : ""}`}
               onClick={() => onJump(i)}
-              style={{
-                background: bg,
-                border: `2px solid ${isDone || isCurrent ? colors.goldDeep : colors.borderSoft}`,
-                boxShadow: isDone || isCurrent ? `0 4px 0 ${colors.goldDeep}` : "none",
-              }}
             >
-              {isDone ? (
-                <CheckCircle2 size={16} color={colors.ink} strokeWidth={2.5} />
-              ) : (
-                <Icon size={14} color={isCurrent ? colors.ink : colors.muted} />
-              )}
-              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? colors.ink : colors.muted }}>
-                {s.title}
-              </span>
+              {isDone ? <CheckCircle2 size={15} /> : <Icon size={15} />}
+              <span className="mldl-step-label">{s.title}</span>
             </button>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-interface StageShellProps {
-  tag: string;
-  title: string;
-  subtitle?: string;
-  progressLabel?: string;
-  hero?: React.ReactNode;
-  children: React.ReactNode;
-}
-
-function StageShell({ tag, title, subtitle, progressLabel, hero, children }: StageShellProps) {
-  return (
-    <div className="aiel-stage-shell">
-      <div className="aiel-stage-top">
-        <span className="aiel-stage-tag">{tag}</span>
-        {progressLabel && <span className="aiel-stage-progress">{progressLabel}</span>}
-      </div>
-      <h2 className="aiel-stage-title">{title}</h2>
-      {subtitle && <p className="aiel-stage-subtitle">{subtitle}</p>}
-      {hero && <div className="aiel-hero">{hero}</div>}
-      {children}
     </div>
   );
 }
@@ -541,373 +966,1101 @@ interface NavButtonsProps {
 
 function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
   return (
-    <div className="aiel-nav-row">
-      <button className="aiel-nav-back" onClick={onBack} disabled={backDisabled}>
+    <div className="mldl-nav-row">
+      <button className="mldl-nav-back" onClick={onBack} disabled={backDisabled}>
         <ChevronLeft size={16} /> Back
       </button>
-      <button className="aiel-nav-next" onClick={onNext} disabled={nextDisabled}>
+      <button className="mldl-nav-next" onClick={onNext} disabled={nextDisabled}>
         {nextLabel || "Continue"} <ChevronRight size={16} />
       </button>
     </div>
   );
 }
 
-/* -------- Stage hero illustrations, one per stage -------- */
+/* ======================================================================
+   STAGE 0 — LEARNING TYPES EXPLORER
+====================================================================== */
 
-function TallyHero({
-  categories,
+function LearningTypesStage({
+  selected,
+  onSelect,
 }: {
-  categories: { label: string; count: number; icon: LucideIcon; from: string; to: string; shadow: string }[];
+  selected: LearningType | null;
+  onSelect: (t: LearningType) => void;
 }) {
+  const active = LEARNING_TYPES.find((t) => t.id === selected) || null;
   return (
-    <div className="aiel-tally-row">
-      {categories.map((c) => {
-        const Icon = c.icon;
-        return (
+    <>
+      <div className="mldl-type-grid">
+        {LEARNING_TYPES.map((t) => {
+          const Icon = t.icon;
+          const isActive = selected === t.id;
+          return (
+            <button
+              key={t.id}
+              className={`mldl-type-card ${isActive ? "mldl-type-active" : ""}`}
+              style={{ ["--accent-gradient" as any]: t.gradient }}
+              onClick={() => onSelect(t.id)}
+            >
+              <div className="mldl-type-icon-wrap"><Icon size={22} color="#fff" /></div>
+              <p className="mldl-type-title">{t.title}</p>
+              <p className="mldl-type-desc">{t.desc}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mldl-canvas">
+        {!active ? (
+          <p className="mldl-svg-caption">Select a learning type above to watch its pipeline come to life.</p>
+        ) : (
+          <div className="mldl-pipe-row" key={active.id}>
+            {active.pipeline.map((step, i) => {
+              const StepIcon = step.icon;
+              return (
+                <React.Fragment key={step.label}>
+                  <div className="mldl-pipe-node" style={{ ["--accent-gradient" as any]: active.gradient, animationDelay: `${i * 0.25}s` }}>
+                    <div className="mldl-pipe-node-icon"><StepIcon size={18} color="#fff" /></div>
+                    <span className="mldl-pipe-node-label">{step.label}</span>
+                  </div>
+                  {i < active.pipeline.length - 1 && (
+                    <ChevronRight
+                      size={20}
+                      color={colors.muted}
+                      className="mldl-pipe-arrow-down"
+                      style={{ animationDelay: `${i * 0.25 + 0.15}s` }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ======================================================================
+   STAGE 1 — PROBLEM SOLVER
+====================================================================== */
+
+interface ProblemAnswer {
+  chosenType?: LearningType;
+  chosenAlgo?: AlgoId;
+  done: boolean;
+}
+
+function ProblemSolverStage({
+  answers,
+  setAnswers,
+  onFeedback,
+}: {
+  answers: Record<string, ProblemAnswer>;
+  setAnswers: React.Dispatch<React.SetStateAction<Record<string, ProblemAnswer>>>;
+  onFeedback: (correct: boolean) => void;
+}) {
+  const [activeId, setActiveId] = useState<string>(PROBLEMS[0].id);
+  const problem = PROBLEMS.find((p) => p.id === activeId)!;
+  const answer = answers[activeId] || { done: false };
+
+  const chooseType = (t: LearningType) => {
+    if (answer.chosenType && answer.done) return;
+    const isCorrect = t === problem.correctType;
+    setAnswers((prev) => ({ ...prev, [activeId]: { chosenType: t, chosenAlgo: undefined, done: isCorrect } }));
+    onFeedback(isCorrect);
+  };
+
+  const chooseAlgo = (a: AlgoId) => {
+    if (!answer.chosenType || answer.done) return;
+    const isCorrect = a === problem.correctAlgo;
+    setAnswers((prev) => ({ ...prev, [activeId]: { ...prev[activeId], chosenAlgo: a, done: isCorrect } }));
+    onFeedback(isCorrect);
+  };
+
+  const typeWrongChosen = answer.chosenType && answer.chosenType !== problem.correctType;
+  const showAlgoStep = answer.chosenType === problem.correctType;
+
+  return (
+    <>
+      <div className="mldl-problem-grid">
+        {PROBLEMS.map((p) => {
+          const Icon = p.icon;
+          const isActive = p.id === activeId;
+          const a = answers[p.id];
+          return (
+            <button
+              key={p.id}
+              className={`mldl-problem-chip ${isActive ? "mldl-problem-active" : ""} ${a?.done ? "mldl-problem-solved" : ""}`}
+              onClick={() => setActiveId(p.id)}
+            >
+              <div className="mldl-problem-icon-circle"><Icon size={16} /></div>
+              {p.title}
+              {a?.done && <CheckCircle2 size={13} color={colors.green} />}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mldl-canvas" style={{ alignItems: "stretch" }}>
+        <div className="mldl-choice-section">
+          <p className="mldl-choice-label">Step 1 — Choose the Learning Type</p>
+          <div className="mldl-choice-pills">
+            {(["supervised", "unsupervised", "reinforcement"] as LearningType[]).map((t) => {
+              const isSelected = answer.chosenType === t;
+              const isCorrectPill = isSelected && t === problem.correctType;
+              const isWrongPill = isSelected && t !== problem.correctType;
+              return (
+                <button
+                  key={t}
+                  className={`mldl-pill ${isSelected ? "mldl-pill-selected mldl-pill-neutral-selected" : ""} ${isCorrectPill ? "mldl-pill-correct" : ""} ${isWrongPill ? "mldl-pill-wrong" : ""}`}
+                  onClick={() => chooseType(t)}
+                  disabled={showAlgoStep && answer.done}
+                >
+                  {t === "supervised" ? "Supervised" : t === "unsupervised" ? "Unsupervised" : "Reinforcement"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {answer.chosenType && (
           <div
-            key={c.label}
-            className="aiel-tally-crate"
-            style={{
-              background: `linear-gradient(180deg, ${c.from} 0%, ${c.to} 100%)`,
-              boxShadow: `0 5px 0 ${c.shadow}`,
-              transform: c.count ? "translateY(-2px)" : undefined,
-            }}
+            className={`mldl-feedback-box ${answer.chosenType === problem.correctType ? "mldl-fb-correct" : "mldl-fb-wrong"}`}
           >
-            <Icon size={20} color="#fff" />
-            <span className="aiel-tally-num">{c.count}</span>
-            <span className="aiel-tally-label">{c.label}</span>
+            {answer.chosenType === problem.correctType ? (
+              <CheckCircle2 size={18} color={colors.green} />
+            ) : (
+              <XCircle size={18} color={colors.coral} />
+            )}
+            <div>
+              <p className="mldl-feedback-title">
+                {answer.chosenType === problem.correctType ? "Correct learning type!" : "Not quite — Incorrect"}
+              </p>
+              <p className="mldl-feedback-text">
+                {answer.chosenType === problem.correctType ? problem.correctHint : problem.wrongHints[answer.chosenType]}
+              </p>
+            </div>
           </div>
-        );
-      })}
-    </div>
-  );
-}
+        )}
 
-function ClusterHero() {
-  // Two tight clusters plus one far outlier, illustrating unlabeled grouping by proximity.
-  const clusterA = [
-    { x: 34, y: 30 },
-    { x: 46, y: 24 },
-    { x: 40, y: 42 },
-    { x: 54, y: 36 },
-  ];
-  const clusterB = [
-    { x: 210, y: 46 },
-    { x: 224, y: 30 },
-    { x: 236, y: 52 },
-    { x: 218, y: 62 },
-  ];
-  return (
-    <div className="aiel-knn-wrap">
-      <svg viewBox="0 0 280 90" width="100%" height="90" preserveAspectRatio="xMidYMid meet">
-        {clusterA.map((p, i) => (
-          <circle key={`a-${i}`} className="aiel-cluster-dot" cx={p.x} cy={p.y} r={7} fill={colors.teal} stroke={colors.tealDeep} strokeWidth="2" style={{ animationDelay: `${i * 0.08}s` }} />
-        ))}
-        {clusterB.map((p, i) => (
-          <circle key={`b-${i}`} className="aiel-cluster-dot" cx={p.x} cy={p.y} r={7} fill={colors.coral} stroke={colors.coralDeep} strokeWidth="2" style={{ animationDelay: `${0.3 + i * 0.08}s` }} />
-        ))}
-        <ellipse cx={44} cy={33} rx={30} ry={26} fill="none" stroke={colors.tealDeep} strokeWidth="1.5" strokeDasharray="4 4" opacity="0.5" />
-        <ellipse cx={222} cy={47} rx={30} ry={26} fill="none" stroke={colors.coralDeep} strokeWidth="1.5" strokeDasharray="4 4" opacity="0.5" />
-      </svg>
-      <p className="aiel-cluster-caption">No labels are given -- clustering finds these two groups purely by how close the points sit to each other.</p>
-    </div>
-  );
-}
-
-function LoopHero() {
-  const steps: { name: string; icon: LucideIcon }[] = [
-    { name: "Agent", icon: Rocket },
-    { name: "Action", icon: TrendingUp },
-    { name: "Environment", icon: Layers },
-    { name: "Reward", icon: Target },
-  ];
-  return (
-    <div className="aiel-loop-row">
-      {steps.map((s, i) => {
-        const Icon = s.icon;
-        return (
-          <React.Fragment key={s.name}>
-            <div className="aiel-loop-chip">
-              <Icon size={16} color={colors.goldDeep} />
-              <span className="aiel-loop-chip-name">{s.name}</span>
+        {showAlgoStep && (
+          <div className="mldl-choice-section" style={{ marginTop: 18 }}>
+            <p className="mldl-choice-label">Step 2 — Choose the Algorithm</p>
+            <div className="mldl-choice-pills">
+              {problem.algoOptions[problem.correctType].map((a) => {
+                const info = ALGO_INFO[a];
+                const isSelected = answer.chosenAlgo === a;
+                const isCorrectPill = isSelected && a === problem.correctAlgo;
+                const isWrongPill = isSelected && a !== problem.correctAlgo;
+                return (
+                  <button
+                    key={a}
+                    className={`mldl-pill ${isSelected ? "mldl-pill-selected mldl-pill-neutral-selected" : ""} ${isCorrectPill ? "mldl-pill-correct" : ""} ${isWrongPill ? "mldl-pill-wrong" : ""}`}
+                    onClick={() => chooseAlgo(a)}
+                    disabled={answer.done}
+                  >
+                    {info.label}
+                  </button>
+                );
+              })}
             </div>
-            {i < steps.length - 1 && <ChevronRight size={16} className="aiel-loop-arrow" />}
-          </React.Fragment>
-        );
-      })}
-      <RotateCcw size={16} className="aiel-loop-arrow" />
-    </div>
-  );
-}
-
-function RegressionLineHero() {
-  const points = [
-    { x: 20, y: 68 },
-    { x: 70, y: 52 },
-    { x: 120, y: 40 },
-    { x: 170, y: 26 },
-    { x: 220, y: 14 },
-  ];
-  return (
-    <div className="aiel-knn-wrap">
-      <svg viewBox="0 0 260 80" width="100%" height="80" preserveAspectRatio="xMidYMid meet">
-        <line x1="10" y1="74" x2="248" y2="8" stroke={colors.goldDeep} strokeWidth="2.5" />
-        {points.map((p, i) => (
-          <circle key={i} className="aiel-cluster-dot" cx={p.x} cy={p.y} r={5.5} fill={colors.purple} stroke={colors.purpleDeep} strokeWidth="2" style={{ animationDelay: `${i * 0.08}s` }} />
-        ))}
-      </svg>
-      <p className="aiel-chart-caption">Linear regression draws the straight line that best fits every point, then reads predictions straight off it.</p>
-    </div>
-  );
-}
-
-function ThresholdGaugeHero() {
-  return (
-    <div className="aiel-gauge-wrap">
-      <div className="aiel-gauge-track">
-        <div className="aiel-gauge-threshold" />
-        <div className="aiel-gauge-dot" style={{ left: "82%" }} />
+            {answer.chosenAlgo && (
+              <div className={`mldl-feedback-box ${answer.chosenAlgo === problem.correctAlgo ? "mldl-fb-correct" : "mldl-fb-wrong"}`} style={{ marginTop: 14 }}>
+                {answer.chosenAlgo === problem.correctAlgo ? (
+                  <CheckCircle2 size={18} color={colors.green} />
+                ) : (
+                  <XCircle size={18} color={colors.coral} />
+                )}
+                <div>
+                  <p className="mldl-feedback-title">
+                    {answer.chosenAlgo === problem.correctAlgo ? "Great algorithm choice!" : "Good guess, but not the best fit"}
+                  </p>
+                  <p className="mldl-feedback-text">
+                    {answer.chosenAlgo === problem.correctAlgo
+                      ? ALGO_INFO[problem.correctAlgo].blurb
+                      : `${ALGO_INFO[problem.correctAlgo].label} is the better fit here: ${ALGO_INFO[problem.correctAlgo].blurb}`}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <div className="aiel-gauge-labels">
-        <span>0.0</span>
-        <span>threshold 0.5</span>
-        <span>1.0</span>
-      </div>
-    </div>
+    </>
   );
 }
 
-function TreeHero() {
+/* ======================================================================
+   STAGE 2 — ALGORITHM PLAYGROUND
+====================================================================== */
+
+function LinearRegressionPlayground() {
+  const [points, setPoints] = useState<Point[]>(DEFAULT_REGRESSION_POINTS);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [queryX, setQueryX] = useState<number>(200);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const W = 360;
+  const H = 240;
+
+  const { m, b } = useMemo(() => computeRegression(points), [points]);
+  const predictedY = m * queryX + b;
+
+  const toSvgCoords = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * W;
+    const y = ((clientY - rect.top) / rect.height) * H;
+    return { x: Math.max(6, Math.min(W - 6, x)), y: Math.max(6, Math.min(H - 6, y)) };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (dragIndex === null) return;
+    const { x, y } = toSvgCoords(e.clientX, e.clientY);
+    setPoints((prev) => prev.map((p, i) => (i === dragIndex ? { x, y } : p)));
+  };
+
+  const x1 = 0;
+  const y1 = m * x1 + b;
+  const x2 = W;
+  const y2 = m * x2 + b;
+
   return (
-    <div className="aiel-tree-wrap">
-      <div className="aiel-tree-node aiel-tree-node-root">Income &gt; $50,000?</div>
-      <div className="aiel-tree-branches">
-        <div className="aiel-tree-branch">
-          <span className="aiel-tree-branch-label">Yes</span>
-          <div className="aiel-tree-node">Age &gt; 30?</div>
-          <div className="aiel-tree-branches">
-            <div className="aiel-tree-branch">
-              <span className="aiel-tree-branch-label">Yes</span>
-              <span className="aiel-tree-leaf" style={{ background: colors.teal }}>Approve</span>
+    <div className="mldl-playground-grid">
+      <div className="mldl-svg-card">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          height="240"
+          onPointerMove={handlePointerMove}
+          onPointerUp={() => setDragIndex(null)}
+          onPointerLeave={() => setDragIndex(null)}
+          style={{ touchAction: "none", cursor: dragIndex !== null ? "grabbing" : "default" }}
+        >
+          <line x1={0} y1={H - 1} x2={W} y2={H - 1} stroke={colors.borderSoft} strokeWidth={1} />
+          <line x1={1} y1={0} x2={1} y2={H} stroke={colors.borderSoft} strokeWidth={1} />
+          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors.cyan} strokeWidth={2.5} opacity={0.9} />
+          <line
+            x1={queryX}
+            y1={H}
+            x2={queryX}
+            y2={predictedY}
+            stroke={colors.amber}
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+          />
+          <circle cx={queryX} cy={predictedY} r={7} fill={colors.amber} stroke="#fff" strokeWidth={2} />
+          {points.map((p, i) => (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r={9}
+              fill={colors.purple}
+              stroke="#fff"
+              strokeWidth={2}
+              style={{ cursor: "grab" }}
+              onPointerDown={(e) => {
+                (e.target as Element).setPointerCapture?.(e.pointerId);
+                setDragIndex(i);
+              }}
+            />
+          ))}
+        </svg>
+        <p className="mldl-svg-caption">Drag the purple points — the cyan regression line updates live. The amber marker is your prediction.</p>
+      </div>
+      <div className="mldl-side-panel">
+        <div className="mldl-info-card">
+          <p className="mldl-info-title"><TrendingUp size={15} color={colors.blue} /> Linear Regression</p>
+          <p className="mldl-info-text">Fits the straight line that minimizes distance to every point, then reads off a continuous value — like predicting a house price from its size.</p>
+        </div>
+        <div className="mldl-info-card">
+          <div className="mldl-slider-block">
+            <div className="mldl-slider-top">
+              <span className="mldl-slider-top-label">Query X position</span>
+              <span className="mldl-slider-top-value">{Math.round(queryX)}</span>
             </div>
-            <div className="aiel-tree-branch">
-              <span className="aiel-tree-branch-label">No</span>
-              <span className="aiel-tree-leaf" style={{ background: colors.coral }}>Reject</span>
-            </div>
+            <input className="mldl-slider" type="range" min={0} max={W} value={queryX} onChange={(e) => setQueryX(Number(e.target.value))} />
           </div>
         </div>
-        <div className="aiel-tree-branch">
-          <span className="aiel-tree-branch-label">No</span>
-          <span className="aiel-tree-leaf" style={{ background: colors.coral }}>Reject</span>
+        <div className="mldl-info-card">
+          <div className="mldl-metric-row"><span className="mldl-metric-label">Slope (m)</span><span className="mldl-metric-value">{m.toFixed(3)}</span></div>
+          <div className="mldl-metric-row"><span className="mldl-metric-label">Intercept (b)</span><span className="mldl-metric-value">{b.toFixed(1)}</span></div>
+          <div className="mldl-metric-row"><span className="mldl-metric-label">Predicted Value</span><span className="mldl-metric-value">{(H - predictedY).toFixed(0)} units</span></div>
         </div>
       </div>
     </div>
   );
 }
 
-function KnnHero() {
-  const neighborsA = [
-    { x: 60, y: 20 },
-    { x: 90, y: 55 },
-  ];
-  const neighborsB = [
-    { x: 150, y: 22 },
-    { x: 175, y: 50 },
-    { x: 145, y: 62 },
+function LogisticRegressionPlayground() {
+  const [boundary, setBoundary] = useState<number>(50);
+  const W = 360;
+  const H = 200;
+  const toX = (v: number) => (v / 100) * (W - 24) + 12;
+
+  const correctCount = useMemo(() => {
+    return LOGISTIC_POINTS.filter((p) => (p.x >= boundary ? p.cls === 1 : p.cls === 0)).length;
+  }, [boundary]);
+  const accuracy = Math.round((correctCount / LOGISTIC_POINTS.length) * 100);
+
+  const testProb = 1 / (1 + Math.exp(-(50 - boundary) / 8));
+  const testX = 50;
+  const testIsSpam = testX >= boundary;
+
+  return (
+    <div className="mldl-playground-grid">
+      <div className="mldl-svg-card">
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="200">
+          <rect x={0} y={0} width={toX(boundary)} height={H} fill={colors.green} opacity={0.06} />
+          <rect x={toX(boundary)} y={0} width={W - toX(boundary)} height={H} fill={colors.coral} opacity={0.06} />
+          <line x1={toX(boundary)} y1={0} x2={toX(boundary)} y2={H} stroke={colors.cyan} strokeWidth={2.5} />
+          {LOGISTIC_POINTS.map((p, i) => (
+            <circle
+              key={i}
+              cx={toX(p.x)}
+              cy={40 + p.row * 60 + (i % 3) * 18}
+              r={7}
+              fill={p.cls === 1 ? colors.coral : colors.green}
+              stroke="#fff"
+              strokeWidth={1.5}
+              opacity={0.9}
+            />
+          ))}
+          <circle cx={toX(testX)} cy={H - 20} r={8} fill={colors.amber} stroke="#fff" strokeWidth={2} />
+        </svg>
+        <p className="mldl-svg-caption">Green = Not Spam, Red = Spam. Drag the slider to move the cyan decision boundary.</p>
+      </div>
+      <div className="mldl-side-panel">
+        <div className="mldl-info-card">
+          <p className="mldl-info-title"><SlidersHorizontal size={15} color={colors.cyan} /> Logistic Regression</p>
+          <p className="mldl-info-text">Instead of a number, it outputs a probability of belonging to a class — then classifies using a threshold boundary.</p>
+        </div>
+        <div className="mldl-info-card">
+          <div className="mldl-slider-block">
+            <div className="mldl-slider-top">
+              <span className="mldl-slider-top-label">Decision boundary</span>
+              <span className="mldl-slider-top-value">{boundary}</span>
+            </div>
+            <input className="mldl-slider" type="range" min={0} max={100} value={boundary} onChange={(e) => setBoundary(Number(e.target.value))} />
+          </div>
+        </div>
+        <div className="mldl-info-card">
+          <p className="mldl-choice-label" style={{ marginBottom: 8 }}>Test point probability of Spam</p>
+          <div className="mldl-prob-meter">
+            <div
+              className="mldl-prob-fill"
+              style={{ width: `${Math.round(testProb * 100)}%`, background: testIsSpam ? GRADIENT_CORAL : GRADIENT_GREEN }}
+            >
+              <span>{Math.round(testProb * 100)}%</span>
+            </div>
+          </div>
+          <p className="mldl-info-text" style={{ marginTop: 10 }}>Classified as <strong style={{ color: testIsSpam ? colors.coral : colors.green }}>{testIsSpam ? "Spam" : "Not Spam"}</strong></p>
+        </div>
+        <div className="mldl-info-card">
+          <div className="mldl-metric-row"><span className="mldl-metric-label">Dataset Accuracy</span><span className="mldl-metric-value">{accuracy}%</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DecisionTreePlayground() {
+  const [path, setPath] = useState<TreeNodeId[]>(["root"]);
+  const current = path[path.length - 1];
+  const node = TREE_NODES[current];
+
+  const answer = (yes: boolean) => {
+    const next = yes ? node.yes : node.no;
+    if (!next) return;
+    setPath((p) => [...p, next]);
+  };
+
+  const reset = () => setPath(["root"]);
+
+  return (
+    <div className="mldl-playground-grid">
+      <div className="mldl-svg-card">
+        <div className="mldl-tree-canvas">
+          {path.map((id, i) => {
+            const n = TREE_NODES[id];
+            const isLeaf = !!n.leaf;
+            const LeafIcon = n.leaf?.icon;
+            return (
+              <React.Fragment key={id + i}>
+                <div className={`mldl-tree-node ${isLeaf ? "mldl-tree-leaf" : "mldl-tree-node-active"}`}>
+                  {isLeaf && LeafIcon ? (
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+                      <LeafIcon size={18} /> It's a {n.leaf!.label}!
+                    </span>
+                  ) : (
+                    n.question
+                  )}
+                </div>
+                {i < path.length - 1 && <div className="mldl-tree-branch-line mldl-tree-branch-active" />}
+              </React.Fragment>
+            );
+          })}
+          {!node.leaf && (
+            <>
+              <div className="mldl-tree-branch-line" />
+              <div className="mldl-tree-answers">
+                <button className="mldl-pill mldl-pill-neutral-selected" style={{ background: GRADIENT_GREEN }} onClick={() => answer(true)}>Yes</button>
+                <button className="mldl-pill mldl-pill-neutral-selected" style={{ background: GRADIENT_CORAL }} onClick={() => answer(false)}>No</button>
+              </div>
+            </>
+          )}
+          {node.leaf && (
+            <button className="mldl-icon-btn mldl-icon-btn-secondary" onClick={reset}>
+              <RotateCcw size={14} /> Try Another Path
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="mldl-side-panel">
+        <div className="mldl-info-card">
+          <p className="mldl-info-title"><GitBranch size={15} color={colors.green} /> Decision Tree</p>
+          <p className="mldl-info-text">Every branch is a yes/no question. Follow enough questions and you land on a leaf — the final prediction.</p>
+        </div>
+        <div className="mldl-info-card">
+          <p className="mldl-info-text">Try answering differently each time — notice how the tree reaches Dog, Cat, or Rabbit depending on the path you take.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KnnPlayground() {
+  const [k, setK] = useState<number>(3);
+  const [query, setQuery] = useState<Point>({ x: 180, y: 120 });
+  const [dragging, setDragging] = useState(false);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const W = 360;
+  const H = 240;
+
+  const neighbors = useMemo(() => {
+    const withDist = KNN_DATASET.map((p) => ({ ...p, dist: Math.hypot(p.x - query.x, p.y - query.y) }));
+    withDist.sort((a, b) => a.dist - b.dist);
+    return withDist.slice(0, k);
+  }, [query, k]);
+
+  const votesA = neighbors.filter((n) => n.cls === "A").length;
+  const votesB = neighbors.filter((n) => n.cls === "B").length;
+  const predicted = votesA >= votesB ? "A" : "B";
+
+  const toSvgCoords = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * W;
+    const y = ((clientY - rect.top) / rect.height) * H;
+    return { x: Math.max(6, Math.min(W - 6, x)), y: Math.max(6, Math.min(H - 6, y)) };
+  };
+
+  return (
+    <div className="mldl-playground-grid">
+      <div className="mldl-svg-card">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          height="240"
+          onPointerMove={(e) => {
+            if (!dragging) return;
+            setQuery(toSvgCoords(e.clientX, e.clientY));
+          }}
+          onPointerUp={() => setDragging(false)}
+          onPointerLeave={() => setDragging(false)}
+          style={{ touchAction: "none" }}
+        >
+          {neighbors.map((n, i) => (
+            <line key={i} x1={query.x} y1={query.y} x2={n.x} y2={n.y} stroke={colors.cyan} strokeWidth={1.5} opacity={0.6} />
+          ))}
+          {KNN_DATASET.map((p, i) => {
+            const isNeighbor = neighbors.some((n) => n.x === p.x && n.y === p.y);
+            return (
+              <circle
+                key={i}
+                cx={p.x}
+                cy={p.y}
+                r={isNeighbor ? 9 : 7}
+                fill={p.cls === "A" ? colors.blue : colors.coral}
+                stroke={isNeighbor ? colors.cyan : "#fff"}
+                strokeWidth={isNeighbor ? 3 : 1.5}
+                opacity={isNeighbor ? 1 : 0.75}
+              />
+            );
+          })}
+          <circle
+            cx={query.x}
+            cy={query.y}
+            r={10}
+            fill={colors.amber}
+            stroke="#fff"
+            strokeWidth={2.5}
+            style={{ cursor: "grab" }}
+            onPointerDown={(e) => {
+              (e.target as Element).setPointerCapture?.(e.pointerId);
+              setDragging(true);
+            }}
+          />
+        </svg>
+        <p className="mldl-svg-caption">Drag the amber unknown point. Its {k} nearest neighbors glow and vote on its class.</p>
+      </div>
+      <div className="mldl-side-panel">
+        <div className="mldl-info-card">
+          <p className="mldl-info-title"><MousePointer2 size={15} color={colors.amber} /> K-Nearest Neighbors</p>
+          <p className="mldl-info-text">Looks at the K closest labeled points and lets them vote — majority class becomes the prediction.</p>
+        </div>
+        <div className="mldl-info-card">
+          <div className="mldl-slider-block">
+            <div className="mldl-slider-top">
+              <span className="mldl-slider-top-label">K value</span>
+              <span className="mldl-slider-top-value">{k}</span>
+            </div>
+            <input className="mldl-slider" type="range" min={1} max={9} value={k} onChange={(e) => setK(Number(e.target.value))} />
+          </div>
+        </div>
+        <div className="mldl-info-card">
+          <div className="mldl-bar-row">
+            <div className="mldl-bar-top"><span>Class A votes</span><span>{votesA}</span></div>
+            <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${(votesA / k) * 100}%`, background: colors.blue }} /></div>
+          </div>
+          <div className="mldl-bar-row">
+            <div className="mldl-bar-top"><span>Class B votes</span><span>{votesB}</span></div>
+            <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${(votesB / k) * 100}%`, background: colors.coral }} /></div>
+          </div>
+          <p className="mldl-info-text" style={{ marginTop: 8 }}>
+            Predicted class: <strong style={{ color: predicted === "A" ? colors.blue : colors.coral }}>{predicted}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AlgorithmPlaygroundStage() {
+  const [tab, setTab] = useState<"linear" | "logistic" | "tree" | "knn">("linear");
+  const tabs: { id: typeof tab; label: string; icon: LucideIcon }[] = [
+    { id: "linear", label: "Linear Regression", icon: TrendingUp },
+    { id: "logistic", label: "Logistic Regression", icon: SlidersHorizontal },
+    { id: "tree", label: "Decision Tree", icon: GitBranch },
+    { id: "knn", label: "KNN", icon: MousePointer2 },
   ];
   return (
-    <div className="aiel-knn-wrap">
-      <svg viewBox="0 0 260 90" width="100%" height="90" preserveAspectRatio="xMidYMid meet">
-        <circle cx={128} cy={44} r={38} fill="none" stroke={colors.muted} strokeWidth="1.5" strokeDasharray="4 4" opacity="0.5" />
-        {neighborsA.map((p, i) => (
-          <circle key={`a-${i}`} className="aiel-knn-dot" cx={p.x} cy={p.y} r={6} fill={colors.teal} stroke={colors.tealDeep} strokeWidth="2" style={{ animationDelay: `${i * 0.08}s` }} />
+    <>
+      <div className="mldl-tab-row">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          return (
+            <button key={t.id} className={`mldl-tab-btn ${tab === t.id ? "mldl-tab-active" : ""}`} onClick={() => setTab(t.id)}>
+              <Icon size={15} /> {t.label}
+            </button>
+          );
+        })}
+      </div>
+      {tab === "linear" && <LinearRegressionPlayground />}
+      {tab === "logistic" && <LogisticRegressionPlayground />}
+      {tab === "tree" && <DecisionTreePlayground />}
+      {tab === "knn" && <KnnPlayground />}
+    </>
+  );
+}
+
+/* ======================================================================
+   STAGE 3 — ALGORITHM COMPARISON
+====================================================================== */
+
+function ComparisonStage() {
+  const [datasetId, setDatasetId] = useState<string>(DATASETS[0].id);
+  const dataset = DATASETS.find((d) => d.id === datasetId)!;
+
+  return (
+    <>
+      <div className="mldl-dataset-row">
+        {DATASETS.map((d) => {
+          const Icon = d.icon;
+          const isActive = d.id === datasetId;
+          return (
+            <button key={d.id} className={`mldl-tab-btn ${isActive ? "mldl-tab-active" : ""}`} onClick={() => setDatasetId(d.id)}>
+              <Icon size={15} /> {d.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mldl-comparison-grid">
+        {COMPARISON_ALGOS.map((algoId, idx) => {
+          const info = ALGO_INFO[algoId];
+          const Icon = info.icon;
+          const m = dataset.metrics[algoId];
+          return (
+            <div key={algoId} className="mldl-compare-card" style={{ animationDelay: `${idx * 0.08}s` }}>
+              <div className="mldl-compare-head">
+                <div className="mldl-compare-icon" style={{ ["--accent-gradient" as any]: info.gradient }}><Icon size={17} color="#fff" /></div>
+                <span className="mldl-compare-name">{info.label}</span>
+              </div>
+              <p className="mldl-compare-prediction">Prediction: {m.prediction}</p>
+              <div className="mldl-bar-row">
+                <div className="mldl-bar-top"><span>Accuracy</span><span>{m.accuracy}%</span></div>
+                <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${m.accuracy}%`, background: GRADIENT_GREEN }} /></div>
+              </div>
+              <div className="mldl-bar-row">
+                <div className="mldl-bar-top"><span>Speed</span><span>{m.speed}/5</span></div>
+                <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${(m.speed / 5) * 100}%`, background: GRADIENT_BC }} /></div>
+              </div>
+              <div className="mldl-bar-row">
+                <div className="mldl-bar-top"><span>Interpretability</span><span>{m.interpretability}/5</span></div>
+                <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${(m.interpretability / 5) * 100}%`, background: GRADIENT_AMBER }} /></div>
+              </div>
+              <div className="mldl-bar-row">
+                <div className="mldl-bar-top"><span>Complexity</span><span>{m.complexity}/5</span></div>
+                <div className="mldl-bar-track"><div className="mldl-bar-fill" style={{ width: `${(m.complexity / 5) * 100}%`, background: GRADIENT_CORAL }} /></div>
+              </div>
+              <div className="mldl-metric-row" style={{ marginTop: 8 }}>
+                <span className="mldl-metric-label">Training Time</span>
+                <span className="mldl-metric-value">{m.trainingTime} ms</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/* ======================================================================
+   STAGE 4 — REINFORCEMENT LEARNING MAZE
+====================================================================== */
+
+function ReinforcementMazeStage() {
+  const [episodes, setEpisodes] = useState<number>(1);
+  const [stepIndex, setStepIndex] = useState<number>(0);
+  const [playing, setPlaying] = useState<boolean>(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const path = useMemo(() => getPathForEpisodes(episodes), [episodes]);
+  const totalMoves = path.length - 1;
+  const reward = Math.max(0, 50 - 2 * totalMoves);
+
+  useEffect(() => {
+    setStepIndex(0);
+    setPlaying(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  }, [episodes]);
+
+  useEffect(() => {
+    if (!playing) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      setStepIndex((prev) => {
+        if (prev >= path.length - 1) {
+          setPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 420);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [playing, path.length]);
+
+  const [row, col] = path[Math.min(stepIndex, path.length - 1)];
+  const currentReward = Math.round((stepIndex / Math.max(1, totalMoves)) * reward);
+  const cellsWalked = new Set(path.slice(0, stepIndex + 1).map(([r, c]) => `${r}-${c}`));
+
+  return (
+    <div className="mldl-maze-wrap">
+      <div
+        className="mldl-maze-grid"
+        style={{ gridTemplateColumns: `repeat(${MAZE_COLS}, ${MAZE_CELL}px)`, gridTemplateRows: `repeat(${MAZE_ROWS}, ${MAZE_CELL}px)` }}
+      >
+        {Array.from({ length: MAZE_ROWS }).map((_, r) =>
+          Array.from({ length: MAZE_COLS }).map((__, c) => {
+            const obstacle = isObstacle(r, c);
+            const isGoal = r === GOAL_CELL.row && c === GOAL_CELL.col;
+            const walked = cellsWalked.has(`${r}-${c}`);
+            return (
+              <div
+                key={`${r}-${c}`}
+                className={`mldl-maze-cell ${obstacle ? "mldl-maze-obstacle" : ""} ${isGoal ? "mldl-maze-goal" : ""} ${walked && !isGoal ? "mldl-maze-path" : ""}`}
+              >
+                {isGoal && <Star size={20} color={colors.amber} fill={colors.amber} />}
+              </div>
+            );
+          })
+        )}
+        <div
+          className="mldl-maze-robot"
+          style={{ top: row * (MAZE_CELL + 4) + 18, left: col * (MAZE_CELL + 4) + 18 }}
+        >
+          <Bot size={16} color="#fff" />
+        </div>
+      </div>
+
+      <div className="mldl-episode-row">
+        {[1, 10, 25, 50, 100].map((ep) => (
+          <button key={ep} className={`mldl-episode-btn ${episodes === ep ? "mldl-episode-active" : ""}`} onClick={() => setEpisodes(ep)}>
+            {ep} episodes
+          </button>
         ))}
-        {neighborsB.map((p, i) => (
-          <circle key={`b-${i}`} className="aiel-knn-dot" cx={p.x} cy={p.y} r={6} fill={colors.coral} stroke={colors.coralDeep} strokeWidth="2" style={{ animationDelay: `${0.2 + i * 0.08}s` }} />
-        ))}
-        <circle cx={128} cy={44} r={7} fill={colors.purple} stroke={colors.purpleDeep} strokeWidth="2.5" />
+      </div>
+
+      <div className="mldl-maze-controls">
+        <button className="mldl-icon-btn" onClick={() => setPlaying((p) => !p)}>
+          {playing ? <Pause size={15} /> : <Play size={15} />} {playing ? "Pause" : "Run Robot"}
+        </button>
+        <button
+          className="mldl-icon-btn mldl-icon-btn-secondary"
+          onClick={() => {
+            setStepIndex(0);
+            setPlaying(false);
+          }}
+        >
+          <RefreshCw size={14} /> Reset
+        </button>
+      </div>
+
+      <div className="mldl-reward-row">
+        <div className="mldl-reward-chip">
+          <span className="mldl-reward-num">{totalMoves}</span>
+          <span className="mldl-reward-label">Steps in Path</span>
+        </div>
+        <div className="mldl-reward-chip">
+          <span className="mldl-reward-num" style={{ color: colors.green }}>+{currentReward}</span>
+          <span className="mldl-reward-label">Reward So Far</span>
+        </div>
+        <div className="mldl-reward-chip">
+          <span className="mldl-reward-num" style={{ color: colors.cyan }}>{episodes}</span>
+          <span className="mldl-reward-label">Episodes Trained</span>
+        </div>
+      </div>
+      <p className="mldl-svg-caption" style={{ maxWidth: 420 }}>
+        {episodes <= 1
+          ? "With only 1 episode, the agent barely knows the maze — it wanders and takes a long route to the goal ⭐."
+          : episodes <= 10
+          ? "After 10 episodes, the agent has learned to avoid some dead ends, but the path still isn't optimal."
+          : "After enough episodes, the agent has learned the shortest possible path — maximizing its total reward."}
+      </p>
+    </div>
+  );
+}
+
+/* ======================================================================
+   STAGE 5 — CHALLENGE MODE
+====================================================================== */
+
+function ChallengeStage({
+  onFeedback,
+  score,
+  setScore,
+}: {
+  onFeedback: (correct: boolean) => void;
+  score: number;
+  setScore: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const [order] = useState<number[]>(() => CHALLENGES.map((_, i) => i));
+  const [index, setIndex] = useState(0);
+  const [chosenType, setChosenType] = useState<LearningType | null>(null);
+  const [chosenAlgo, setChosenAlgo] = useState<AlgoId | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  const challenge = CHALLENGES[order[index]];
+  const Icon = challenge.icon;
+  const typeCorrect = chosenType === challenge.correctType;
+  const algoOptionsForType: AlgoId[] =
+    chosenType === "supervised"
+      ? ["linear", "logistic", "tree", "knn"]
+      : chosenType === "unsupervised"
+      ? ["clustering"]
+      : chosenType === "reinforcement"
+      ? ["qlearning"]
+      : [];
+
+  const pickType = (t: LearningType) => {
+    if (chosenType) return;
+    setChosenType(t);
+    const correct = t === challenge.correctType;
+    if (correct) {
+      onFeedback(true);
+    } else {
+      onFeedback(false);
+      setStreak(0);
+    }
+  };
+
+  const pickAlgo = (a: AlgoId) => {
+    if (chosenAlgo || !typeCorrect) return;
+    setChosenAlgo(a);
+    const correct = a === challenge.correctAlgo;
+    if (correct) {
+      setScore((s) => s + 10);
+      setStreak((s) => s + 1);
+      onFeedback(true);
+    } else {
+      setStreak(0);
+      onFeedback(false);
+    }
+  };
+
+  const canAdvance = chosenType && (!typeCorrect || chosenAlgo);
+
+  const next = () => {
+    if (index >= order.length - 1) {
+      setFinished(true);
+      return;
+    }
+    setIndex((i) => i + 1);
+    setChosenType(null);
+    setChosenAlgo(null);
+  };
+
+  if (finished) {
+    return (
+      <div className="mldl-canvas" style={{ gap: 16 }}>
+        <Trophy size={40} color={colors.amber} />
+        <p className="mldl-stage-title" style={{ margin: 0 }}>Challenge Complete!</p>
+        <p className="mldl-svg-caption">Final score: <strong style={{ color: colors.amber }}>{score} points</strong></p>
+        <button
+          className="mldl-icon-btn mldl-icon-btn-secondary"
+          onClick={() => {
+            setIndex(0);
+            setChosenType(null);
+            setChosenAlgo(null);
+            setStreak(0);
+            setFinished(false);
+            setScore(0);
+          }}
+        >
+          <RotateCcw size={14} /> Retry Challenges
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="mldl-challenge-top">
+        <div className="mldl-score-chip"><Trophy size={16} color="#fff" /><span className="mldl-score-num">{score} pts</span></div>
+        <div className="mldl-streak-chip"><Zap size={14} color={colors.amber} /> Streak: {streak}</div>
+        <div className="mldl-streak-chip">Question {index + 1} / {order.length}</div>
+      </div>
+      <div className="mldl-progress-track" style={{ marginBottom: 20 }}>
+        <div className="mldl-progress-fill" style={{ width: `${((index) / order.length) * 100}%` }} />
+      </div>
+
+      <div className="mldl-challenge-card">
+        <div className="mldl-challenge-icon-row">
+          <div className="mldl-challenge-icon" style={{ ["--accent-gradient" as any]: GRADIENT_PBC }}><Icon size={22} color="#fff" /></div>
+          <div>
+            <p className="mldl-challenge-title">{challenge.title}</p>
+            <span className="mldl-challenge-num">Real-world problem #{index + 1}</span>
+          </div>
+        </div>
+
+        <div className="mldl-choice-section" style={{ marginTop: 14 }}>
+          <p className="mldl-choice-label">Choose the Learning Type</p>
+          <div className="mldl-choice-pills">
+            {(["supervised", "unsupervised", "reinforcement"] as LearningType[]).map((t) => {
+              const isSelected = chosenType === t;
+              const isCorrectPill = isSelected && t === challenge.correctType;
+              const isWrongPill = isSelected && t !== challenge.correctType;
+              return (
+                <button
+                  key={t}
+                  className={`mldl-pill ${isSelected ? "mldl-pill-selected mldl-pill-neutral-selected" : ""} ${isCorrectPill ? "mldl-pill-correct" : ""} ${isWrongPill ? "mldl-pill-wrong" : ""}`}
+                  onClick={() => pickType(t)}
+                  disabled={!!chosenType}
+                >
+                  {t === "supervised" ? "Supervised" : t === "unsupervised" ? "Unsupervised" : "Reinforcement"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {chosenType && typeCorrect && (
+          <div className="mldl-choice-section">
+            <p className="mldl-choice-label">Choose the Algorithm</p>
+            <div className="mldl-choice-pills">
+              {algoOptionsForType.map((a) => {
+                const info = ALGO_INFO[a];
+                const isSelected = chosenAlgo === a;
+                const isCorrectPill = isSelected && a === challenge.correctAlgo;
+                const isWrongPill = isSelected && a !== challenge.correctAlgo;
+                return (
+                  <button
+                    key={a}
+                    className={`mldl-pill ${isSelected ? "mldl-pill-selected mldl-pill-neutral-selected" : ""} ${isCorrectPill ? "mldl-pill-correct" : ""} ${isWrongPill ? "mldl-pill-wrong" : ""}`}
+                    onClick={() => pickAlgo(a)}
+                    disabled={!!chosenAlgo}
+                  >
+                    {info.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {chosenType && (
+          <div className={`mldl-feedback-box ${typeCorrect ? "mldl-fb-correct" : "mldl-fb-wrong"}`}>
+            {typeCorrect ? <CheckCircle2 size={18} color={colors.green} /> : <XCircle size={18} color={colors.coral} />}
+            <div>
+              <p className="mldl-feedback-title">{typeCorrect ? "Correct!" : "Incorrect"}</p>
+              <p className="mldl-feedback-text">
+                {typeCorrect
+                  ? chosenAlgo
+                    ? chosenAlgo === challenge.correctAlgo
+                      ? `+10 points! ${challenge.explanation}`
+                      : `Not the ideal algorithm. ${challenge.explanation}`
+                    : "Great — now pick the best algorithm for this problem."
+                  : `The correct learning type was ${challenge.correctType}. ${challenge.explanation}`}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <NavButtons backDisabled onNext={next} nextDisabled={!canAdvance} nextLabel={index >= order.length - 1 ? "See Final Score" : "Next Problem"} />
+    </>
+  );
+}
+
+/* ======================================================================
+   STAGE 6 — FINAL ECOSYSTEM VISUALIZATION
+====================================================================== */
+
+type EcoNodeId =
+  | "supervised" | "unsupervised" | "reinforcement"
+  | "linear" | "logistic" | "tree" | "knn" | "clustering" | "qlearning"
+  | "training" | "prediction";
+
+interface EcoNode {
+  id: EcoNodeId;
+  label: string;
+  col: number;
+  row: number;
+  color: string;
+  icon: LucideIcon;
+}
+
+const ECO_NODES: EcoNode[] = [
+  { id: "supervised", label: "Supervised", col: 0, row: 0, color: colors.blue, icon: Target },
+  { id: "unsupervised", label: "Unsupervised", col: 0, row: 1, color: colors.cyan, icon: Layers },
+  { id: "reinforcement", label: "Reinforcement", col: 0, row: 2, color: colors.amber, icon: Bot },
+
+  { id: "linear", label: "Linear Reg.", col: 1, row: 0, color: colors.blue, icon: TrendingUp },
+  { id: "logistic", label: "Logistic Reg.", col: 1, row: 1, color: colors.blue, icon: SlidersHorizontal },
+  { id: "tree", label: "Decision Tree", col: 1, row: 2, color: colors.blue, icon: GitBranch },
+  { id: "knn", label: "KNN", col: 1, row: 3, color: colors.blue, icon: MousePointer2 },
+  { id: "clustering", label: "Clustering", col: 1, row: 4, color: colors.cyan, icon: Share2 },
+  { id: "qlearning", label: "Q-Learning", col: 1, row: 5, color: colors.amber, icon: Bot },
+
+  { id: "training", label: "Training", col: 2, row: 2, color: colors.purple, icon: Brain },
+  { id: "prediction", label: "Prediction", col: 3, row: 2, color: colors.green, icon: Sparkles },
+];
+
+const ECO_LINKS: [EcoNodeId, EcoNodeId][] = [
+  ["supervised", "linear"], ["supervised", "logistic"], ["supervised", "tree"], ["supervised", "knn"],
+  ["unsupervised", "clustering"],
+  ["reinforcement", "qlearning"],
+  ["linear", "training"], ["logistic", "training"], ["tree", "training"], ["knn", "training"],
+  ["clustering", "training"], ["qlearning", "training"],
+  ["training", "prediction"],
+];
+
+function EcosystemStage() {
+  const [selected, setSelected] = useState<EcoNodeId | null>(null);
+  const W = 620;
+  const H = 320;
+  const colGap = W / 4;
+  const posOf = (n: EcoNode) => {
+    const rowsInCol = ECO_NODES.filter((x) => x.col === n.col).length;
+    const gap = H / (rowsInCol + 1);
+    return { x: colGap * n.col + colGap / 2, y: gap * (n.row + 1) };
+  };
+
+  const isConnected = (id: EcoNodeId) => {
+    if (!selected) return false;
+    return ECO_LINKS.some(([a, b]) => (a === selected && b === id) || (b === selected && a === id));
+  };
+
+  return (
+    <div className="mldl-svg-card" style={{ padding: 20 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="360">
+        {ECO_LINKS.map(([a, b], i) => {
+          const na = ECO_NODES.find((n) => n.id === a)!;
+          const nb = ECO_NODES.find((n) => n.id === b)!;
+          const pa = posOf(na);
+          const pb = posOf(nb);
+          const highlighted = selected && (selected === a || selected === b);
+          return (
+            <line
+              key={i}
+              x1={pa.x}
+              y1={pa.y}
+              x2={pb.x}
+              y2={pb.y}
+              stroke={highlighted ? colors.cyan : "rgba(148,163,184,0.28)"}
+              strokeWidth={highlighted ? 2.4 : 1.2}
+              opacity={highlighted ? 0.95 : 0.6}
+              style={{ transition: "all 0.3s ease" }}
+            />
+          );
+        })}
+        {ECO_NODES.map((n) => {
+          const p = posOf(n);
+          const isSelected = selected === n.id;
+          const connected = isConnected(n.id);
+          const Icon = n.icon;
+          const dim = selected && !isSelected && !connected;
+          return (
+            <g
+              key={n.id}
+              onClick={() => setSelected(selected === n.id ? null : n.id)}
+              style={{ cursor: "pointer" }}
+              opacity={dim ? 0.35 : 1}
+            >
+              <circle cx={p.x} cy={p.y} r={isSelected ? 24 : 20} fill={colors.cardSolid} stroke={isSelected || connected ? colors.cyan : n.color} strokeWidth={isSelected ? 3 : 2} />
+              <foreignObject x={p.x - 10} y={p.y - 10} width={20} height={20} style={{ pointerEvents: "none" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20 }}>
+                  <Icon size={14} color={n.color} />
+                </div>
+              </foreignObject>
+              <text x={p.x} y={p.y + 34} textAnchor="middle" fontSize={10.5} fontWeight={700} fill={colors.inkSoft}>{n.label}</text>
+            </g>
+          );
+        })}
       </svg>
-      <p className="aiel-knn-caption">The new point (center) looks at its closest neighbors and takes a majority vote among their categories.</p>
+      <p className="mldl-svg-caption">Click any node to trace its connections through the whole Machine Learning ecosystem.</p>
+      <div className="mldl-ecosystem-legend">
+        <div className="mldl-legend-item"><span className="mldl-legend-dot" style={{ background: colors.blue }} /> Supervised</div>
+        <div className="mldl-legend-item"><span className="mldl-legend-dot" style={{ background: colors.cyan }} /> Unsupervised</div>
+        <div className="mldl-legend-item"><span className="mldl-legend-dot" style={{ background: colors.amber }} /> Reinforcement</div>
+        <div className="mldl-legend-item"><span className="mldl-legend-dot" style={{ background: colors.purple }} /> Training</div>
+        <div className="mldl-legend-item"><span className="mldl-legend-dot" style={{ background: colors.green }} /> Prediction</div>
+      </div>
     </div>
   );
 }
 
-interface StyleListProps {
-  items: StyleItem[];
-  answers: StyleAnswerMap;
-  onAnswer: (id: string, value: LearningStyleId) => void;
-  onFeedback: (correct: boolean) => void;
-}
+/* ======================================================================
+   MAIN PAGE COMPONENT
+====================================================================== */
 
-function StyleList({ items, answers, onAnswer, onFeedback }: StyleListProps) {
-  return (
-    <div className="aiel-item-list">
-      {items.map((item, idx) => {
-        const chosen = answers[item.id];
-        const isCorrect = chosen === item.answer;
-        return (
-          <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
-            <p className="aiel-item-text">{item.text}</p>
-            {!chosen ? (
-              <div className="aiel-tag-row">
-                {STYLE_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    className="aiel-choice-outline"
-                    onClick={() => {
-                      onAnswer(item.id, cat.id);
-                      onFeedback(cat.id === item.answer);
-                    }}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="aiel-feedback">
-                {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
-                ) : (
-                  <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
-                )}
-                <p className="aiel-feedback-text">
-                  Correct style: <strong style={{ color: colors.ink }}>
-                    {STYLE_CATEGORIES.find((c) => c.id === item.answer)?.label}
-                  </strong> -- {STYLE_CATEGORIES.find((c) => c.id === item.answer)?.hint}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-interface TaskListProps {
-  items: TaskItem[];
-  answers: TaskAnswerMap;
-  onAnswer: (id: string, value: TaskTypeId) => void;
-  onFeedback: (correct: boolean) => void;
-}
-
-function TaskList({ items, answers, onAnswer, onFeedback }: TaskListProps) {
-  return (
-    <div className="aiel-item-list">
-      {items.map((item, idx) => {
-        const chosen = answers[item.id];
-        const isCorrect = chosen === item.answer;
-        return (
-          <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
-            <p className="aiel-item-text">{item.text}</p>
-            {!chosen ? (
-              <div className="aiel-choice-row">
-                <button
-                  className="aiel-choice-btn aiel-choice-teal"
-                  onClick={() => {
-                    onAnswer(item.id, "classification");
-                    onFeedback("classification" === item.answer);
-                  }}
-                >
-                  Classification
-                </button>
-                <button
-                  className="aiel-choice-btn aiel-choice-coral"
-                  onClick={() => {
-                    onAnswer(item.id, "regression");
-                    onFeedback("regression" === item.answer);
-                  }}
-                >
-                  Regression
-                </button>
-              </div>
-            ) : (
-              <div className="aiel-feedback">
-                {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
-                ) : (
-                  <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
-                )}
-                <p className="aiel-feedback-text">
-                  {isCorrect ? "Correct -- " : `Actually, this is ${item.answer}. `}
-                  {item.explain}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-interface QuizListProps {
-  items: QuizItem[];
-  answers: AnswerMap;
-  onAnswer: (id: string, value: string) => void;
-  onFeedback: (correct: boolean) => void;
-}
-
-function QuizList({ items, answers, onAnswer, onFeedback }: QuizListProps) {
-  const palette = ["aiel-choice-teal", "aiel-choice-coral", "aiel-choice-gold"];
-  return (
-    <div className="aiel-item-list">
-      {items.map((item, idx) => {
-        const chosen = answers[item.id];
-        const isCorrect = chosen === item.answer;
-        return (
-          <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
-            {item.code && <pre className="aiel-code-block">{item.code}</pre>}
-            <p className="aiel-item-question">{item.question}</p>
-            {!chosen ? (
-              <div className="aiel-choice-row">
-                {item.options.map((opt, i) => (
-                  <button
-                    key={opt}
-                    className={`aiel-choice-btn ${palette[i % palette.length]}`}
-                    onClick={() => {
-                      onAnswer(item.id, opt);
-                      onFeedback(opt === item.answer);
-                    }}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="aiel-feedback">
-                {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
-                ) : (
-                  <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
-                )}
-                <p className="aiel-feedback-text">
-                  {isCorrect ? "Correct -- " : `Actually, the answer is "${item.answer}". `}
-                  {item.explain}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------- MAIN APP ------------------------------- */
-
-export default function MachineLearningBasicsLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..7 stages, 8 = certificate
+export default function MachineLearningDecisionLab() {
+  const [stage, setStage] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean[]>(new Array(STAGE_META.length).fill(false));
 
-  const [styleAnswers, setStyleAnswers] = useState<StyleAnswerMap>({});
-  const [taskAnswers, setTaskAnswers] = useState<TaskAnswerMap>({});
-  const [unsupervisedAnswers, setUnsupervisedAnswers] = useState<AnswerMap>({});
-  const [reinforcementAnswers, setReinforcementAnswers] = useState<AnswerMap>({});
-  const [linearAnswers, setLinearAnswers] = useState<AnswerMap>({});
-  const [logisticAnswers, setLogisticAnswers] = useState<AnswerMap>({});
-  const [treeAnswers, setTreeAnswers] = useState<AnswerMap>({});
-  const [knnAnswers, setKnnAnswers] = useState<AnswerMap>({});
+  const [learningTypeSelected, setLearningTypeSelected] = useState<LearningType | null>(null);
+  const [problemAnswers, setProblemAnswers] = useState<Record<string, ProblemAnswer>>({});
+  const [challengeScore, setChallengeScore] = useState(0);
 
   const [toast, setToast] = useState<{ mood: "up" | "down"; text: string } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -935,393 +2088,149 @@ export default function MachineLearningBasicsLab() {
     });
   };
 
-  const goTo = (idx: number) => setCurrent(idx);
+  const goTo = (idx: number) => setStage(idx);
 
-  const styleDone = Object.keys(styleAnswers).length === STYLE_ITEMS.length;
-  const taskDone = Object.keys(taskAnswers).length === TASK_ITEMS.length;
-  const unsupervisedDone = Object.keys(unsupervisedAnswers).length === UNSUPERVISED_ITEMS.length;
-  const reinforcementDone = Object.keys(reinforcementAnswers).length === REINFORCEMENT_ITEMS.length;
-  const linearDone = Object.keys(linearAnswers).length === LINEAR_REGRESSION_ITEMS.length;
-  const logisticDone = Object.keys(logisticAnswers).length === LOGISTIC_REGRESSION_ITEMS.length;
-  const treeDone = Object.keys(treeAnswers).length === DECISION_TREE_ITEMS.length;
-  const knnDone = Object.keys(knnAnswers).length === KNN_ITEMS.length;
-
-  const styleTallyCounts = useMemo(() => {
-    const values = Object.values(styleAnswers);
-    return {
-      supervised: values.filter((v) => v === "supervised").length,
-      unsupervised: values.filter((v) => v === "unsupervised").length,
-      reinforcement: values.filter((v) => v === "reinforcement").length,
-    };
-  }, [styleAnswers]);
-
-  const taskTallyCounts = useMemo(() => {
-    const values = Object.values(taskAnswers);
-    return {
-      classification: values.filter((v) => v === "classification").length,
-      regression: values.filter((v) => v === "regression").length,
-    };
-  }, [taskAnswers]);
-
-  const scores = useMemo(() => {
-    const styleCorrect = STYLE_ITEMS.filter((it) => styleAnswers[it.id] === it.answer).length;
-    const taskCorrect = TASK_ITEMS.filter((it) => taskAnswers[it.id] === it.answer).length;
-    const unsupervisedCorrect = UNSUPERVISED_ITEMS.filter((it) => unsupervisedAnswers[it.id] === it.answer).length;
-    const reinforcementCorrect = REINFORCEMENT_ITEMS.filter((it) => reinforcementAnswers[it.id] === it.answer).length;
-    const linearCorrect = LINEAR_REGRESSION_ITEMS.filter((it) => linearAnswers[it.id] === it.answer).length;
-    const logisticCorrect = LOGISTIC_REGRESSION_ITEMS.filter((it) => logisticAnswers[it.id] === it.answer).length;
-    const treeCorrect = DECISION_TREE_ITEMS.filter((it) => treeAnswers[it.id] === it.answer).length;
-    const knnCorrect = KNN_ITEMS.filter((it) => knnAnswers[it.id] === it.answer).length;
-    return {
-      styleCorrect,
-      taskCorrect,
-      unsupervisedCorrect,
-      reinforcementCorrect,
-      linearCorrect,
-      logisticCorrect,
-      treeCorrect,
-      knnCorrect,
-    };
-  }, [styleAnswers, taskAnswers, unsupervisedAnswers, reinforcementAnswers, linearAnswers, logisticAnswers, treeAnswers, knnAnswers]);
-
-  const totalScore =
-    scores.styleCorrect +
-    scores.taskCorrect +
-    scores.unsupervisedCorrect +
-    scores.reinforcementCorrect +
-    scores.linearCorrect +
-    scores.logisticCorrect +
-    scores.treeCorrect +
-    scores.knnCorrect;
-
-  const totalPossible =
-    STYLE_ITEMS.length +
-    TASK_ITEMS.length +
-    UNSUPERVISED_ITEMS.length +
-    REINFORCEMENT_ITEMS.length +
-    LINEAR_REGRESSION_ITEMS.length +
-    LOGISTIC_REGRESSION_ITEMS.length +
-    DECISION_TREE_ITEMS.length +
-    KNN_ITEMS.length;
+  const problemsAllSolved = PROBLEMS.every((p) => problemAnswers[p.id]?.done);
 
   const resetAll = () => {
-    setCurrent(0);
+    setStage(0);
     setCompleted(new Array(STAGE_META.length).fill(false));
-    setStyleAnswers({});
-    setTaskAnswers({});
-    setUnsupervisedAnswers({});
-    setReinforcementAnswers({});
-    setLinearAnswers({});
-    setLogisticAnswers({});
-    setTreeAnswers({});
-    setKnnAnswers({});
+    setLearningTypeSelected(null);
+    setProblemAnswers({});
+    setChallengeScore(0);
     setToast(null);
   };
 
-  const lastStageIdx = STAGE_META.length - 1;
-  const certIdx = STAGE_META.length;
+  const stageBody = () => {
+    switch (stage) {
+      case 0:
+        return (
+          <LearningTypesStage
+            selected={learningTypeSelected}
+            onSelect={(t) => {
+              setLearningTypeSelected(t);
+              fireToast(true);
+            }}
+          />
+        );
+      case 1:
+        return <ProblemSolverStage answers={problemAnswers} setAnswers={setProblemAnswers} onFeedback={fireToast} />;
+      case 2:
+        return <AlgorithmPlaygroundStage />;
+      case 3:
+        return <ComparisonStage />;
+      case 4:
+        return <ReinforcementMazeStage />;
+      case 5:
+        return <ChallengeStage onFeedback={fireToast} score={challengeScore} setScore={setChallengeScore} />;
+      case 6:
+        return <EcosystemStage />;
+      default:
+        return null;
+    }
+  };
+
+  const stageTitles = [
+    { tag: "Stage 1 — Learning Types", title: "Learning Types Explorer", subtitle: "Pick a learning type and watch its pipeline animate — see exactly how each approach turns data into decisions." },
+    { tag: "Stage 2 — Problem Solver", title: "Match the Problem to the Method", subtitle: "Every real-world problem needs the right learning type before it needs the right algorithm. Get both right." },
+    { tag: "Stage 3 — Algorithm Playground", title: "Play With Real Algorithms", subtitle: "Drag points, move boundaries, and grow trees — build intuition by interacting, not reading." },
+    { tag: "Stage 4 — Comparison", title: "Compare Algorithms Side by Side", subtitle: "Same dataset, four algorithms. See how accuracy, speed, and interpretability trade off." },
+    { tag: "Stage 5 — Reinforcement Learning", title: "Train a Robot Through the Maze", subtitle: "Watch an agent's path shrink toward the optimum as its training episodes increase." },
+    { tag: "Stage 6 — Challenge Mode", title: "Test Your Machine Learning Instincts", subtitle: "Classify real-world problems under pressure and build your streak." },
+    { tag: "Final Visualization", title: "The Machine Learning Ecosystem", subtitle: "Everything you've learned, connected in one living map." },
+  ];
+
+  const canProceed = () => {
+    if (stage === 0) return !!learningTypeSelected;
+    if (stage === 1) return problemsAllSolved;
+    return true;
+  };
+
+  const isLast = stage === STAGE_META.length - 1;
 
   return (
-    <div className="aiel-root">
+    <div className="mldl-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         ${STYLES}
       `}</style>
 
-      <div className="aiel-blob aiel-blob-1" />
-      <div className="aiel-blob aiel-blob-2" />
-      <div className="aiel-blob aiel-blob-3" />
-      <div className="aiel-blob aiel-blob-4" />
+      <ParticleField />
 
       {toast && (
-        <div className={`aiel-toast ${toast.mood === "up" ? "aiel-toast-up" : "aiel-toast-down"}`}>
-          {toast.mood === "up" ? <Sparkles size={15} /> : <Database size={15} />}
+        <div className={`mldl-toast ${toast.mood === "up" ? "mldl-toast-up" : "mldl-toast-down"}`}>
+          {toast.mood === "up" ? <Sparkles size={15} /> : <Info size={15} />}
           {toast.text}
         </div>
       )}
 
-      <div className="aiel-container">
-        <Link href="/" className="topic-back-btn">
-          <ChevronLeft size={18} />
-          Back to Curriculum
-        </Link>
-
-        <div className="aiel-header">
-          <div className="aiel-header-icon">
-            <Compass size={26} color={colors.gold} />
-          </div>
-          <h1 className="aiel-h1">Machine Learning Basics Lab</h1>
-          <p className="aiel-subtitle">
-            Sort learning styles, tell classification from regression, and work through the four
-            core algorithms -- linear regression, logistic regression, decision trees, and KNN.
-          </p>
+      <div className="mldl-container">
+        <div className="mldl-topbar">
+          <Link href="/" className="mldl-back-btn">
+            <ChevronLeft size={18} />
+            Back to Curriculum
+          </Link>
         </div>
 
-        {current <= lastStageIdx && <StampBar current={current} completed={completed} onJump={goTo} />}
+        <div className="mldl-header">
+          <div className="mldl-header-icon"><Brain size={28} color="#fff" /></div>
+          <h1 className="mldl-h1">Machine Learning Decision Lab</h1>
+          <p className="mldl-subtitle">Learn how machines solve different types of problems using Machine Learning.</p>
+        </div>
 
-        {/* STAGE 0: ML Basics */}
-        {current === 0 && (
-          <StageShell
-            tag={STAGE_META[0].tag}
-            title="Which Learning Style?"
-            subtitle="Sort each scenario into supervised, unsupervised, or reinforcement learning."
-            progressLabel={`${Object.keys(styleAnswers).length}/${STYLE_ITEMS.length} sorted`}
-            hero={
-              <TallyHero
-                categories={[
-                  { label: "Supervised", count: styleTallyCounts.supervised, icon: BookOpen, from: "#FFD98A", to: colors.gold, shadow: colors.goldDeep },
-                  { label: "Unsupervised", count: styleTallyCounts.unsupervised, icon: Layers, from: "#E7D3FC", to: colors.purple, shadow: colors.purpleDeep },
-                  { label: "Reinforcement", count: styleTallyCounts.reinforcement, icon: Rocket, from: "#7EE6D6", to: colors.teal, shadow: colors.tealDeep },
-                ]}
-              />
-            }
-          >
-            <StyleList items={STYLE_ITEMS} answers={styleAnswers} onAnswer={(id, value) => setStyleAnswers((p) => ({ ...p, [id]: value }))} onFeedback={fireToast} />
+        <StepBar current={stage} completed={completed} onJump={goTo} />
+
+        <div className="mldl-stage-shell">
+          <div className="mldl-stage-top">
+            <span className="mldl-stage-tag">{stageTitles[stage].tag}</span>
+          </div>
+          <h2 className="mldl-stage-title">{stageTitles[stage].title}</h2>
+          <p className="mldl-stage-subtitle">{stageTitles[stage].subtitle}</p>
+
+          {stageBody()}
+
+          {!isLast ? (
             <NavButtons
-              backDisabled
-              onBack={() => {}}
-              nextDisabled={!styleDone}
+              backDisabled={stage === 0}
+              onBack={() => setStage((s) => Math.max(0, s - 1))}
+              nextDisabled={!canProceed()}
               onNext={() => {
-                markComplete(0);
-                setCurrent(1);
+                markComplete(stage);
+                setStage((s) => s + 1);
               }}
+              nextLabel={stage === STAGE_META.length - 2 ? "View Ecosystem" : "Continue"}
             />
-          </StageShell>
-        )}
-
-        {/* STAGE 1: Supervised Learning */}
-        {current === 1 && (
-          <StageShell
-            tag={STAGE_META[1].tag}
-            title="Classification or Regression?"
-            subtitle="Supervised learning splits into two tasks. Decide which one each example needs."
-            progressLabel={`${Object.keys(taskAnswers).length}/${TASK_ITEMS.length} sorted`}
-            hero={
-              <TallyHero
-                categories={[
-                  { label: "Classification", count: taskTallyCounts.classification, icon: Tag, from: "#7EE6D6", to: colors.teal, shadow: colors.tealDeep },
-                  { label: "Regression", count: taskTallyCounts.regression, icon: TrendingUp, from: "#FFAD8F", to: colors.coral, shadow: colors.coralDeep },
-                ]}
-              />
-            }
-          >
-            <TaskList items={TASK_ITEMS} answers={taskAnswers} onAnswer={(id, value) => setTaskAnswers((p) => ({ ...p, [id]: value }))} onFeedback={fireToast} />
-            <NavButtons
-              onBack={() => setCurrent(0)}
-              nextDisabled={!taskDone}
-              onNext={() => {
-                markComplete(1);
-                setCurrent(2);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 2: Unsupervised Learning */}
-        {current === 2 && (
-          <StageShell
-            tag={STAGE_META[2].tag}
-            title="Find the Cluster"
-            subtitle="No labels here -- just structure waiting to be discovered."
-            progressLabel={`${Object.keys(unsupervisedAnswers).length}/${UNSUPERVISED_ITEMS.length} solved`}
-            hero={<ClusterHero />}
-          >
-            <QuizList
-              items={UNSUPERVISED_ITEMS}
-              answers={unsupervisedAnswers}
-              onAnswer={(id, value) => setUnsupervisedAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(1)}
-              nextDisabled={!unsupervisedDone}
-              onNext={() => {
-                markComplete(2);
-                setCurrent(3);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 3: Reinforcement Learning */}
-        {current === 3 && (
-          <StageShell
-            tag={STAGE_META[3].tag}
-            title="Agent, Environment, Reward"
-            subtitle="Reinforcement learning is a loop of action and feedback. Get familiar with its parts."
-            progressLabel={`${Object.keys(reinforcementAnswers).length}/${REINFORCEMENT_ITEMS.length} solved`}
-            hero={<LoopHero />}
-          >
-            <QuizList
-              items={REINFORCEMENT_ITEMS}
-              answers={reinforcementAnswers}
-              onAnswer={(id, value) => setReinforcementAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(2)}
-              nextDisabled={!reinforcementDone}
-              onNext={() => {
-                markComplete(3);
-                setCurrent(4);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 4: Linear Regression */}
-        {current === 4 && (
-          <StageShell
-            tag={STAGE_META[4].tag}
-            title="Fit the Line"
-            subtitle="Linear regression predicts numbers by extending the best straight line through the data."
-            progressLabel={`${Object.keys(linearAnswers).length}/${LINEAR_REGRESSION_ITEMS.length} solved`}
-            hero={<RegressionLineHero />}
-          >
-            <QuizList
-              items={LINEAR_REGRESSION_ITEMS}
-              answers={linearAnswers}
-              onAnswer={(id, value) => setLinearAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(3)}
-              nextDisabled={!linearDone}
-              onNext={() => {
-                markComplete(4);
-                setCurrent(5);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 5: Logistic Regression */}
-        {current === 5 && (
-          <StageShell
-            tag={STAGE_META[5].tag}
-            title="Cross the Threshold"
-            subtitle="Logistic regression turns a score into a probability, then a probability into a class."
-            progressLabel={`${Object.keys(logisticAnswers).length}/${LOGISTIC_REGRESSION_ITEMS.length} solved`}
-            hero={<ThresholdGaugeHero />}
-          >
-            <QuizList
-              items={LOGISTIC_REGRESSION_ITEMS}
-              answers={logisticAnswers}
-              onAnswer={(id, value) => setLogisticAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(4)}
-              nextDisabled={!logisticDone}
-              onNext={() => {
-                markComplete(5);
-                setCurrent(6);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 6: Decision Tree */}
-        {current === 6 && (
-          <StageShell
-            tag={STAGE_META[6].tag}
-            title="Follow the Branches"
-            subtitle="A decision tree predicts by asking a sequence of yes/no questions. Trace the path."
-            progressLabel={`${Object.keys(treeAnswers).length}/${DECISION_TREE_ITEMS.length} solved`}
-            hero={<TreeHero />}
-          >
-            <QuizList
-              items={DECISION_TREE_ITEMS}
-              answers={treeAnswers}
-              onAnswer={(id, value) => setTreeAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(5)}
-              nextDisabled={!treeDone}
-              onNext={() => {
-                markComplete(6);
-                setCurrent(7);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 7: KNN */}
-        {current === 7 && (
-          <StageShell
-            tag={STAGE_META[7].tag}
-            title="Vote With Neighbors"
-            subtitle="KNN predicts by asking: what do the nearest existing points say?"
-            progressLabel={`${Object.keys(knnAnswers).length}/${KNN_ITEMS.length} solved`}
-            hero={<KnnHero />}
-          >
-            <QuizList
-              items={KNN_ITEMS}
-              answers={knnAnswers}
-              onAnswer={(id, value) => setKnnAnswers((p) => ({ ...p, [id]: value }))}
-              onFeedback={fireToast}
-            />
-            <NavButtons
-              onBack={() => setCurrent(6)}
-              nextDisabled={!knnDone}
-              nextLabel="Finish Lab"
-              onNext={() => {
-                markComplete(7);
-                setCurrent(certIdx);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* CERTIFICATE */}
-        {current === certIdx && (
-          <div className="aiel-cert">
-            {Array.from({ length: 26 }, (_, i) => ({
-              left: (i * 137) % 100,
-              delay: (i % 10) * 0.22,
-              duration: 2.6 + ((i * 7) % 10) / 5,
-              color: [colors.gold, colors.coral, colors.purple, colors.teal, colors.goldDeep][i % 5],
-              rotate: (i * 53) % 360,
-            })).map((c, i) => (
-              <div
-                key={i}
-                className="aiel-confetti-piece"
-                style={{
-                  left: `${c.left}%`,
-                  background: c.color,
-                  animationDelay: `${c.delay}s`,
-                  animationDuration: `${c.duration}s`,
-                  transform: `rotate(${c.rotate}deg)`,
+          ) : (
+            <div className="mldl-nav-row">
+              <button className="mldl-nav-back" onClick={() => setStage((s) => Math.max(0, s - 1))}>
+                <ChevronLeft size={16} /> Back
+              </button>
+              <button
+                className="mldl-nav-next"
+                onClick={() => {
+                  markComplete(6);
                 }}
-              />
-            ))}
-            <div className="aiel-cert-badge">
-              <Award size={36} color={colors.ink} />
+              >
+                <Rocket size={16} /> Finish Lab
+              </button>
             </div>
-            <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 3</h2>
-            <p className="aiel-cert-desc">
-              You sorted learning styles, told classification from regression, clustered unlabeled
-              data, explored reward-driven learning, and worked through linear regression, logistic
-              regression, decision trees, and KNN.
+          )}
+        </div>
+
+        {completed.every(Boolean) && (
+          <div className="mldl-finish" style={{ marginTop: 24 }}>
+            <div className="mldl-finish-badge"><Award size={38} color="#fff" /></div>
+            <p className="mldl-finish-title">Lab Complete — You Think Like a Machine Learning Engineer!</p>
+            <p className="mldl-finish-desc">
+              You explored Supervised, Unsupervised, and Reinforcement Learning, played with Linear Regression, Logistic Regression,
+              Decision Trees, and KNN, trained a maze-solving agent, and tackled real-world challenges.
             </p>
-
-            <div className="aiel-cert-score">
-              <span className="aiel-cert-score-num">{totalScore}/{totalPossible}</span>
-              <span className="aiel-cert-score-label">correct across all eight stages</span>
+            <div className="mldl-finish-score">
+              <span className="mldl-finish-score-num">{challengeScore}</span>
+              <span className="mldl-finish-score-label">points earned in Challenge Mode</span>
             </div>
-
-            <div className="aiel-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="aiel-cert-item">
-                  <CheckCircle2 size={14} color={colors.teal} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
-
-            <button className="aiel-reset-btn" onClick={resetAll}>
+            <br />
+            <button className="mldl-reset-btn" onClick={resetAll}>
               <RotateCcw size={14} /> Restart the Lab
             </button>
           </div>
