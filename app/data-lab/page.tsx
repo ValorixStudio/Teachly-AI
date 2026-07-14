@@ -1070,7 +1070,7 @@ export default function DataLab() {
               <Award size={36} color="#fff" />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 2</h2>
+            <h2 className="aiel-cert-title">You`ve completed Module 2</h2>
             <p className="aiel-cert-desc">
               You sorted structured from unstructured data, read a real CSV table, decoded pixels,
               turned sound into numbers, and tokenized text -- the raw material behind every AI system.

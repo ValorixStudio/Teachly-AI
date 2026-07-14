@@ -42,13 +42,13 @@ const LAYERS = [
 const VIEW_W = 1000;
 const VIEW_H = 460;
 
-function layerX(index) {
+function layerX(index:number) {
   const margin = 110;
   const usable = VIEW_W - margin * 2;
   return margin + (usable * index) / (LAYERS.length - 1);
 }
 
-function nodeYs(count) {
+function nodeYs(count:number) {
   const spacing = 62;
   const total = (count - 1) * spacing;
   const start = VIEW_H / 2 - total / 2;
@@ -63,7 +63,7 @@ function paramCount() {
   return total;
 }
 
-function seededRandom(seed) {
+function seededRandom(seed:number) {
   let s = seed;
   return () => {
     s = (s * 9301 + 49297) % 233280;
@@ -507,7 +507,7 @@ export default function Page() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  function showToast(msg) {
+  function showToast(msg:any) {
     setToast(msg);
   }
 
