@@ -560,7 +560,7 @@ export default function DeepLearningLab() {
               <Award size={36} color={colors.ink} />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 5</h2>
+            <h2 className="aiel-cert-title">You`ve completed Module 5</h2>
             <p className="aiel-cert-desc">
               You explored how CNNs scan images for patterns, how RNNs carry memory through a
               sequence, how LSTMs remember over much longer stretches, and how transformers use

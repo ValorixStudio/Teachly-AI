@@ -15,31 +15,112 @@ import {
   Award,
   RotateCcw,
   Sparkles,
+  Play,
+  Loader2,
   LucideIcon,
 } from "lucide-react";
 
 const colors = {
-  bg: "#FFF7E3",
-  bgSoft: "#FFEFC8",
+  bg: "#F0F4F8",
+  bgSoft: "#E7ECF5",
   card: "#FFFFFF",
-  cardAlt: "#F6F1FF",
-  border: "#FFD866",
-  borderSoft: "#FFE9A8",
-  gold: "#F5A623",
-  goldDeep: "#E2860A",
-  goldDeepest: "#B96A05",
-  coral: "#FF7A59",
-  coralDeep: "#E85A38",
-  purple: "#A855F7",
-  purpleDeep: "#8B34E0",
-  teal: "#2FB6A3",
-  tealDeep: "#1F9585",
-  ink: "#3A2E1E",
-  inkSoft: "#5A4B34",
-  muted: "#8A7A5C",
-  codeBg: "#2B2440",
-  codeText: "#F3EFFF",
+  cardAlt: "#F8FAFC",
+  border: "rgba(148,163,184,0.25)",
+  borderSoft: "rgba(148,163,184,0.18)",
+  borderActive: "rgba(99,102,241,0.4)",
+  gold: "#6366F1",
+  goldDeep: "#4F46E5",
+  goldDeepest: "#3730A3",
+  coral: "#F43F5E",
+  coralDeep: "#E11D48",
+  purple: "#8B5CF6",
+  purpleDeep: "#7C3AED",
+  teal: "#06B6D4",
+  tealDeep: "#0E7490",
+  ink: "#1E293B",
+  inkSoft: "#475569",
+  muted: "#94A3B8",
+  codeBg: "#1E1B31",
+  codeText: "#ECE7FF",
 };
+
+/* ---------------------------- IN-BROWSER PYTHON RUNTIME ----------------------------
+   Loads Pyodide (a real Python interpreter compiled to WebAssembly) from a CDN,
+   once, and reuses the same instance for every "Run Code" click across all stages.
+------------------------------------------------------------------------------------ */
+declare global {
+  interface Window {
+    loadPyodide?: (config?: Record<string, unknown>) => Promise<any>;
+  }
+}
+
+let pyodideLoadPromise: Promise<any> | null = null;
+
+function loadPyodideRuntime(): Promise<any> {
+  if (pyodideLoadPromise) return pyodideLoadPromise;
+  pyodideLoadPromise = new Promise((resolve, reject) => {
+    const start = () => {
+      if (!window.loadPyodide) {
+        reject(new Error("Pyodide failed to initialize."));
+        return;
+      }
+      window
+        .loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/" })
+        .then(resolve)
+        .catch(reject);
+    };
+    if (window.loadPyodide) {
+      start();
+      return;
+    }
+    const existing = document.getElementById("pyodide-script");
+    if (existing) {
+      existing.addEventListener("load", start);
+      existing.addEventListener("error", () => reject(new Error("Failed to load Python runtime.")));
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "pyodide-script";
+    script.src = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+    script.async = true;
+    script.onload = start;
+    script.onerror = () => reject(new Error("Failed to load Python runtime."));
+    document.body.appendChild(script);
+  });
+  return pyodideLoadPromise;
+}
+
+async function runPythonSnippet(code: string): Promise<{ output: string; isError: boolean }> {
+  try {
+    const pyodide = await loadPyodideRuntime();
+    let captured = "";
+    pyodide.setStdout({
+      batched: (s: string) => {
+        captured += s + "\n";
+      },
+    });
+    pyodide.setStderr({
+      batched: (s: string) => {
+        captured += s + "\n";
+      },
+    });
+    try {
+      await pyodide.runPythonAsync(code);
+      return { output: captured.trim() || "(no output)", isError: false };
+    } catch (err: any) {
+      const message = (err && err.message) || String(err);
+      // Trim Pyodide's internal traceback noise down to the last, most useful line.
+      const lines = message.split("\n").filter(Boolean);
+      const friendly = lines[lines.length - 1] || message;
+      return { output: `${captured}${friendly}`.trim(), isError: true };
+    }
+  } catch (err: any) {
+    return {
+      output: "Couldn't load the Python runtime. Check your connection and try again.",
+      isError: true,
+    };
+  }
+}
 
 /* All layout/spacing/typography lives in plain CSS below, so this component
    has zero dependency on Tailwind being configured in the host project. */
@@ -49,7 +130,7 @@ const STYLES = `
     width: 100%;
     padding: 32px 16px;
     background: radial-gradient(circle at 20% -10%, ${colors.bgSoft} 0%, ${colors.bg} 55%);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     box-sizing: border-box;
     position: relative;
     overflow-x: hidden;
@@ -62,11 +143,11 @@ const STYLES = `
   }
 
   /* -------------------- Decorative floating blobs -------------------- */
-  .aiel-blob { position: absolute; border-radius: 999px; filter: blur(2px); opacity: 0.32; pointer-events: none; z-index: 0; }
-  .aiel-blob-1 { width: 140px; height: 140px; background: ${colors.gold}; top: 0px; left: 4%; animation: aiel-float-a 9s ease-in-out infinite; }
-  .aiel-blob-2 { width: 90px; height: 90px; background: ${colors.coral}; top: 60px; right: 6%; animation: aiel-float-b 7s ease-in-out infinite; }
-  .aiel-blob-3 { width: 60px; height: 60px; background: ${colors.purple}; top: 220px; left: 10%; animation: aiel-float-c 8s ease-in-out infinite; }
-  .aiel-blob-4 { width: 100px; height: 100px; background: ${colors.teal}; top: 180px; right: 14%; animation: aiel-float-a 10s ease-in-out infinite; }
+  .aiel-blob { position: absolute; border-radius: 999px; filter: blur(70px); opacity: 0.3; pointer-events: none; z-index: 0; }
+  .aiel-blob-1 { width: 320px; height: 320px; background: #A5B4FC; top: -60px; left: 2%; animation: aiel-float-a 9s ease-in-out infinite; }
+  .aiel-blob-2 { width: 240px; height: 240px; background: ${colors.coral}; top: 40px; right: 4%; animation: aiel-float-b 7s ease-in-out infinite; opacity: 0.22; }
+  .aiel-blob-3 { width: 200px; height: 200px; background: ${colors.purple}; top: 260px; left: 6%; animation: aiel-float-c 8s ease-in-out infinite; opacity: 0.2; }
+  .aiel-blob-4 { width: 260px; height: 260px; background: #A5F3FC; top: 160px; right: 10%; animation: aiel-float-a 10s ease-in-out infinite; opacity: 0.25; }
   @keyframes aiel-float-a { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(10px, -18px) scale(1.06); } }
   @keyframes aiel-float-b { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-14px, 12px) scale(0.94); } }
   @keyframes aiel-float-c { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(8px, 16px); } }
@@ -75,44 +156,45 @@ const STYLES = `
 
   .topic-back-btn {
     display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; margin-bottom: 18px;
-    border-radius: 999px; background: ${colors.card}; border: 2px solid ${colors.borderSoft};
-    color: ${colors.inkSoft}; font-weight: 700; font-size: 13px; text-decoration: none;
-    transition: transform 0.15s ease, background 0.15s ease;
+    border-radius: 999px; background: rgba(255,255,255,0.72); border: 1px solid ${colors.border};
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: ${colors.inkSoft}; font-weight: 600; font-size: 13px; text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .topic-back-btn:hover { background: ${colors.borderSoft}; transform: translateX(-2px); }
+  .topic-back-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
 
   .aiel-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; margin-bottom: 28px; }
   .aiel-header-icon {
     width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: ${colors.card}; border: 2.5px solid ${colors.border};
-    box-shadow: 0 6px 0 ${colors.border};
+    background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 8px 24px rgba(99,102,241,0.18), 0 1px 3px rgba(0,0,0,0.04);
     animation: aiel-bob 3s ease-in-out infinite;
   }
   @keyframes aiel-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(-4deg); } }
   .aiel-eyebrow {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
     color: ${colors.goldDeep}; margin: 4px 0 0 0;
   }
   .aiel-h1 {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
-    font-size: 28px;
-    background: linear-gradient(90deg, #D9A62B 0%, ${colors.coral} 45%, ${colors.purple} 100%);
+    font-family: 'Inter', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
+    font-size: 28px; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, ${colors.goldDeep} 0%, ${colors.purple} 55%, ${colors.coral} 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: ${colors.purple};
   }
   @media (min-width: 640px) { .aiel-h1 { font-size: 34px; } }
-  .aiel-subtitle { font-size: 15px; color: ${colors.muted}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.55; }
+  .aiel-subtitle { font-size: 15px; color: ${colors.inkSoft}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.6; }
 
   /* -------------------- Reaction toast -------------------- */
   .aiel-toast {
     position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
-    font-weight: 700; font-size: 13.5px; color: ${colors.ink}; z-index: 50;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    font-weight: 700; font-size: 13.5px; color: white; z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     animation: aiel-toast-in 0.35s ease forwards;
   }
-  .aiel-toast-up { background: linear-gradient(180deg, #B9F3E7 0%, ${colors.teal} 100%); border: 2px solid ${colors.tealDeep}; }
-  .aiel-toast-down { background: linear-gradient(180deg, #FFE0D2 0%, #FFC1A6 100%); border: 2px solid ${colors.coralDeep}; }
+  .aiel-toast-up { background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep}); }
+  .aiel-toast-down { background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); }
   @keyframes aiel-toast-in {
     0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.9); }
     60% { opacity: 1; transform: translateX(-50%) translateY(2px) scale(1.03); }
@@ -120,8 +202,8 @@ const STYLES = `
   }
 
   .aiel-progress-track {
-    width: 100%; height: 14px; border-radius: 999px; background: #FFFFFF;
-    border: 2px solid ${colors.borderSoft}; overflow: hidden; margin-bottom: 18px; position: relative;
+    width: 100%; height: 12px; border-radius: 999px; background: #FFFFFF;
+    border: 1px solid ${colors.border}; overflow: hidden; margin-bottom: 18px; position: relative;
   }
   .aiel-progress-fill {
     height: 100%; border-radius: 999px; position: relative; overflow: hidden;
@@ -142,11 +224,11 @@ const STYLES = `
   .aiel-stamp-btn {
     display: flex; align-items: center; gap: 8px;
     padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease; flex: 1; min-width: 130px; justify-content: center;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; flex: 1; min-width: 130px; justify-content: center;
   }
-  .aiel-stamp-btn:hover { transform: translateY(-2px); }
+  .aiel-stamp-btn:hover { transform: translateY(-2px); border-color: ${colors.borderActive}; }
   .aiel-stamp-label {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
     text-align: center; white-space: nowrap;
   }
   @media (max-width: 639px) {
@@ -154,20 +236,31 @@ const STYLES = `
     .aiel-stamp-btn { min-width: 0; padding: 12px; }
   }
 
-  .aiel-stage-shell { border-radius: 28px; padding: 20px; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; }
-  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
-  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .aiel-stage-tag {
-    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal};
+  .aiel-stage-shell {
+    border-radius: 24px; padding: 20px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
   }
-  .aiel-stage-progress { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: ${colors.muted}; }
+  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
+  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .aiel-stage-tag {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.tealDeep};
+    background: rgba(6,182,212,0.1); padding: 5px 14px; border-radius: 999px;
+  }
+  .aiel-stage-progress {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: white;
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
+    padding: 5px 12px; border-radius: 999px;
+  }
   .aiel-stage-title {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep};
-    font-size: 24px; margin: 4px 0 8px 0;
+    font-family: 'Inter', sans-serif; font-weight: 800; color: ${colors.goldDeep};
+    font-size: 24px; margin: 10px 0 8px 0; letter-spacing: -0.01em;
   }
   @media (min-width: 640px) { .aiel-stage-title { font-size: 28px; } }
-  .aiel-stage-subtitle { font-size: 14px; color: ${colors.muted}; margin: 0 0 20px 0; }
+  .aiel-stage-subtitle { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 20px 0; line-height: 1.55; }
 
   /* -------------------- Stage hero illustrations, driven by real code content -------------------- */
   .aiel-hero { display: flex; align-items: center; justify-content: center; margin-bottom: 22px; min-height: 74px; }
@@ -176,45 +269,45 @@ const STYLES = `
   .aiel-mem-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .aiel-mem-box {
     display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 16px; border-radius: 12px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; min-width: 64px;
+    background: ${colors.cardAlt}; border: 1px solid ${colors.border}; min-width: 64px;
     opacity: 0; animation: aiel-hero-in 0.4s ease forwards; transition: transform 0.2s ease;
   }
   .aiel-mem-label { font-family: 'Menlo', 'Consolas', monospace; font-size: 11px; font-weight: 700; color: ${colors.muted}; }
   .aiel-mem-value { font-family: 'Menlo', 'Consolas', monospace; font-size: 15px; font-weight: 800; color: ${colors.ink}; }
   .aiel-mem-active {
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); border-color: ${colors.goldDeep};
-    box-shadow: 0 4px 0 ${colors.goldDeep}; transform: translateY(-3px);
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple}); border-color: transparent;
+    box-shadow: 0 6px 18px rgba(99,102,241,0.35); transform: translateY(-3px);
   }
-  .aiel-mem-active .aiel-mem-label { color: ${colors.goldDeepest}; }
-  .aiel-mem-active .aiel-mem-value { color: ${colors.ink}; }
+  .aiel-mem-active .aiel-mem-label { color: rgba(255,255,255,0.8); }
+  .aiel-mem-active .aiel-mem-value { color: #fff; }
   @keyframes aiel-hero-in { from { opacity: 0; transform: translateY(6px) scale(0.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
   /* Loops: iteration track */
   .aiel-loop-track { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
   .aiel-loop-step {
     width: 38px; height: 38px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-    background: ${colors.card}; border: 2px solid ${colors.borderSoft}; font-family: 'Menlo', 'Consolas', monospace;
+    background: ${colors.card}; border: 1px solid ${colors.border}; font-family: 'Menlo', 'Consolas', monospace;
     font-weight: 800; font-size: 13px; color: ${colors.ink};
     opacity: 0; animation: aiel-hero-in 0.4s ease forwards;
   }
   .aiel-loop-step-active {
-    background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); border-color: ${colors.tealDeep}; color: #fff;
-    box-shadow: 0 4px 0 ${colors.tealDeep}; transform: scale(1.15);
+    background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep}); border-color: transparent; color: #fff;
+    box-shadow: 0 6px 16px rgba(6,182,212,0.35); transform: scale(1.15);
   }
   .aiel-hero-arrow { color: ${colors.muted}; font-size: 14px; }
 
   /* Functions: input -> machine -> output */
   .aiel-fn-machine { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .aiel-fn-chip {
-    padding: 9px 16px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
+    padding: 9px 16px; border-radius: 999px; background: ${colors.cardAlt}; border: 1px solid ${colors.border};
     font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; font-weight: 700; color: ${colors.ink};
   }
   .aiel-fn-output-none { border-style: dashed; border-color: ${colors.muted}; color: ${colors.muted}; font-style: italic; background: transparent; }
   .aiel-fn-box {
     display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 18px; border-radius: 16px;
-    background: linear-gradient(180deg, #C9A6FF 0%, ${colors.purple} 100%); box-shadow: 0 5px 0 ${colors.purpleDeep}; color: #fff;
+    background: linear-gradient(135deg, ${colors.purple}, ${colors.purpleDeep}); box-shadow: 0 8px 20px rgba(139,92,246,0.35); color: #fff;
   }
-  .aiel-fn-box-name { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 13px; }
+  .aiel-fn-box-name { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px; }
 
   /* Lists: indexed array */
   .aiel-array-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
@@ -222,12 +315,12 @@ const STYLES = `
   .aiel-array-index { font-size: 10px; color: ${colors.muted}; font-family: 'Menlo', 'Consolas', monospace; margin-bottom: 3px; font-weight: 700; }
   .aiel-array-cell {
     position: relative; min-width: 48px; padding: 10px 8px; border-radius: 10px; background: ${colors.card};
-    border: 2px solid ${colors.borderSoft}; font-family: 'Menlo', 'Consolas', monospace; font-weight: 700; font-size: 12px;
+    border: 1px solid ${colors.border}; font-family: 'Menlo', 'Consolas', monospace; font-weight: 700; font-size: 12px;
     text-align: center; color: ${colors.ink}; transition: transform 0.2s ease;
   }
   .aiel-array-cell-active {
-    background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); border-color: ${colors.coralDeep}; color: #fff;
-    box-shadow: 0 4px 0 ${colors.coralDeep}; transform: translateY(-3px);
+    background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); border-color: transparent; color: #fff;
+    box-shadow: 0 6px 16px rgba(244,63,94,0.35); transform: translateY(-3px);
   }
   .aiel-array-cell-new { border-style: dashed; border-color: ${colors.tealDeep}; animation: aiel-hero-in 0.5s ease; }
   .aiel-array-badge {
@@ -239,71 +332,112 @@ const STYLES = `
   .aiel-dict-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .aiel-dict-pair { position: relative; display: flex; align-items: stretch; }
   .aiel-dict-key {
-    padding: 8px 12px; border-radius: 10px 0 0 10px; background: ${colors.borderSoft};
-    font-family: 'Menlo', 'Consolas', monospace; font-weight: 700; font-size: 12px; color: ${colors.goldDeepest};
+    padding: 8px 12px; border-radius: 10px 0 0 10px; background: ${colors.cardAlt}; border: 1px solid ${colors.border}; border-right: none;
+    font-family: 'Menlo', 'Consolas', monospace; font-weight: 700; font-size: 12px; color: ${colors.goldDeep};
     display: flex; align-items: center;
   }
   .aiel-dict-value {
-    padding: 8px 12px; border-radius: 0 10px 10px 0; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
+    padding: 8px 12px; border-radius: 0 10px 10px 0; background: ${colors.cardAlt}; border: 1px solid ${colors.border};
     border-left: none; font-family: 'Menlo', 'Consolas', monospace; font-weight: 700; font-size: 12px; color: ${colors.ink};
     display: flex; align-items: center;
   }
-  .aiel-dict-pair-active .aiel-dict-key { background: ${colors.gold}; color: #fff; }
-  .aiel-dict-pair-active .aiel-dict-value { background: #FFEBAE; border-color: ${colors.goldDeep}; color: ${colors.goldDeepest}; font-weight: 800; }
+  .aiel-dict-pair-active .aiel-dict-key { background: linear-gradient(135deg, ${colors.gold}, ${colors.goldDeep}); border-color: transparent; color: #fff; }
+  .aiel-dict-pair-active .aiel-dict-value { background: rgba(99,102,241,0.08); border-color: ${colors.borderActive}; color: ${colors.goldDeep}; font-weight: 800; }
   .aiel-dict-pair-new { animation: aiel-hero-in 0.5s ease; }
-  .aiel-dict-fallback .aiel-dict-key { border-style: dashed; border: 2px dashed ${colors.coralDeep}; background: transparent; color: ${colors.coralDeep}; }
+  .aiel-dict-fallback .aiel-dict-key { border-style: dashed; border: 1px dashed ${colors.coralDeep}; background: transparent; color: ${colors.coralDeep}; }
   .aiel-dict-fallback .aiel-dict-value { font-style: italic; color: ${colors.coralDeep}; }
 
-  .aiel-item-list { display: flex; flex-direction: column; gap: 12px; }
+  .aiel-item-list { display: flex; flex-direction: column; gap: 14px; }
   .aiel-item-card {
-    border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
+    border-radius: 18px; padding: 20px; background: ${colors.card}; border: 1px solid ${colors.border};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     opacity: 0; animation: aiel-card-in 0.4s ease forwards;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
+  .aiel-item-card:hover { border-color: ${colors.borderActive}; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
   @keyframes aiel-card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .aiel-item-text { font-size: 14px; color: ${colors.ink}; margin: 0 0 12px 0; font-weight: 500; }
 
   .aiel-code-block {
     background: ${colors.codeBg}; color: ${colors.codeText}; border-radius: 14px; padding: 14px 16px;
     font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; line-height: 1.6;
-    white-space: pre; overflow-x: auto; margin: 0 0 10px 0;
+    white-space: pre; overflow-x: auto; margin: 0 0 12px 0;
   }
-  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 12px 0; font-weight: 600; }
+  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 14px 0; font-weight: 600; }
 
-  .aiel-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .aiel-run-row { display: flex; align-items: center; gap: 10px; margin: -4px 0 14px 0; }
+  .aiel-run-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px;
+    font-size: 12.5px; font-weight: 700; color: ${colors.tealDeep};
+    background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .aiel-run-btn:hover:not([disabled]) { background: rgba(6,182,212,0.18); transform: translateY(-1px); }
+  .aiel-run-btn:active:not([disabled]) { transform: translateY(0); }
+  .aiel-run-btn[disabled] { opacity: 0.6; cursor: wait; }
+  .aiel-run-hint { font-size: 11.5px; color: ${colors.muted}; }
+  .aiel-run-output {
+    display: flex; flex-direction: column; gap: 4px; margin: 0 0 14px 0; padding: 10px 14px;
+    border-radius: 12px; background: ${colors.cardAlt}; border: 1px solid ${colors.border};
+    animation: aiel-card-in 0.3s ease forwards;
+  }
+  .aiel-run-output-label {
+    font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; color: ${colors.muted};
+  }
+  .aiel-run-output-text {
+    font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; color: ${colors.ink};
+    margin: 0; white-space: pre-wrap; word-break: break-word;
+  }
+  .aiel-run-output-error { color: ${colors.coralDeep}; }
+  .aiel-spin { animation: aiel-spin 0.8s linear infinite; }
+  @keyframes aiel-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .aiel-choice-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .aiel-choice-btn {
-    flex: 1; font-size: 12px; font-weight: 700; padding: 12px 8px; border-radius: 999px; color: ${colors.ink};
-    box-shadow: 0 4px 0 rgba(0,0,0,0.18); transition: transform 0.12s ease, box-shadow 0.12s ease;
+    flex: 1; font-size: 12.5px; font-weight: 700; padding: 13px 10px; border-radius: 14px; color:black
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15); transition: transform 0.15s ease, box-shadow 0.15s ease;
     min-width: 100px; font-family: 'Menlo', 'Consolas', monospace;
   }
-  .aiel-choice-btn:hover { transform: translateY(-1px); }
-  .aiel-choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
-  .aiel-choice-teal { background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); }
-  .aiel-choice-coral { background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); }
-  .aiel-choice-gold { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); }
+  .aiel-choice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.2); }
+  .aiel-choice-btn:active { transform: translateY(1px); }
+  .aiel-choice-teal { background: linear-gradient(135deg, ${colors.teal}, ${colors.tealDeep}); }
+  .aiel-choice-coral { background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); }
+  .aiel-choice-gold { background: linear-gradient(135deg, ${colors.gold}, ${colors.purple}); }
 
-  .aiel-feedback { display: flex; align-items: flex-start; gap: 8px; animation: aiel-card-in 0.3s ease forwards; }
-  .aiel-feedback-text { font-size: 12px; color: ${colors.muted}; margin: 0; line-height: 1.5; }
+  .aiel-feedback {
+    display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 14px;
+    animation: aiel-card-in 0.3s ease forwards;
+  }
+  .aiel-feedback-text { font-size: 12.5px; color: ${colors.inkSoft}; margin: 0; line-height: 1.55; }
   .aiel-feedback-icon { margin-top: 2px; flex-shrink: 0; }
 
-  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; }
+  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; gap: 12px; }
   .aiel-nav-back {
-    display: flex; align-items: center; gap: 4px; padding: 10px 18px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.cardAlt};
-    transition: transform 0.12s ease, background 0.15s ease;
+    display: flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.card}; border: 1px solid ${colors.border};
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .aiel-nav-back:not([disabled]):hover { background: ${colors.borderSoft}; transform: translateY(-1px); }
+  .aiel-nav-back:not([disabled]):hover { color: ${colors.gold}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
   .aiel-nav-next {
-    display: flex; align-items: center; gap: 4px; padding: 12px 22px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.ink};
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    box-shadow: 0 5px 0 ${colors.goldDeep};
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    display: flex; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: black
+    background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .aiel-nav-next:not([disabled]):hover { transform: translateY(-1px); }
-  .aiel-nav-next:not([disabled]):active { transform: translateY(4px); box-shadow: 0 1px 0 ${colors.goldDeep}; }
+  .aiel-nav-next:not([disabled]):hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.35); }
+  .aiel-nav-next:not([disabled]):active { transform: translateY(1px); }
   .aiel-nav-next[disabled], .aiel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
 
-  .aiel-cert { border-radius: 28px; padding: 32px 20px; text-align: center; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; position: relative; overflow: hidden; }
+  .aiel-cert {
+    border-radius: 24px; padding: 32px 20px; text-align: center;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    position: relative; overflow: hidden;
+  }
   @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
   .aiel-confetti-piece { position: absolute; top: -14px; width: 8px; height: 14px; opacity: 0.9; animation: aiel-confetti-fall linear infinite; border-radius: 2px; }
   @keyframes aiel-confetti-fall {
@@ -313,30 +447,31 @@ const STYLES = `
   .aiel-cert-badge {
     margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(180deg, #FFC65C 0%, ${colors.gold} 100%);
-    box-shadow: 0 6px 0 ${colors.goldDeep};
+    background: linear-gradient(135deg, #F59E0B, #F97316);
+    box-shadow: 0 10px 28px rgba(245,158,11,0.35);
     position: relative; z-index: 1;
     animation: aiel-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes aiel-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .aiel-cert-eyebrow { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .aiel-cert-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .aiel-cert-desc { font-size: 14px; color: ${colors.muted}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
+  .aiel-cert-eyebrow { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.gold}; margin: 0 0 8px 0; position: relative; z-index: 1; }
+  .aiel-cert-title { font-family: 'Inter', sans-serif; font-weight: 800; color: ${colors.ink}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
+  .aiel-cert-desc { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
   .aiel-cert-score {
     display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; position: relative; z-index: 1;
+    background: ${colors.card}; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; z-index: 1;
   }
-  .aiel-cert-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.goldDeep}; }
+  .aiel-cert-score-num { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.gold}; }
   .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
   .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
   @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(5, 1fr); } }
-  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
+  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.card}; border: 1px solid ${colors.border}; }
   .aiel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
   .aiel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
-    padding: 12px 22px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.border}; color: ${colors.ink};
-    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
+    padding: 14px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft};
+    position: relative; z-index: 1; transition: color 0.2s ease, border-color 0.2s ease;
   }
+  .aiel-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
 `;
 
 /* ---------------------------- TYPES ---------------------------- */
@@ -452,7 +587,7 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
           const isCurrent = current === i;
           const bg =
             isDone || isCurrent
-              ? `linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%)`
+              ? `linear-gradient(135deg, ${colors.gold}, ${colors.purple})`
               : colors.card;
           return (
             <button
@@ -461,16 +596,16 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
               onClick={() => onJump(i)}
               style={{
                 background: bg,
-                border: `2px solid ${isDone || isCurrent ? colors.goldDeep : colors.borderSoft}`,
-                boxShadow: isDone || isCurrent ? `0 4px 0 ${colors.goldDeep}` : "none",
+                border: `1px solid ${isDone || isCurrent ? "transparent" : colors.border}`,
+                boxShadow: isDone || isCurrent ? `0 4px 15px rgba(99,102,241,0.3)` : "none",
               }}
             >
               {isDone ? (
-                <CheckCircle2 size={18} color={colors.ink} strokeWidth={2.5} />
+                <CheckCircle2 size={18} color="#fff" strokeWidth={2.5} />
               ) : (
-                <Icon size={16} color={isCurrent ? colors.ink : colors.muted} />
+                <Icon size={16} color={isCurrent ? "#fff" : colors.muted} />
               )}
-              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? colors.ink : colors.muted }}>
+              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? "#fff" : colors.muted }}>
                 {s.title}
               </span>
             </button>
@@ -665,14 +800,41 @@ interface CodeChallengeListProps {
 
 function CodeChallengeList({ items, answers, onAnswer, onFeedback }: CodeChallengeListProps) {
   const palette = ["aiel-choice-teal", "aiel-choice-coral", "aiel-choice-gold"];
+  const [runningId, setRunningId] = useState<string | null>(null);
+  const [runResults, setRunResults] = useState<Record<string, { output: string; isError: boolean }>>({});
+
+  const handleRun = async (item: CodeItem) => {
+    setRunningId(item.id);
+    const result = await runPythonSnippet(item.code);
+    setRunResults((prev) => ({ ...prev, [item.id]: result }));
+    setRunningId(null);
+  };
+
   return (
     <div className="aiel-item-list">
       {items.map((item, idx) => {
         const chosen = answers[item.id];
         const isCorrect = chosen === item.answer;
+        const isRunning = runningId === item.id;
+        const result = runResults[item.id];
         return (
           <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
             <pre className="aiel-code-block">{item.code}</pre>
+            <div className="aiel-run-row">
+              <button className="aiel-run-btn" onClick={() => handleRun(item)} disabled={isRunning}>
+                {isRunning ? <Loader2 size={14} className="aiel-spin" /> : <Play size={14} />}
+                {isRunning ? "Running..." : "Run this code"}
+              </button>
+              <span className="aiel-run-hint">See the real output before you answer</span>
+            </div>
+            {result && (
+              <div className="aiel-run-output">
+                <span className="aiel-run-output-label">Output</span>
+                <pre className={`aiel-run-output-text ${result.isError ? "aiel-run-output-error" : ""}`}>
+                  {result.output}
+                </pre>
+              </div>
+            )}
             <p className="aiel-item-question">{item.question}</p>
             {!chosen ? (
               <div className="aiel-choice-row">
@@ -690,9 +852,12 @@ function CodeChallengeList({ items, answers, onAnswer, onFeedback }: CodeChallen
                 ))}
               </div>
             ) : (
-              <div className="aiel-feedback">
+              <div
+                className="aiel-feedback"
+                style={{ background: isCorrect ? "rgba(6,182,212,0.08)" : "rgba(244,63,94,0.08)" }}
+              >
                 {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
+                  <CheckCircle2 size={16} color={colors.tealDeep} className="aiel-feedback-icon" />
                 ) : (
                   <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
                 )}
@@ -804,7 +969,7 @@ export default function PythonBasicsLab() {
   return (
     <div className="aiel-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         ${STYLES}
       `}</style>
 
@@ -996,7 +1161,7 @@ export default function PythonBasicsLab() {
         {current === 5 && (
           <div className="aiel-cert">
             <div className="aiel-cert-badge">
-              <Award size={36} color={colors.ink} />
+              <Award size={36} color="#fff" />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
             <h2 className="aiel-cert-title">You've completed Module 1</h2>
@@ -1013,7 +1178,7 @@ export default function PythonBasicsLab() {
             <div className="aiel-cert-grid">
               {STAGE_META.map((s) => (
                 <div key={s.key} className="aiel-cert-item">
-                  <CheckCircle2 size={14} color={colors.teal} />
+                  <CheckCircle2 size={14} color={colors.tealDeep} />
                   <p>{s.title}</p>
                 </div>
               ))}
