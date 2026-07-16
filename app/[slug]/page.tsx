@@ -77,7 +77,7 @@ interface TopicContent {
   accent: AccentKey;
   icon: typeof Lightbulb;
   sections: Section[];
- 
+  handsOnPrompt?: string;
 }
 
 /* ---------------------------- STYLES ---------------------------- */
