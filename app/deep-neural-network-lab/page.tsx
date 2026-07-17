@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import {
   Brain,
   Share2,
@@ -63,12 +63,268 @@ function paramCount() {
   return total;
 }
 
-function seededRandom(seed:number) {
-  let s = seed;
-  return () => {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
+/* ------------------------------------------------------------------ */
+/*  Real neural network engine — actual forward pass, backprop, and    */
+/*  gradient-descent weight updates. No randomised/fake curves: every  */
+/*  loss, accuracy, and activation value below is computed from this.  */
+/* ------------------------------------------------------------------ */
+
+type Sample = { x: number[]; y: number[] };
+
+type NetWeights = {
+  W1: number[][]; b1: number[];
+  W2: number[][]; b2: number[];
+  W3: number[][]; b3: number[];
+};
+
+function randWeight(fanIn: number, fanOut: number) {
+  const limit = Math.sqrt(6 / (fanIn + fanOut)); // Xavier/Glorot uniform init
+  return (Math.random() * 2 - 1) * limit;
+}
+
+function initNetwork(): NetWeights {
+  const sizes = LAYERS.map((l) => l.units); // [4, 6, 5, 2]
+  const makeW = (nIn: number, nOut: number) =>
+    Array.from({ length: nIn }, () => Array.from({ length: nOut }, () => randWeight(nIn, nOut)));
+  const makeB = (nOut: number) => Array.from({ length: nOut }, () => 0);
+  return {
+    W1: makeW(sizes[0], sizes[1]), b1: makeB(sizes[1]),
+    W2: makeW(sizes[1], sizes[2]), b2: makeB(sizes[2]),
+    W3: makeW(sizes[2], sizes[3]), b3: makeB(sizes[3]),
   };
+}
+
+function zerosLikeNet(net: NetWeights): NetWeights {
+  const zW = (W: number[][]) => W.map((row) => row.map(() => 0));
+  const zB = (b: number[]) => b.map(() => 0);
+  return {
+    W1: zW(net.W1), b1: zB(net.b1),
+    W2: zW(net.W2), b2: zB(net.b2),
+    W3: zW(net.W3), b3: zB(net.b3),
+  };
+}
+
+function relu(x: number) { return x > 0 ? x : 0; }
+function reluDeriv(x: number) { return x > 0 ? 1 : 0; }
+
+function matVec(x: number[], W: number[][], b: number[]) {
+  const out = new Array(b.length).fill(0);
+  for (let j = 0; j < b.length; j++) {
+    let s = b[j];
+    for (let i = 0; i < x.length; i++) s += x[i] * W[i][j];
+    out[j] = s;
+  }
+  return out;
+}
+
+function softmax(z: number[]) {
+  const m = Math.max(...z);
+  const exps = z.map((v) => Math.exp(v - m));
+  const sum = exps.reduce((a, b) => a + b, 0);
+  return exps.map((v) => v / sum);
+}
+
+function forwardPass(x: number[], net: NetWeights) {
+  const z1 = matVec(x, net.W1, net.b1);
+  const a1 = z1.map(relu);
+  const z2 = matVec(a1, net.W2, net.b2);
+  const a2 = z2.map(relu);
+  const z3 = matVec(a2, net.W3, net.b3);
+  const a3 = softmax(z3);
+  return { x, z1, a1, z2, a2, z3, a3 };
+}
+
+// dL/da for the chosen loss function, plus the scalar loss itself.
+function lossAndOutputGrad(pred: number[], target: number[], lossFn: string) {
+  const n = pred.length;
+  let loss = 0;
+  const dLda = new Array(n).fill(0);
+  if (lossFn === "Cross Entropy") {
+    for (let i = 0; i < n; i++) {
+      const p = Math.min(Math.max(pred[i], 1e-7), 1 - 1e-7);
+      loss += -target[i] * Math.log(p);
+      dLda[i] = -target[i] / p;
+    }
+  } else if (lossFn === "Mean Absolute Error") {
+    for (let i = 0; i < n; i++) {
+      const diff = pred[i] - target[i];
+      loss += Math.abs(diff) / n;
+      dLda[i] = (diff > 0 ? 1 : diff < 0 ? -1 : 0) / n;
+    }
+  } else {
+    // Mean Squared Error (default)
+    for (let i = 0; i < n; i++) {
+      const diff = pred[i] - target[i];
+      loss += (diff * diff) / n;
+      dLda[i] = (2 * diff) / n;
+    }
+  }
+  return { loss, dLda };
+}
+
+// Combine dL/da with the softmax Jacobian (dai/dzj = ai*(delta_ij - aj)) to get dL/dz.
+function softmaxBackward(a: number[], dLda: number[]) {
+  const n = a.length;
+  const dz = new Array(n).fill(0);
+  for (let j = 0; j < n; j++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const dai_dzj = a[i] * ((i === j ? 1 : 0) - a[j]);
+      s += dLda[i] * dai_dzj;
+    }
+    dz[j] = s;
+  }
+  return dz;
+}
+
+function denseBackward(prevA: number[], delta: number[]) {
+  const dW = prevA.map((a) => delta.map((d) => a * d));
+  return { dW, db: delta.slice() };
+}
+
+// Propagates dL/dz at the current layer back through weights W to the
+// previous layer's activation, then through ReLU's derivative.
+function propagateDelta(delta: number[], W: number[][], prevZ: number[]) {
+  const nIn = W.length;
+  const dPrevA = new Array(nIn).fill(0);
+  for (let i = 0; i < nIn; i++) {
+    let s = 0;
+    for (let j = 0; j < delta.length; j++) s += W[i][j] * delta[j];
+    dPrevA[i] = s;
+  }
+  return dPrevA.map((v, i) => v * reluDeriv(prevZ[i]));
+}
+
+type Grads = { dW1: number[][]; db1: number[]; dW2: number[][]; db2: number[]; dW3: number[][]; db3: number[] };
+
+function backwardSample(cache: ReturnType<typeof forwardPass>, net: NetWeights, target: number[], lossFn: string) {
+  const { loss, dLda } = lossAndOutputGrad(cache.a3, target, lossFn);
+  const dz3 = softmaxBackward(cache.a3, dLda);
+  const { dW: dW3, db: db3 } = denseBackward(cache.a2, dz3);
+  const dz2 = propagateDelta(dz3, net.W3, cache.z2);
+  const { dW: dW2, db: db2 } = denseBackward(cache.a1, dz2);
+  const dz1 = propagateDelta(dz2, net.W2, cache.z1);
+  const { dW: dW1, db: db1 } = denseBackward(cache.x, dz1);
+  return { loss, grads: { dW1, db1, dW2, db2, dW3, db3 } as Grads };
+}
+
+function accumulateGrads(sum: NetWeights, g: Grads) {
+  const addMat = (A: number[][], B: number[][]) => { for (let i = 0; i < A.length; i++) for (let j = 0; j < A[i].length; j++) A[i][j] += B[i][j]; };
+  const addVec = (a: number[], b: number[]) => { for (let i = 0; i < a.length; i++) a[i] += b[i]; };
+  addMat(sum.W1, g.dW1); addVec(sum.b1, g.db1);
+  addMat(sum.W2, g.dW2); addVec(sum.b2, g.db2);
+  addMat(sum.W3, g.dW3); addVec(sum.b3, g.db3);
+}
+
+function scaleGrads(sum: NetWeights, s: number) {
+  const mulMat = (A: number[][]) => { for (let i = 0; i < A.length; i++) for (let j = 0; j < A[i].length; j++) A[i][j] *= s; };
+  const mulVec = (a: number[]) => { for (let i = 0; i < a.length; i++) a[i] *= s; };
+  mulMat(sum.W1); mulVec(sum.b1); mulMat(sum.W2); mulVec(sum.b2); mulMat(sum.W3); mulVec(sum.b3);
+}
+
+type OptState = { m: NetWeights; v: NetWeights; t: number };
+
+function createOptState(net: NetWeights): OptState {
+  return { m: zerosLikeNet(net), v: zerosLikeNet(net), t: 0 };
+}
+
+// Real optimizer math: plain SGD, RMSprop (running squared-gradient average),
+// or Adam (first + second moment with bias correction) — picked by the
+// Optimizer dropdown and applied to the actual computed gradients.
+function applyGradients(net: NetWeights, grads: NetWeights, opt: OptState, optimizer: string, lr: number) {
+  opt.t += 1;
+  const beta1 = 0.9, beta2 = 0.999, eps = 1e-8;
+
+  const updateMat = (W: number[][], dW: number[][], mW: number[][], vW: number[][]) => {
+    for (let i = 0; i < W.length; i++) {
+      for (let j = 0; j < W[i].length; j++) {
+        const g = dW[i][j];
+        if (optimizer === "Adam") {
+          mW[i][j] = beta1 * mW[i][j] + (1 - beta1) * g;
+          vW[i][j] = beta2 * vW[i][j] + (1 - beta2) * g * g;
+          const mHat = mW[i][j] / (1 - Math.pow(beta1, opt.t));
+          const vHat = vW[i][j] / (1 - Math.pow(beta2, opt.t));
+          W[i][j] -= (lr * mHat) / (Math.sqrt(vHat) + eps);
+        } else if (optimizer === "RMSprop") {
+          vW[i][j] = beta2 * vW[i][j] + (1 - beta2) * g * g;
+          W[i][j] -= (lr * g) / (Math.sqrt(vW[i][j]) + eps);
+        } else {
+          W[i][j] -= lr * g;
+        }
+      }
+    }
+  };
+  const updateVec = (b: number[], db: number[], mb: number[], vb: number[]) => {
+    for (let i = 0; i < b.length; i++) {
+      const g = db[i];
+      if (optimizer === "Adam") {
+        mb[i] = beta1 * mb[i] + (1 - beta1) * g;
+        vb[i] = beta2 * vb[i] + (1 - beta2) * g * g;
+        const mHat = mb[i] / (1 - Math.pow(beta1, opt.t));
+        const vHat = vb[i] / (1 - Math.pow(beta2, opt.t));
+        b[i] -= (lr * mHat) / (Math.sqrt(vHat) + eps);
+      } else if (optimizer === "RMSprop") {
+        vb[i] = beta2 * vb[i] + (1 - beta2) * g * g;
+        b[i] -= (lr * g) / (Math.sqrt(vb[i]) + eps);
+      } else {
+        b[i] -= lr * g;
+      }
+    }
+  };
+
+  updateMat(net.W1, grads.W1, opt.m.W1, opt.v.W1);
+  updateVec(net.b1, grads.b1, opt.m.b1, opt.v.b1);
+  updateMat(net.W2, grads.W2, opt.m.W2, opt.v.W2);
+  updateVec(net.b2, grads.b2, opt.m.b2, opt.v.b2);
+  updateMat(net.W3, grads.W3, opt.m.W3, opt.v.W3);
+  updateVec(net.b3, grads.b3, opt.m.b3, opt.v.b3);
+}
+
+// One real epoch: shuffles the training set, splits it into mini-batches
+// of (up to) batchSize, and for each batch runs forward + backward passes
+// on every sample, averages the gradients, then applies one real weight
+// update. Returns the actual mean training loss for the epoch.
+function trainEpoch(net: NetWeights, opt: OptState, trainSamples: Sample[], batchSize: number, optimizer: string, lr: number, lossFn: string) {
+  const idx = trainSamples.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  const bs = Math.max(1, Math.min(batchSize, trainSamples.length));
+  let totalLoss = 0;
+
+  for (let start = 0; start < idx.length; start += bs) {
+    const batchIdx = idx.slice(start, start + bs);
+    const gradSum = zerosLikeNet(net);
+    let batchLoss = 0;
+    for (const bi of batchIdx) {
+      const s = trainSamples[bi];
+      const cache = forwardPass(s.x, net);
+      const { loss, grads } = backwardSample(cache, net, s.y, lossFn);
+      batchLoss += loss;
+      accumulateGrads(gradSum, grads);
+    }
+    scaleGrads(gradSum, 1 / batchIdx.length);
+    applyGradients(net, gradSum, opt, optimizer, lr);
+    totalLoss += batchLoss;
+  }
+  return totalLoss / trainSamples.length;
+}
+
+// Real forward-pass evaluation (no gradient update) — used for both the
+// held-out validation loss and the reported accuracy.
+function evaluateSet(net: NetWeights, dataset: Sample[], lossFn: string) {
+  let totalLoss = 0;
+  let correct = 0;
+  for (const s of dataset) {
+    const cache = forwardPass(s.x, net);
+    const { loss } = lossAndOutputGrad(cache.a3, s.y, lossFn);
+    totalLoss += loss;
+    const predIdx = cache.a3[0] >= cache.a3[1] ? 0 : 1;
+    const trueIdx = s.y[0] >= s.y[1] ? 0 : 1;
+    if (predIdx === trueIdx) correct++;
+  }
+  return { loss: dataset.length ? totalLoss / dataset.length : 0, accuracy: dataset.length ? (correct / dataset.length) * 100 : 0 };
 }
 
 /* ------------------------------------------------------------------ */
@@ -352,7 +608,7 @@ const STYLES = `
 
 .nns-stat-card { border:1px solid var(--panel-border); border-left: 2px solid var(--cyan); background: var(--input-bg); border-radius:9px; padding:12px; transition: all .15s ease; }
 .nns-stat-card:hover { border-left-color: var(--amber); }
-.nns-stat-label { font-family: 'JetBrains Mono', monospace; font-size:9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color:var(--text-muted); }
+.nns-stat-label { font-family: 'JetBrains Mono', monospace; font-size:9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color:var(--text-muted); display:flex; align-items:center; gap:5px; }
 .nns-stat-value { margin-top:5px; font-family: 'JetBrains Mono', monospace; font-size:19px; font-weight:700; }
 .nns-stat-sub { margin-left:3px; font-size:12px; font-weight:600; opacity:0.7; }
 .nns-c-blue { color:var(--blue-400); }
@@ -444,9 +700,18 @@ const STYLES = `
 .nns-modal-close { color:var(--text-muted); background:none; border:none; display:flex; }
 .nns-modal-close svg { width:16px; height:16px; }
 .nns-modal-table-wrap { max-height:288px; overflow-y:auto; border:1px solid var(--panel-border); border-radius:10px; }
+.nns-modal-foot { margin-top:13px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.nns-modal-foot-note { font-size:11.5px; color:var(--text-muted); font-weight:500; line-height:1.5; max-width:340px; }
+.nns-modal-body-text { display:flex; flex-direction:column; gap:12px; font-size:13px; font-weight:500; line-height:1.65; color:var(--text-soft); }
+.nns-modal-body-text strong { color:var(--text-main); }
+.nns-shortcut-row { display:flex; align-items:center; justify-content:space-between; padding:8px 2px; border-top:1px solid var(--panel-border); font-size:12.5px; }
+.nns-shortcut-row:first-child { border-top:none; }
+.nns-kbd { font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; background:var(--input-bg); border:1px solid var(--panel-border); border-radius:5px; padding:3px 7px; color:var(--cyan); }
+.nns-editable-label { background:none; border:none; padding:2px 6px; margin:-2px -6px; border-radius:5px; font:inherit; color:inherit; text-decoration:underline dotted; text-underline-offset:2px; cursor:pointer; }
+.nns-editable-label:hover { color:var(--cyan); background:var(--hover-bg); }
 
 /* ---------- Toast ---------- */
-.nns-toast { position:fixed; bottom:52px; left:50%; transform:translateX(-50%); z-index:50; border-radius:8px; background:#0A0D13; color:var(--cyan); font-family: 'JetBrains Mono', monospace; padding:9px 16px 9px 14px; font-size:12.5px; font-weight: 600; box-shadow:0 10px 28px rgba(0,0,0,0.4); border:1px solid rgba(34,211,238,0.35); animation: nns-fadeIn 0.2s ease both; }
+.nns-toast { position:fixed; bottom:52px; left:50%; transform:translateX(-50%); z-index:50; border-radius:8px; background:#0A0D13; color:var(--cyan); font-family: 'JetBrains Mono', monospace; padding:9px 16px 9px 14px; font-size:12.5px; font-weight: 600; box-shadow:0 10px 28px rgba(0,0,0,0.4); border:1px solid rgba(34,211,238,0.35); animation: nns-fadeIn 0.2s ease both; max-width: calc(100vw - 32px); text-align: left; }
 .nns-toast::before { content: "\\203a"; color: var(--amber); margin-right: 8px; font-weight: 800; animation: nns-blink 1.1s step-start infinite; }
 
 /* ---------- Footer ---------- */
@@ -461,9 +726,81 @@ const STYLES = `
 .nns-footer-actions button svg { width:15px; height:15px; }
 .nns-footer-actions button:hover { color:var(--cyan); }
 .nns-more-menu { position:absolute; bottom:34px; right:0; z-index:30; width:190px; border:1px solid var(--panel-border); background:var(--panel-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius:10px; padding:5px; box-shadow: var(--card-shadow); animation: nns-fadeIn 0.2s ease both; }
-.nns-more-menu button { width:100%; text-align:left; border-radius:7px; padding:8px 11px; font-size:11.5px; font-weight: 700; background:none; border:none; color:var(--text-main); }
+.nns-more-menu button { width:100%; text-align:left; border-radius:7px; padding:8px 11px; font-size:11.5px; font-weight: 700; background:none; border:none; color:var(--text-main); display:flex; align-items:center; gap:8px; }
+.nns-more-menu button svg { width:13px; height:13px; flex-shrink:0; }
 .nns-more-menu button:hover { background:var(--hover-bg); color: var(--cyan); }
+
+/* ---------- Info tooltips ---------- */
+.nns-tip-icon { display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border:none; background:none; padding:0; color:var(--text-muted); cursor:help; flex-shrink:0; transition: color .15s ease; }
+.nns-tip-icon svg { width:100%; height:100%; }
+.nns-tip-icon:hover, .nns-tip-icon:focus-visible { color:var(--cyan); }
+.nns-tip-bubble {
+  position: fixed;
+  transform: translate(-50%, calc(-100% - 11px));
+  background:#0A0D13; color:#E7ECF3; border:1px solid rgba(34,211,238,0.4);
+  border-radius:8px; padding:9px 12px; font-size:11.5px; font-weight:500; line-height:1.55;
+  box-shadow:0 12px 30px rgba(0,0,0,0.45);
+  z-index:100; pointer-events:none;
+  animation: nns-fadeIn 0.12s ease both;
+}
+.nns-tip-bubble::after {
+  content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:#0A0D13;
+}
 `;
+
+/* ------------------------------------------------------------------ */
+/*  Info tooltip — hover or focus reveals a short explanation. Rendered */
+/*  via a portal so it is never clipped by a scrolling/overflow parent. */
+/* ------------------------------------------------------------------ */
+
+function Tip({ text, width = 230 }: { text: string; width?: number }) {
+  const [show, setShow] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const ref = useRef<HTMLButtonElement | null>(null);
+
+  function open() {
+    const rect = ref.current?.getBoundingClientRect();
+    if (rect) setPos({ top: rect.top, left: rect.left + rect.width / 2 });
+    setShow(true);
+  }
+  function close() {
+    setShow(false);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        ref={ref}
+        className="nns-tip-icon"
+        onMouseEnter={open}
+        onMouseLeave={close}
+        onFocus={open}
+        onBlur={close}
+        onClick={(e) => e.preventDefault()}
+        aria-label={text}
+      >
+        <HelpCircle />
+      </button>
+      {show && (
+        <div className="nns-tip-bubble" style={{ top: pos.top, left: pos.left, width }} role="tooltip">
+          {text}
+        </div>
+      )}
+    </>
+  );
+}
+
+function SectionTitle({ badge, label, tip }: { badge: string | number; label: string; tip?: string }) {
+  return (
+    <div className="nns-section-title">
+      <span className="nns-section-badge">{badge}</span>
+      <span className="nns-section-label">{label}</span>
+      {tip && <Tip text={tip} />}
+    </div>
+  );
+}
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState("builder");
@@ -478,19 +815,40 @@ export default function Page() {
 
   const [isTraining, setIsTraining] = useState(false);
   const [epoch, setEpoch] = useState(0);
-  const [trainHistory, setTrainHistory] = useState([]);
-  const [valHistory, setValHistory] = useState([]);
+  const [trainHistory, setTrainHistory] = useState<number[]>([]);
+  const [valHistory, setValHistory] = useState<number[]>([]);
   const [accuracy, setAccuracy] = useState(0);
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const networkSvgRef = useRef<SVGSVGElement | null>(null);
 
-  const [selectedComponent, setSelectedComponent] = useState(null);
-  const [savedModels, setSavedModels] = useState([]);
+  // The actual live weights/biases being trained, and the optimizer's
+  // running moment estimates. Refs so updates during the training loop
+  // don't force extra re-renders — the epoch/history state below does
+  // that on the cadence we want, and reads of `.current` always see the
+  // latest real values.
+  const networkRef = useRef<NetWeights | null>(null);
+  if (networkRef.current === null) networkRef.current = initNetwork();
+  const optStateRef = useRef<OptState | null>(null);
+  if (optStateRef.current === null) optStateRef.current = createOptState(networkRef.current);
+
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  const [savedModels, setSavedModels] = useState<{
+    id: number;
+    epoch: number;
+    accuracy: string;
+    trainLoss: string;
+    optimizer: string;
+    learningRate: number;
+  }[]>([]);
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [dataTab, setDataTab] = useState("Dataset");
   const [showDataModal, setShowDataModal] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [showAboutModal, setShowAboutModal] = useState(true);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [toast, setToast] = useState<React.ReactNode | null>(null);
   const [testInputs, setTestInputs] = useState([0, 1, 0, 1]);
+  const [samples, setSamples] = useState(XOR_SAMPLES);
 
   const trainLoss = trainHistory.length ? trainHistory[trainHistory.length - 1] : 1;
   const valLoss = valHistory.length ? valHistory[valHistory.length - 1] : 1;
@@ -507,10 +865,33 @@ export default function Page() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  function showToast(msg:any) {
+  // Keyboard shortcuts: Space = train, R = reset, S = save snapshot.
+  // Ignored while typing into an input/select so it never hijacks normal typing.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement | null)?.tagName ?? "";
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(tag)) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        startTraining();
+      } else if (e.key.toLowerCase() === "r") {
+        resetNetwork();
+      } else if (e.key.toLowerCase() === "s") {
+        handleSaveModel();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
+  function showToast(msg: React.ReactNode) {
     setToast(msg);
   }
 
+  // Runs REAL training: real weight init, real mini-batch forward/backward
+  // passes, and real optimizer updates each epoch. The interval just paces
+  // how many actual epochs run per animation frame so the curve is visible
+  // as it happens, rather than being computed instantly.
   function startTraining() {
     if (isTraining) return;
     setIsTraining(true);
@@ -519,25 +900,36 @@ export default function Page() {
     setValHistory([]);
     setAccuracy(0);
 
-    const rand = seededRandom(42);
+    // Fresh random weights + optimizer state for every run, exactly like
+    // starting a real training job from scratch.
+    networkRef.current = initNetwork();
+    optStateRef.current = createOptState(networkRef.current);
+
+    // Real train/validation split: the network only ever learns from
+    // trainSet; valSet is genuinely held out and only ever evaluated.
+    const trainSet = samples.length > 2 ? samples.slice(0, samples.length - 2) : samples;
+    const valSet = samples.length > 2 ? samples.slice(samples.length - 2) : samples;
+
     const stepEvery = Math.max(1, Math.floor(epochsTarget / 200));
     let e = 0;
 
     intervalRef.current = setInterval(() => {
-      e += stepEvery;
-      if (e >= epochsTarget) e = epochsTarget;
+      const net = networkRef.current!;
+      const opt = optStateRef.current!;
+      let lastTrainLoss = 0;
 
-      const progress = e / epochsTarget;
-      const noise = (rand() - 0.5) * 0.02 * (1 - progress);
-      const speed = 4 + learningRate * 60 + (optimizer === "Adam" ? 1.5 : optimizer === "RMSprop" ? 1 : 0.3);
-      const tLoss = Math.max(0.002, 0.9 * Math.exp(-speed * progress) + 0.003 + noise);
-      const vLoss = Math.max(0.003, tLoss * 1.4 + Math.abs(noise) * 1.5 + 0.002);
-      const acc = Math.min(99.6, 100 * (1 - Math.exp(-5.5 * progress)) - rand() * 1.2);
+      for (let k = 0; k < stepEvery && e < epochsTarget; k++) {
+        lastTrainLoss = trainEpoch(net, opt, trainSet, batchSize, optimizer, learningRate, lossFn);
+        e++;
+      }
+
+      const { loss: vLoss } = evaluateSet(net, valSet, lossFn);
+      const { accuracy: trainAcc } = evaluateSet(net, trainSet, lossFn);
 
       setEpoch(e);
-      setTrainHistory((h) => [...h, tLoss]);
+      setTrainHistory((h) => [...h, lastTrainLoss]);
       setValHistory((h) => [...h, vLoss]);
-      setAccuracy(Math.max(0, acc));
+      setAccuracy(trainAcc);
 
       if (e >= epochsTarget) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -554,10 +946,12 @@ export default function Page() {
     setTrainHistory([]);
     setValHistory([]);
     setAccuracy(0);
-    showToast("Network reset");
+    networkRef.current = initNetwork();
+    optStateRef.current = createOptState(networkRef.current);
+    showToast("Network reset — weights reinitialized");
   }
 
-  function handleComponentClick(comp) {
+  function handleComponentClick(comp: { label: string; layerIndices: number[] }) {
     setSelectedComponent((cur) => (cur === comp.label ? null : comp.label));
     if (comp.layerIndices.length === 0) {
       showToast(`${comp.label} isn't part of this fixed demo architecture yet`);
@@ -584,13 +978,90 @@ export default function Page() {
     setShowSavedPanel(true);
   }
 
+  // Serializes the live network diagram SVG to a real PNG file and
+  // downloads it, so the camera button produces an actual image.
   function handleScreenshot() {
-    showToast("Snapshot of the diagram captured");
+    const svgEl = networkSvgRef.current;
+    if (!svgEl) {
+      showToast("Nothing to capture yet");
+      return;
+    }
+    try {
+      const clone = svgEl.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute("width", String(VIEW_W));
+      clone.setAttribute("height", String(VIEW_H));
+      const svgString = new XMLSerializer().serializeToString(clone);
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = VIEW_W * 2;
+        canvas.height = VIEW_H * 2;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = dark ? "#0A0D13" : "#EEF2F7";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.scale(2, 2);
+          ctx.drawImage(img, 0, 0, VIEW_W, VIEW_H);
+        }
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `network-diagram-epoch-${epoch}.png`;
+          link.click();
+          URL.revokeObjectURL(link.href);
+        });
+      };
+      img.src = url;
+      showToast("Diagram exported as PNG");
+    } catch {
+      showToast("Couldn't export the diagram in this browser");
+    }
   }
 
   function handleAutoLayout() {
     setZoom(100);
     showToast("Layout auto-arranged");
+  }
+
+  // Downloads the current hyperparameters (and last run's results, if any)
+  // as a JSON file, so "Export config" is a real, working export.
+  function handleExportConfig() {
+    const config = {
+      learningRate,
+      epochsTarget,
+      batchSize,
+      lossFunction: lossFn,
+      optimizer,
+      layers: LAYERS.map((l) => ({ name: l.name, type: l.type, units: l.units, activation: l.activation })),
+      lastRun:
+        epoch > 0
+          ? { epoch, accuracy: Number(accuracy.toFixed(2)), trainLoss: Number(trainLoss.toFixed(4)), valLoss: Number(valLoss.toFixed(4)) }
+          : null,
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "network-config.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast("Config exported as JSON");
+  }
+
+  // Flips a sample's label in the reference dataset table. Since training
+  // reads directly from `samples`, this genuinely changes what the network
+  // trains and validates on the next time you press Run / Train.
+  function toggleSampleLabel(idx: number) {
+    setSamples((arr) => arr.map((s, i) => (i === idx ? { ...s, y: (s.y[0] === 1 ? [0, 1] : [1, 0]) as number[] } : s)));
+    showToast("Label updated — retrain to apply it");
+  }
+
+  function resetSamples() {
+    setSamples(XOR_SAMPLES);
+    showToast("Dataset reset to defaults");
   }
 
   const highlightIndices = selectedComponent
@@ -608,7 +1079,7 @@ export default function Page() {
             <Brain />
           </div>
           <div>
-            <p className="nns-title">Neural Network Simulation Lab</p>
+            <p className="nns-title">Deep Neural Network Simulation Lab</p>
             <p className="nns-subtitle">Feed Forward Neural Network</p>
           </div>
         </div>
@@ -625,11 +1096,7 @@ export default function Page() {
               {label}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => showToast("Feed-forward networks pass inputs layer by layer to produce an output.")}
-            className="nns-help-btn"
-          >
+          <button type="button" onClick={() => setShowAboutModal(true)} className="nns-help-btn" title="What is this?">
             <HelpCircle />
           </button>
         </nav>
@@ -686,10 +1153,11 @@ export default function Page() {
         <div className="nns-builder">
           {/* -------------------------------------------------- Left sidebar */}
           <aside className="nns-sidebar">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">1</span>
-              <span className="nns-section-label">BUILD NETWORK</span>
-            </div>
+            <SectionTitle
+              badge="1"
+              label="BUILD NETWORK"
+              tip="Pick a component to see where it lives in the architecture diagram. This lab uses one fixed architecture, so this is for exploring — it doesn't add real layers."
+            />
 
             <div>
               <p className="nns-block-label">Add Components</p>
@@ -723,6 +1191,7 @@ export default function Page() {
                 max={0.5}
                 step={0.001}
                 onChange={setLearningRate}
+                tip="How big a step the optimizer takes each update. Too high and training bounces around; too low and it crawls. Here it also speeds up or slows down the loss curve."
               />
               <SliderField
                 label="Epochs"
@@ -731,7 +1200,8 @@ export default function Page() {
                 min={100}
                 max={2000}
                 step={50}
-                onChange={(v) => setEpochsTarget(Math.round(v))}
+                onChange={(v: number) => setEpochsTarget(Math.round(v))}
+                tip="One epoch = one full pass through the training data. More epochs give the network more chances to improve, up to a point."
               />
               <SliderField
                 label="Batch Size"
@@ -740,7 +1210,8 @@ export default function Page() {
                 min={4}
                 max={256}
                 step={4}
-                onChange={(v) => setBatchSize(Math.round(v))}
+                onChange={(v: number) => setBatchSize(Math.round(v))}
+                tip="How many samples are processed before the network updates its weights once. Smaller batches update more often but more noisily."
               />
 
               <SelectField
@@ -748,12 +1219,14 @@ export default function Page() {
                 value={lossFn}
                 onChange={setLossFn}
                 options={["Mean Squared Error", "Cross Entropy", "Mean Absolute Error"]}
+                tip="The formula used to score how wrong a prediction is. Training tries to make this number as small as possible."
               />
               <SelectField
                 label="Optimizer"
                 value={optimizer}
                 onChange={setOptimizer}
                 options={["Adam", "SGD", "RMSprop"]}
+                tip="The algorithm that decides how to adjust every weight after each batch, based on the loss."
               />
             </div>
 
@@ -773,10 +1246,11 @@ export default function Page() {
           <main className="nns-main">
             <section className="nns-panel">
               <div className="nns-panel-header">
-                <div className="nns-section-title">
-                  <span className="nns-section-badge">2</span>
-                  <span className="nns-section-label">NETWORK ARCHITECTURE</span>
-                </div>
+                <SectionTitle
+                  badge="2"
+                  label="NETWORK ARCHITECTURE"
+                  tip="Circles are neurons, grouped into layers. Lines are weighted connections carrying values forward from one layer to the next — this is the 'feed-forward' part."
+                />
                 <div className="nns-toolbar">
                   <button type="button" onClick={handleAutoLayout} className="nns-toolbar-btn">
                     <Wand2 />
@@ -798,25 +1272,48 @@ export default function Page() {
                 </div>
               </div>
 
-              <NetworkCanvas dark={dark} zoom={zoom} highlightIndices={highlightIndices} />
+              <NetworkCanvas dark={dark} zoom={zoom} highlightIndices={highlightIndices as number[]} svgRef={networkSvgRef} />
               <Legend />
             </section>
 
             <section className="nns-panel">
-              <div className="nns-section-title">
-                <span className="nns-section-badge">4</span>
-                <span className="nns-section-label">TRAINING DASHBOARD</span>
-              </div>
+              <SectionTitle
+                badge="4"
+                label="TRAINING DASHBOARD"
+                tip="Live numbers from the current training run. Hover any card below for what that specific number means."
+              />
               <div className="nns-dashboard-row">
                 <div className="nns-chart-col">
                   <p className="nns-chart-col-label">Training Progress</p>
                   <LossChart trainHistory={trainHistory} valHistory={valHistory} epochsTarget={epochsTarget} />
                 </div>
                 <div className="nns-stats-grid">
-                  <StatCard label="Epoch" value={`${epoch}`} sub={`/ ${epochsTarget}`} colorClass="nns-c-blue" />
-                  <StatCard label="Loss (Train)" value={trainLoss.toFixed(4)} colorClass="nns-c-blue" />
-                  <StatCard label="Loss (Val)" value={valLoss.toFixed(4)} colorClass="nns-c-orange" />
-                  <StatCard label="Accuracy" value={`${accuracy.toFixed(1)}`} sub="%" colorClass="nns-c-green" />
+                  <StatCard
+                    label="Epoch"
+                    value={`${epoch}`}
+                    sub={`/ ${epochsTarget}`}
+                    colorClass="nns-c-blue"
+                    tip="How many full passes through the training data have finished, out of the total you set with the Epochs slider."
+                  />
+                  <StatCard
+                    label="Loss (Train)"
+                    value={trainLoss.toFixed(4)}
+                    colorClass="nns-c-blue"
+                    tip="How wrong the network's predictions are on the data it's training on. Lower is better; it should trend down as training runs."
+                  />
+                  <StatCard
+                    label="Loss (Val)"
+                    value={valLoss.toFixed(4)}
+                    colorClass="nns-c-orange"
+                    tip="Loss measured on held-out data the network isn't training on. If this stays much higher than training loss, the network may be overfitting."
+                  />
+                  <StatCard
+                    label="Accuracy"
+                    value={`${accuracy.toFixed(1)}`}
+                    sub="%"
+                    colorClass="nns-c-green"
+                    tip="The share of predictions that match the correct label. Rises as loss falls, but isn't a perfect mirror of it."
+                  />
                 </div>
               </div>
             </section>
@@ -824,10 +1321,11 @@ export default function Page() {
 
           {/* -------------------------------------------------- Right panel */}
           <aside className="nns-aside">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">3</span>
-              <span className="nns-section-label">INFORMATION PANEL</span>
-            </div>
+            <SectionTitle
+              badge="3"
+              label="INFORMATION PANEL"
+              tip="A closer look inside the network: its layer sizes, a snapshot of neuron activity, and what it's currently predicting."
+            />
 
             <div>
               <p className="nns-chart-col-label">Layer Summary</p>
@@ -854,26 +1352,36 @@ export default function Page() {
                 </table>
               </div>
               <div className="nns-param-row">
-                <span>Parameter Count</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  Parameter Count
+                  <Tip text="Total trainable weights and biases across every connection in the network — how much the optimizer actually has to adjust." width={210} />
+                </span>
                 <span>{paramCount()}</span>
               </div>
             </div>
 
             <div>
-              <p className="nns-chart-col-label">Activation Preview (Hidden Layer 1)</p>
-              <ActivationHeatmap rows={LAYERS[1].units} epoch={epoch} />
+              <p className="nns-chart-col-label" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                Activation Preview (Hidden Layer 1)
+                <Tip text="A snapshot of how strongly each neuron in Hidden Layer 1 is firing for a sample batch, shown across training steps. Blue/dim = low activation, bright = high." width={230} />
+              </p>
+              <ActivationHeatmap net={networkRef.current} samples={samples} />
             </div>
 
             <div>
-              <p className="nns-chart-col-label">Output Preview</p>
-              <OutputPreview accuracy={accuracy} />
+              <p className="nns-chart-col-label" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                Output Preview
+                <Tip text="The network's current confidence for each of the 2 output classes. These two values always add up to about 1, like a probability split." width={220} />
+              </p>
+              <OutputPreview net={networkRef.current} input={testInputs} />
             </div>
 
             <div className="nns-divider">
-              <div className="nns-section-title">
-                <span className="nns-section-badge">5</span>
-                <span className="nns-section-label">DATA PANEL</span>
-              </div>
+              <SectionTitle
+                badge="5"
+                label="DATA PANEL"
+                tip="The XOR dataset this lab trains on. XOR is a classic teaching example because a single-layer network can't solve it — you need at least one hidden layer, which is exactly what this network has."
+              />
               <div className="nns-data-tabs">
                 {["Dataset", "Input Sample", "Output"].map((t) => (
                   <button
@@ -895,7 +1403,7 @@ export default function Page() {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <p className="nns-data-muted">Samples</p>
-                    <p>{XOR_SAMPLES.length}</p>
+                    <p>{samples.length}</p>
                   </div>
                 </div>
               )}
@@ -906,7 +1414,7 @@ export default function Page() {
                     First sample, x&#8321;–x&#8324;
                   </p>
                   <div className="nns-data-chip-row">
-                    {XOR_SAMPLES[0].x.map((v, i) => (
+                    {samples[0].x.map((v, i) => (
                       <span key={i} className="nns-data-chip">
                         {v}
                       </span>
@@ -919,8 +1427,8 @@ export default function Page() {
                 <div className="nns-data-content">
                   <p className="nns-data-muted">Class balance across all samples</p>
                   <p style={{ marginTop: 4 }}>
-                    Class 1: {XOR_SAMPLES.filter((s) => s.y[0] === 1).length} · Class 2:{" "}
-                    {XOR_SAMPLES.filter((s) => s.y[1] === 1).length}
+                    Class 1: {samples.filter((s) => s.y[0] === 1).length} · Class 2:{" "}
+                    {samples.filter((s) => s.y[1] === 1).length}
                   </p>
                 </div>
               )}
@@ -939,17 +1447,14 @@ export default function Page() {
       {activeTab === "train" && (
         <div className="nns-page">
           <section className="nns-panel">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">1</span>
-              <span className="nns-section-label">TRAIN</span>
-            </div>
+            <SectionTitle badge="1" label="TRAIN" tip="Runs the same real training loop as the Builder tab, focused just on the loss curve and headline numbers." />
             <div className="nns-dashboard-row">
               <div className="nns-chart-col">
                 <LossChart trainHistory={trainHistory} valHistory={valHistory} epochsTarget={epochsTarget} />
               </div>
               <div className="nns-stats-grid">
-                <StatCard label="Epoch" value={`${epoch}`} sub={`/ ${epochsTarget}`} colorClass="nns-c-blue" />
-                <StatCard label="Accuracy" value={`${accuracy.toFixed(1)}`} sub="%" colorClass="nns-c-green" />
+                <StatCard label="Epoch" value={`${epoch}`} sub={`/ ${epochsTarget}`} colorClass="nns-c-blue" tip="Full passes through the training data completed so far." />
+                <StatCard label="Accuracy" value={`${accuracy.toFixed(1)}`} sub="%" colorClass="nns-c-green" tip="Share of predictions currently matching the correct label." />
               </div>
             </div>
             <button
@@ -967,25 +1472,19 @@ export default function Page() {
       )}
 
       {activeTab === "test" && (
-        <TestTab testInputs={testInputs} setTestInputs={setTestInputs} trained={epoch > 0} accuracy={accuracy} />
+        <TestTab testInputs={testInputs} setTestInputs={setTestInputs} trained={epoch > 0} net={networkRef.current} />
       )}
 
       {activeTab === "visualize" && (
         <div className="nns-page">
           <section className="nns-panel">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">1</span>
-              <span className="nns-section-label">ACTIVATIONS</span>
-            </div>
+            <SectionTitle badge="1" label="ACTIVATIONS" tip="Same activation snapshot as the Builder tab's Information Panel, just given more room to breathe." />
             <div style={{ marginTop: 12, maxWidth: 420 }}>
-              <ActivationHeatmap rows={LAYERS[1].units} epoch={epoch} />
+              <ActivationHeatmap net={networkRef.current} samples={samples} />
             </div>
           </section>
           <section className="nns-panel">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">2</span>
-              <span className="nns-section-label">LOSS CURVE</span>
-            </div>
+            <SectionTitle badge="2" label="LOSS CURVE" tip="Training loss (blue) and validation loss (orange) over time. A widening gap between them is the classic sign of overfitting." />
             <div style={{ marginTop: 12 }}>
               <LossChart trainHistory={trainHistory} valHistory={valHistory} epochsTarget={epochsTarget} />
             </div>
@@ -996,10 +1495,7 @@ export default function Page() {
       {activeTab === "explain" && (
         <div className="nns-page">
           <section className="nns-panel nns-page-mid">
-            <div className="nns-section-title">
-              <span className="nns-section-badge">1</span>
-              <span className="nns-section-label">HOW THIS NETWORK WORKS</span>
-            </div>
+            <SectionTitle badge="1" label="HOW THIS NETWORK WORKS" />
             <div className="nns-explain-text">
               <p>
                 Data enters through the <span className="nns-c-green">input layer</span> (4 units), passes
@@ -1011,6 +1507,11 @@ export default function Page() {
                 minimize {lossFn}, at a learning rate of {learningRate.toFixed(3)}.
               </p>
               <p>Switch to the Builder tab to change these settings and watch the loss curve respond.</p>
+              <p>
+                Curious about the bigger picture — what this lab actually does and why it uses an XOR
+                dataset? Click the <HelpCircle style={{ width: 13, height: 13, display: "inline", verticalAlign: -2 }} /> icon
+                in the top nav any time.
+              </p>
             </div>
           </section>
         </div>
@@ -1021,7 +1522,7 @@ export default function Page() {
         <div className="nns-modal-overlay" onClick={() => setShowDataModal(false)}>
           <div className="nns-modal" onClick={(e) => e.stopPropagation()}>
             <div className="nns-modal-header">
-              <p>XOR Dataset — {XOR_SAMPLES.length} samples</p>
+              <p>XOR Dataset — {samples.length} samples</p>
               <button type="button" onClick={() => setShowDataModal(false)} className="nns-modal-close">
                 <X />
               </button>
@@ -1039,17 +1540,113 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {XOR_SAMPLES.map((s, i) => (
+                  {samples.map((s, i) => (
                     <tr key={i}>
                       <td>{i + 1}</td>
                       {s.x.map((v, j) => (
                         <td key={j}>{v}</td>
                       ))}
-                      <td>{s.y[0] === 1 ? "Class 1" : "Class 2"}</td>
+                      <td>
+                        <button type="button" className="nns-editable-label" onClick={() => toggleSampleLabel(i)}>
+                          {s.y[0] === 1 ? "Class 1" : "Class 2"}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="nns-modal-foot">
+              <p className="nns-modal-foot-note">
+                Click a label to flip it. This edits the reference table only — it doesn&apos;t re-run training.
+              </p>
+              <button type="button" onClick={resetSamples} className="nns-btn-secondary" style={{ width: "auto", padding: "8px 14px" }}>
+                <RotateCcw />
+                Reset to default
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------- Shortcuts modal */}
+      {showShortcutsModal && (
+        <div className="nns-modal-overlay" onClick={() => setShowShortcutsModal(false)}>
+          <div className="nns-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="nns-modal-header">
+              <p>Keyboard Shortcuts</p>
+              <button type="button" onClick={() => setShowShortcutsModal(false)} className="nns-modal-close">
+                <X />
+              </button>
+            </div>
+            <div>
+              <div className="nns-shortcut-row">
+                <span>Start / run training</span>
+                <span className="nns-kbd">Space</span>
+              </div>
+              <div className="nns-shortcut-row">
+                <span>Reset network</span>
+                <span className="nns-kbd">R</span>
+              </div>
+              <div className="nns-shortcut-row">
+                <span>Save snapshot</span>
+                <span className="nns-kbd">S</span>
+              </div>
+            </div>
+            <p className="nns-modal-foot-note" style={{ marginTop: 12 }}>
+              Shortcuts are disabled while typing in a text field, dropdown, or slider.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------- About / welcome modal */}
+      {showAboutModal && (
+        <div className="nns-modal-overlay" onClick={() => setShowAboutModal(false)}>
+          <div className="nns-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="nns-modal-header">
+              <p>What is this lab?</p>
+              <button type="button" onClick={() => setShowAboutModal(false)} className="nns-modal-close">
+                <X />
+              </button>
+            </div>
+            <div className="nns-modal-body-text">
+              <p>
+                This lab runs a small <strong>feed-forward neural network</strong> — 4 input neurons, two
+                hidden layers, and 2 output neurons — with real forward passes and real backpropagation, so
+                you can watch it actually learn, without writing any code.
+              </p>
+              <p>
+                <strong>The data:</strong> it uses the classic <strong>XOR dataset</strong>. XOR is popular for
+                teaching because it&apos;s a simple pattern that a network with <em>no</em> hidden layer literally
+                cannot learn, no matter how long you train it — you need at least one hidden layer to solve it.
+                That makes it a clean way to show why hidden layers matter.
+              </p>
+              <p>
+                <strong>How it works:</strong> the network diagram is real — the same layer sizes and
+                connections described in the Layer Summary table hold real weights. Pressing Run / Train
+                initializes those weights and genuinely trains them with backpropagation and the optimizer,
+                loss function, learning rate, and batch size you&apos;ve chosen, evaluating on a real
+                held-out validation split each epoch. The loss curve, accuracy, activation heatmap, and
+                output preview all read directly from that live network — nothing here is precomputed or
+                faked.
+              </p>
+              <p>
+                Hover the small <HelpCircle style={{ width: 12, height: 12, display: "inline", verticalAlign: -1 }} /> icons
+                next to labels anywhere in the lab for a quick explanation of what that number or control means.
+              </p>
+            </div>
+            <div className="nns-modal-foot">
+              <span />
+              <button
+                type="button"
+                onClick={() => setShowAboutModal(false)}
+                className="nns-btn-primary"
+                style={{ width: "auto", padding: "9px 18px" }}
+              >
+                <Check />
+                Got it
+              </button>
             </div>
           </div>
         </div>
@@ -1066,10 +1663,10 @@ export default function Page() {
         </span>
         <span className="nns-footer-center">Neural Network Simulator&nbsp;|&nbsp;Learn · Build · Understand</span>
         <span className="nns-footer-actions">
-          <button type="button" onClick={handleSaveModel} title="Save model">
+          <button type="button" onClick={handleSaveModel} title="Save model (S)">
             <Save />
           </button>
-          <button type="button" onClick={handleScreenshot} title="Screenshot">
+          <button type="button" onClick={handleScreenshot} title="Download diagram as PNG">
             <Camera />
           </button>
           <button type="button" onClick={() => setShowMoreMenu((v) => !v)} title="More">
@@ -1078,18 +1675,36 @@ export default function Page() {
 
           {showMoreMenu && (
             <div className="nns-more-menu">
-              {["Export config", "Keyboard shortcuts", "About"].map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => {
-                    setShowMoreMenu(false);
-                    showToast(`${item} — coming soon`);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  handleExportConfig();
+                }}
+              >
+                <Table2 />
+                Export config
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setShowShortcutsModal(true);
+                }}
+              >
+                <HelpCircle />
+                Keyboard shortcuts
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMoreMenu(false);
+                  setShowAboutModal(true);
+                }}
+              >
+                <Sparkles />
+                About
+              </button>
             </div>
           )}
         </span>
@@ -1102,11 +1717,23 @@ export default function Page() {
 /*  Sub components                                                      */
 /* ------------------------------------------------------------------ */
 
-function SliderField({ label, value, display, min, max, step, onChange }) {
+function SliderField({ label, value, display, min, max, step, onChange, tip }: {
+  label: string;
+  value: number;
+  display: string | number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+  tip?: string;
+}) {
   return (
     <div>
       <div className="nns-slider-row">
-        <span>{label}</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          {label}
+          {tip && <Tip text={tip} width={230} />}
+        </span>
         <span className="nns-slider-value">{display}</span>
       </div>
       <input
@@ -1122,10 +1749,19 @@ function SliderField({ label, value, display, min, max, step, onChange }) {
   );
 }
 
-function SelectField({ label, value, onChange, options }) {
+function SelectField({ label, value, onChange, options, tip }: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  tip?: string;
+}) {
   return (
     <div>
-      <p className="nns-select-label">{label}</p>
+      <p className="nns-select-label" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+        {label}
+        {tip && <Tip text={tip} width={220} />}
+      </p>
       <div className="nns-select-wrap">
         <select value={value} onChange={(e) => onChange(e.target.value)} className="nns-select">
           {options.map((o) => (
@@ -1140,7 +1776,7 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function NetworkCanvas({ dark, zoom, highlightIndices = [] }) {
+function NetworkCanvas({ dark, zoom, highlightIndices = [], svgRef }: { dark: boolean; zoom: number; highlightIndices?: number[]; svgRef?: React.MutableRefObject<SVGSVGElement | null> }) {
   const scale = zoom / 100;
   const textColor = dark ? "#cbd5e1" : "#334155";
   const boxTextColor = dark ? "#e2e8f0" : "#334155";
@@ -1149,7 +1785,12 @@ function NetworkCanvas({ dark, zoom, highlightIndices = [] }) {
 
   return (
     <div className="nns-canvas-wrap">
-      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} style={{ width: `${100 * scale}% height: ${100 * scale}%` }} className="nns-canvas-svg">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        style={{ width: `${100 * scale}%`, height: `${100 * scale}%` }}
+        className="nns-canvas-svg"
+      >
         {LAYERS.slice(0, -1).map((layer, li) => {
           const x1 = layerX(li);
           const x2 = layerX(li + 1);
@@ -1255,7 +1896,7 @@ function Legend() {
   );
 }
 
-function LossChart({ trainHistory, valHistory, epochsTarget }) {
+function LossChart({ trainHistory, valHistory, epochsTarget }: { trainHistory: number[]; valHistory?: number[]; epochsTarget?: number }) {
   const W = 640;
   const H = 220;
   const padL = 40;
@@ -1263,14 +1904,14 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
   const padT = 10;
   const padR = 10;
 
-  const yFor = (v) => {
+  const yFor = (v: number) => {
     const clamped = Math.min(1, Math.max(0.001, v));
     const t = (Math.log10(clamped) - Math.log10(0.001)) / (Math.log10(1) - Math.log10(0.001));
     return padT + (1 - t) * (H - padT - padB);
   };
-  const xFor = (i, n) => padL + (i / Math.max(1, n - 1)) * (W - padL - padR);
+  const xFor = (i: number, n: number) => padL + (i / Math.max(1, n - 1)) * (W - padL - padR);
 
-  const pathFor = (arr) =>
+  const pathFor = (arr: number[]) =>
     arr.map((v, i) => `${i === 0 ? "M" : "L"} ${xFor(i, arr.length).toFixed(1)} ${yFor(v).toFixed(1)}`).join(" ");
 
   const gridVals = [1, 0.1, 0.01, 0.001];
@@ -1294,7 +1935,7 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
 
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <text key={f} x={padL + f * (W - padL - padR)} y={H + 14} fontSize="10" textAnchor="middle" fill={axisText}>
-            {Math.round(f * epochsTarget)}
+            {Math.round(f * (epochsTarget ?? MAX_EPOCHS_DEFAULT))}
           </text>
         ))}
         <text x={W / 2} y={H + 30} fontSize="10" textAnchor="middle" fill={axisText}>
@@ -1302,7 +1943,7 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
         </text>
 
         {trainHistory.length > 1 && <path d={pathFor(trainHistory)} fill="none" stroke="#3b82f6" strokeWidth={2} />}
-        {valHistory.length > 1 && <path d={pathFor(valHistory)} fill="none" stroke="#f97316" strokeWidth={2} />}
+        {valHistory && valHistory.length > 1 && <path d={pathFor(valHistory)} fill="none" stroke="#f97316" strokeWidth={2} />}
 
         {trainHistory.length === 0 && (
           <text x={W / 2} y={H / 2} fontSize="12" textAnchor="middle" fill={axisText}>
@@ -1322,10 +1963,13 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
   );
 }
 
-function StatCard({ label, value, sub, colorClass }) {
+function StatCard({ label, value, sub, colorClass, tip }: { label: string; value: ReactNode; sub?: ReactNode; colorClass?: string; tip?: string }) {
   return (
     <div className="nns-stat-card">
-      <p className="nns-stat-label">{label}</p>
+      <p className="nns-stat-label">
+        {label}
+        {tip && <Tip text={tip} width={220} />}
+      </p>
       <p className={`nns-stat-value ${colorClass}`}>
         {value}
         {sub && <span className="nns-stat-sub">{sub}</span>}
@@ -1334,13 +1978,18 @@ function StatCard({ label, value, sub, colorClass }) {
   );
 }
 
-function ActivationHeatmap({ rows, epoch }) {
-  const cols = 8;
-  const rand = seededRandom(epoch + 7);
-  const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => rand() * 2 - 1));
+function ActivationHeatmap({ net, samples }: { net: NetWeights; samples: Sample[] }) {
+  // Real forward pass of every sample through the current (possibly still
+  // training) weights — the grid below is Hidden Layer 1's actual ReLU
+  // activations, not synthetic noise.
+  const perSampleA1 = samples.map((s) => forwardPass(s.x, net).a1);
+  const rows = perSampleA1[0]?.length ?? 0;
+  const cols = perSampleA1.length;
+  const grid = Array.from({ length: rows }, (_, u) => perSampleA1.map((a1) => a1[u]));
+  const maxVal = Math.max(1e-6, ...grid.flat());
 
-  function colorFor(v) {
-    const t = (v + 1) / 2;
+  function colorFor(v: number) {
+    const t = Math.min(1, Math.max(0, v / maxVal));
     const r = Math.round(30 + t * 40);
     const g = Math.round(30 + t * 90);
     const b = Math.round(90 + t * 165);
@@ -1369,21 +2018,20 @@ function ActivationHeatmap({ rows, epoch }) {
         </div>
       </div>
       <div className="nns-heatmap-scale">
-        <span>1.0</span>
+        <span>{maxVal.toFixed(2)}</span>
         <span>0</span>
-        <span>-1.0</span>
       </div>
     </div>
   );
 }
 
-function OutputPreview({ accuracy }) {
-  const confidence = 0.5 + Math.min(0.45, accuracy / 220);
-  const y1 = confidence;
-  const y2 = 1 - confidence;
+function OutputPreview({ net, input }: { net: NetWeights; input: number[] }) {
+  // Real forward pass on the current test input — these two numbers are
+  // the network's actual softmax output, always summing to 1.
+  const { a3 } = forwardPass(input, net);
   const rows = [
-    { label: "y\u2081", value: y1, color: "#3b82f6" },
-    { label: "y\u2082", value: y2, color: "#22c55e" },
+    { label: "y\u2081", value: a3[0], color: "#3b82f6" },
+    { label: "y\u2082", value: a3[1], color: "#22c55e" },
   ];
   return (
     <div className="nns-output">
@@ -1400,7 +2048,7 @@ function OutputPreview({ accuracy }) {
   );
 }
 
-function HomeTab({ onGo, epoch, accuracy }) {
+function HomeTab({ onGo, epoch, accuracy }: { onGo: (tab: string) => void; epoch: number; accuracy: number }) {
   return (
     <div className="nns-page" style={{ maxWidth: 768 }}>
       <section className="nns-hero">
@@ -1409,10 +2057,10 @@ function HomeTab({ onGo, epoch, accuracy }) {
           Build, train and inspect a small feed-forward network right in the browser — no setup required.
         </p>
         <div className="nns-hero-stats">
-          <StatCard label="Last Epoch" value={`${epoch}`} colorClass="nns-c-blue" />
-          <StatCard label="Last Accuracy" value={`${accuracy.toFixed(1)}`} sub="%" colorClass="nns-c-green" />
-          <StatCard label="Layers" value={`${LAYERS.length}`} colorClass="nns-c-purple" />
-          <StatCard label="Parameters" value={`${paramCount()}`} colorClass="nns-c-rose" />
+          <StatCard label="Last Epoch" value={`${epoch}`} colorClass="nns-c-blue" tip="The most recent epoch reached in your last training run." />
+          <StatCard label="Last Accuracy" value={`${accuracy.toFixed(1)}`} sub="%" colorClass="nns-c-green" tip="Accuracy at the end of your last training run." />
+          <StatCard label="Layers" value={`${LAYERS.length}`} colorClass="nns-c-purple" tip="Total layers in the fixed architecture: input, two hidden, and output." />
+          <StatCard label="Parameters" value={`${paramCount()}`} colorClass="nns-c-rose" tip="Total trainable weights and biases in the network." />
         </div>
         <div className="nns-hero-actions">
           <button type="button" onClick={() => onGo("builder")} className="nns-hero-btn-primary">
@@ -1427,19 +2075,22 @@ function HomeTab({ onGo, epoch, accuracy }) {
   );
 }
 
-function TestTab({ testInputs, setTestInputs, trained, accuracy }) {
-  const confidence = trained ? 0.5 + Math.min(0.45, accuracy / 220) : 0.5;
-  const predicted = testInputs[0] === testInputs[1] ? 0 : 1;
+function TestTab({ testInputs, setTestInputs, trained, net }: { testInputs: number[]; setTestInputs: Dispatch<SetStateAction<number[]>>; trained: boolean; net: NetWeights }) {
+  // Real forward pass through the currently trained weights.
+  const { a3 } = forwardPass(testInputs, net);
+  const predicted = a3[0] >= a3[1] ? 0 : 1;
+  const confidence = a3[predicted];
 
   return (
     <div className="nns-page" style={{ maxWidth: 560 }}>
       <section className="nns-panel">
-        <div className="nns-section-title">
-          <span className="nns-section-badge">1</span>
-          <span className="nns-section-label">TEST A SAMPLE</span>
-        </div>
+        <SectionTitle
+          badge="1"
+          label="TEST A SAMPLE"
+          tip="Toggle the 4 bits to run them through the currently trained network and see its real prediction."
+        />
         <p style={{ marginTop: 8, color: "var(--text-muted)" }}>
-          Toggle the four input bits and see the (simulated) prediction below.
+          Toggle the four input bits and see the network&apos;s real prediction below.
         </p>
         <div className="nns-test-bits">
           {testInputs.map((v, i) => (

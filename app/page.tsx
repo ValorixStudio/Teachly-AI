@@ -1,9 +1,8 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-
+import { Check } from "lucide-react";
 interface Topic {
   title: string;
   isHandsOn?: boolean;
@@ -32,8 +31,16 @@ function titleToSlug(title: string): string {
 
 // Every topic navigates somewhere. If a labPath was set explicitly, use it;
 // otherwise derive a URL from the topic title (e.g. "AI Around Us" -> /ai-around-us).
+// labPath is normalized to always start with "/" since some entries in the
+// curriculum below were authored without a leading slash (e.g.
+// "what-is-intelligence") while others include it (e.g. "/ai-foundations-lab").
+// Without normalizing, next/link would treat those as relative paths instead
+// of absolute routes.
 function resolveTopicPath(topic: Topic): string {
-  return topic.labPath ?? `/${titleToSlug(topic.title)}`;
+  if (topic.labPath) {
+    return topic.labPath.startsWith("/") ? topic.labPath : `/${topic.labPath}`;
+  }
+  return `/${titleToSlug(topic.title)}`;
 }
 
 const curriculum: Level[] = [
@@ -51,7 +58,7 @@ const curriculum: Level[] = [
           { title: "AI Around Us", labPath: "ai-around-us" },
           { title: "History of AI", labPath: "history-of-ai" },
           { title: "Types of AI", labPath: "types-of-ai" },
-          { title: "AI Intro Lab", isHandsOn: true, labPath: "/ai-intro-lab" },
+          { title: "AI Foundations Lab", isHandsOn: true, labPath: "/ai-foundations-lab" },
         ],
       },
       {
@@ -92,10 +99,13 @@ const curriculum: Level[] = [
           {
             title: "ChatGPT and Generative AI Lab",
             isHandsOn: true,
-            labPath: "/chatgpt-and-genAI-lab",
-          },
+            labPath: "/chatgpt-and-genAI-lab"},
         ],
       },
+  {title: "AI Explorer: Your First Mission!! ", topics: [{
+           title: "Try It Yourself ",
+            isHandsOn: true,
+            labPath: "/level1"}, ] }
     ],
   },
   {
@@ -158,7 +168,7 @@ const curriculum: Level[] = [
           { title: "Forward Propagation" },
           // Hands-on: this is the one that jumps into the real lab
           {
-            title: "Activation Functions",
+            title: "Neural Network Lab",
             isHandsOn: true,
             labPath: "/neural-network-lab",
           },
@@ -178,6 +188,10 @@ const curriculum: Level[] = [
           },
         ],
       },
+       {title: "AI Foundations: Your Second Mission!! ", topics: [{
+           title: "Try It Yourself ",
+            isHandsOn: true,
+            labPath: "/level2"}, ] }
     ],
   },
   {
@@ -199,6 +213,7 @@ const curriculum: Level[] = [
           { title: "Git & GitHub Basics" },
           { title: "Python Mini Projects", isHandsOn: true },
           { title: "CLI Applications", isHandsOn: true },
+
         ],
       },
       {
@@ -236,16 +251,16 @@ const curriculum: Level[] = [
         title: "Module 4: Machine Learning Fundamentals",
         topics: [
           { title: "ML Pipeline" },
-          { title: "Supervised Learning" },
-          { title: "Unsupervised Learning" },
-          { title: "Reinforcement Learning" },
+          { title: "More on Supervised Learning" },
+          { title: "More on Unsupervised Learning" },
+          { title: "More on Reinforcement Learning" },
           { title: "Regression" },
           { title: "Classification" },
           { title: "Clustering" },
-          { title: "Linear Regression" },
-          { title: "Logistic Regression" },
-          { title: "KNN" },
-          { title: "Decision Tree" },
+          { title: "More on Linear Regression" },
+          { title: "More on Logistic Regression" },
+          { title: "More on KNN" },
+          { title: "More on Decision Tree" },
           { title: "Random Forest" },
           { title: "SVM" },
           { title: "Naive Bayes" },
@@ -271,44 +286,206 @@ const curriculum: Level[] = [
       {
         title: "Module 6: Deep Learning Fundamentals",
         topics: [
-          { title: "Artificial Neural Networks" },
-          { title: "Forward Propagation" },
+          { title: "Deep Neural Networks" },
+           { title: "Feedforward Neural Networks" },
+          { title: "More on Forward Propagation" },
+           { title: "Loss Functions" },
           { title: "Backpropagation" },
           { title: "Gradient Descent" },
           { title: "Optimizers" },
-          { title: "Activation Functions" },
-          { title: "Loss Functions" },
+           { title: "Batch Normalization" }, 
           { title: "Regularization" },
-          { title: "Batch Normalization" },
           { title: "Dropout" },
            {
-            title: "Neural Network Simulation Lab",
+            title: "Feedforward Neural Network Simulation Lab",
             isHandsOn: true,
-            labPath: "/feed-forward-lab"
+            labPath: "/deep-neural-network-lab"
           }
         ],
       },
-      { title: "Module 7: Computer Vision", topics: [] },
-      { title: "Module 8: Natural Language Processing", topics: [] },
-      { title: "Module 9: Generative AI & LLMs", topics: [] },
-      { title: "Module 10: AI Agents & Automation", topics: [] },
-      { title: "Module 11: Model Deployment & MLOps", topics: [] },
+      { title: "Module 7: Computer Vision", topics: [
+         { title: "OpenCV" },
+          { title: "Image Processing" },
+          { title: "CNN-2" },
+          { title: "Transfer Learning" },
+          { title: "Object Detection" },
+          { title: "Image Segmentation" },
+          { title: "More on OCR" },
+          { title: "YOLO"}, 
+      ] },
+      { title: "Module 8: Natural Language Processing", topics: [ { title: "More on OpenCV" },
+          { title: "Text Processing" },
+          { title: "Tokenization" },
+          { title: "Stemming" },
+          { title: "Lemmatization" },
+          { title: "Embeddings" },
+          { title: "Word2Vec"},
+          { title: "GloVe"},
+            { title: "BERT"},
+                { title: "Transformers"},
+        ] },
+      { title: "Module 9: Generative AI & LLMs", topics: [
+ { title: "Introduction to LLMs" },
+          { title: "GPT Architecture" },
+          { title: "More on Prompt Engineering" },
+          { title: "LLM Embeddings" },
+          { title: "Vector Databases" },
+          { title: "Retrieval-Augmented Generation (RAG)"},
+          { title: "Function Calling"},
+            { title: "Context Windows"},
+
+      ] },
+      { title: "Module 10: AI Agents & Automation", topics: [
+{ title: "AI Agents" },
+          { title: "Tool Calling" },
+          { title: "Memory Systems" },
+          { title: "Multi-Agent Systems" },
+          { title: "Embeddings" },
+          { title: "LangChain"},
+          { title: "CrewAI"},
+            { title: "MCP Basics"},
+          
+
+
+      ] },
+      { title: "Module 11: Model Deployment & MLOps", topics: [
+{ title: "AI Agents" },
+          { title: "FastAPI" },
+          { title: "Docker" },
+          { title: "Kubernetes" },
+          { title: "MLflow" },
+          { title: "CI/CD"},
+          { title: "Monitoring"},
+            { title: "Logging"},
+             { title: "Model Serving"},
+
+      ] },
+       {title: "AI Engineer: Your Next Mission!! ", topics: [{
+           title: "Try It Yourself ",
+            isHandsOn: true,
+            labPath: "/level3"}, ] }
     ],
   },
   {
     title: "Level 4 - Advanced AI",
     modules: [
-      { title: "Module 1: Advanced Mathematics for AI", topics: [] },
-      { title: "Module 2: Deep Learning Theory", topics: [] },
-      { title: "Module 3: Transformer Architecture", topics: [] },
-      { title: "Module 4: Large Language Models", topics: [] },
-      { title: "Module 5: LLM Fine-Tuning", topics: [] },
-      { title: "Module 6: Retrieval-Augmented Generation (RAG)", topics: [] },
-      { title: "Module 7: AI Agents & Autonomous Systems", topics: [] },
-      { title: "Module 8: Multimodal AI", topics: [] },
-      { title: "Module 9: AI Infrastructure", topics: [] },
-      { title: "Module 10: AI Security & Responsible AI", topics: [] },
-      { title: "Module 11: AI Research Methods", topics: [] },
+      { title: "Module 1: Advanced Mathematics for AI", topics: [
+          { title: "Advanced Linear Algebra" },
+          { title: "Matrix Decomposition" },
+          { title: "Multivariable Calculus" },
+          { title: "Convex Optimization" },
+          { title: "Information Theory"},
+          { title: "Numerical Optimization"},
+           
+      ] },
+      { title: "Module 2: Deep Learning Theory", topics: [
+{ title: "Computational Graphs" },
+          { title: "Automatic Differentiation" },
+          { title: "Gradient Flow" },
+          { title: "Vanishing/Exploding Gradients" },
+          { title: "Residual Networks"},
+          { title: "Advanced Optimizers"},
+           { title: "Learning Rate Scheduling"},
+           
+        
+      ] },
+      { title: "Module 3: Transformer Architecture", topics: [
+{ title: "Self-Attention" },
+          { title: "Multi-Head Attention" },
+          { title: "Positional Encoding" },
+          { title: "Encoder" },
+          { title: "Decoder"},
+          { title: "Cross Attention"},
+           { title: "Feed Forward Networks"},
+           { title: "Layer Normalization"},
+
+      ] },
+      { title: "Module 4: Large Language Models", topics: [
+{ title: "GPT" },
+          { title: "BERT" },
+          { title: "LLaMA" },
+          { title: "Mistral" },
+          { title: "Gemma"},
+          { title: "Tokenizers"},
+           { title: "Scaling Laws"},
+           { title: "Inference Optimization"},
+
+      ] },
+      { title: "Module 5: LLM Fine-Tuning", topics: [
+        { title: "Fine-Tuning" },
+          { title: "LoRA" },
+          { title: "QLoRA" },
+          { title: "PEFT" },
+          { title: "RLHF"},
+          { title: "DPO"},
+           { title: "Model Distillation"},
+           { title: "Quantization"},
+      ] },
+      { title: "Module 6: Retrieval-Augmented Generation (RAG)", topics: [
+ { title: "Fine-Tuning" },
+          { title: "Embeddings" },
+          { title: "Chunking" },
+          { title: "Retrieval Strategies" },
+          { title: "Hybrid Search"},
+          { title: "Vector Databases"},
+           { title: "Knowledge Graphs"},
+           { title: "Reranking"},
+           { title: "Evaluation"},
+
+      ] },
+      { title: "Module 7: AI Agents & Autonomous Systems", topics: [
+{ title: "Planning" },
+          { title: "Reasoning" },
+          { title: "Reflection" },
+          { title: "Memory Architectures"},
+          { title: "Agent Communication"},
+           { title: "Multi-Agent Collaboration"},
+           { title: "Tool Use"},
+           { title: "Agent Evaluation"},
+
+
+      ] },
+      { title: "Module 8: Multimodal AI", topics: [
+{ title: "Planning" },
+          { title: "Vision Transformers" },
+          { title: "Vision-Language Models" },
+          { title: "Image Generation"},
+          { title: "Speech Models"},
+           { title: "Audio Understanding"},
+           { title: "Video Understanding"},
+
+      ] },
+      { title: "Module 9: AI Infrastructure", topics: [
+{ title: "GPU Programming" },
+          { title: "CUDA Basics" },
+          { title: "Distributed Training" },
+          { title: "Parallel Processing"},
+          { title: "Ray"},
+           { title: "DeepSpeed"},
+           { title: "Tensor Parallelism"},
+           { title: "Pipeline Parallelism"},
+
+      ] },
+      { title: "Module 10: AI Security & Responsible AI", topics: [
+
+        { title: "AI Ethics" },
+          { title: "Explainable AI (XAI)" },
+          { title: "Adversarial Attacks" },
+          { title: "AI Safety"},
+          { title: "Bias Detection"},
+           { title: "Privacy"},
+           { title: "Governance"},
+      ] },
+      { title: "Module 11: AI Research Methods", topics: [
+
+          { title: "Reading Research Papers" },
+          { title: "Literature Surveys" },
+          { title: "Parallel Processing"},
+          { title: "Experiment Design"},
+           { title: "Benchmarking"},
+           { title: "Reproducibility"},
+           { title: "Scientific Writing"},
+      ] },
     ],
   },
 ];
@@ -443,24 +620,35 @@ export default function Home() {
   const [openModule, setOpenModule] = useState<string | null>(null);
 
   // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
+  // IMPORTANT: this must start identical on server and client (an empty Set).
+  // Reading localStorage inside the useState initializer would make the
+  // client's very first render diverge from the server-rendered HTML
+  // (different locked/unlocked topics, "Completed" badges, etc.), which is
+  // exactly what causes a hydration error. So we always start empty here,
+  // and load the real saved progress in an effect below, after mount.
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(
-    new Set(),
+    () => new Set(),
   );
   const [hydrated, setHydrated] = useState(false);
 
-  // Load saved progress once, on the client, after mount.
+  // Load saved progress once, on the client, after mount. This runs after
+  // hydration has completed, so updating state here is a normal re-render,
+  // not a hydration mismatch.
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setCompletedTopics(new Set(parsed));
+        if (Array.isArray(parsed)) {
+          // Avoid setting state synchronously inside an effect to prevent
+          // cascading renders / linter warnings. Schedule the update.
+          setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
+        }
       }
     } catch {
       // ignore corrupt/missing storage
-    } finally {
-      setHydrated(true);
     }
+    setTimeout(() => setHydrated(true), 0);
   }, []);
 
   // Persist progress whenever it changes.
@@ -509,15 +697,6 @@ export default function Home() {
   // empty module/level should never display as "Completed".
   function hasAnyContent(levelIndex: number): boolean {
     return curriculum[levelIndex].modules.some((m) => m.topics.length > 0);
-  }
-
-  function moduleEarnsCompleteBadge(
-    levelIndex: number,
-    moduleIndex: number,
-  ): boolean {
-    const mod = curriculum[levelIndex].modules[moduleIndex];
-    if (mod.topics.length === 0) return false;
-    return isModuleCompleted(levelIndex, moduleIndex);
   }
 
   function levelEarnsCompleteBadge(levelIndex: number): boolean {

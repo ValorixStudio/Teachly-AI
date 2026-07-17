@@ -999,8 +999,8 @@ function LearningTypesStage({
             <button
               key={t.id}
               className={`mldl-type-card ${isActive ? "mldl-type-active" : ""}`}
-              style={{ ["--accent-gradient" as any]: t.gradient }}
               onClick={() => onSelect(t.id)}
+              style={( { ["--accent-gradient"]: t.gradient, } as unknown) as React.CSSProperties & Record<string, string>}
             >
               <div className="mldl-type-icon-wrap"><Icon size={22} color="#fff" /></div>
               <p className="mldl-type-title">{t.title}</p>
@@ -1017,9 +1017,13 @@ function LearningTypesStage({
           <div className="mldl-pipe-row" key={active.id}>
             {active.pipeline.map((step, i) => {
               const StepIcon = step.icon;
+              const nodeStyle: React.CSSProperties & Record<string, string> = {
+                ["--accent-gradient"]: active.gradient,
+                animationDelay: `${i * 0.25}s`,
+              };
               return (
                 <React.Fragment key={step.label}>
-                  <div className="mldl-pipe-node" style={{ ["--accent-gradient" as any]: active.gradient, animationDelay: `${i * 0.25}s` }}>
+                  <div className="mldl-pipe-node" style={nodeStyle}>
                     <div className="mldl-pipe-node-icon"><StepIcon size={18} color="#fff" /></div>
                     <span className="mldl-pipe-node-label">{step.label}</span>
                   </div>
@@ -1393,7 +1397,7 @@ function DecisionTreePlayground() {
                 <div className={`mldl-tree-node ${isLeaf ? "mldl-tree-leaf" : "mldl-tree-node-active"}`}>
                   {isLeaf && LeafIcon ? (
                     <span style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-                      <LeafIcon size={18} /> It's a {n.leaf!.label}!
+                      <LeafIcon size={18} /> Its`a {n.leaf!.label}!
                     </span>
                   ) : (
                     n.question
@@ -1598,7 +1602,13 @@ function ComparisonStage() {
           return (
             <div key={algoId} className="mldl-compare-card" style={{ animationDelay: `${idx * 0.08}s` }}>
               <div className="mldl-compare-head">
-                <div className="mldl-compare-icon" style={{ ["--accent-gradient" as any]: info.gradient }}><Icon size={17} color="#fff" /></div>
+                {/* CSS custom properties typed via React.CSSProperties to avoid `any` */}
+                <div
+                  className="mldl-compare-icon"
+                  style={{ ['--accent-gradient']: info.gradient } as React.CSSProperties}
+                >
+                  <Icon size={17} color="#fff" />
+                </div>
                 <span className="mldl-compare-name">{info.label}</span>
               </div>
               <p className="mldl-compare-prediction">Prediction: {m.prediction}</p>
@@ -1645,9 +1655,13 @@ function ReinforcementMazeStage() {
   const reward = Math.max(0, 50 - 2 * totalMoves);
 
   useEffect(() => {
-    setStepIndex(0);
-    setPlaying(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    // Defer state updates to avoid synchronous setState within an effect
+    const t = setTimeout(() => {
+      setStepIndex(0);
+      setPlaying(false);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }, 0);
+    return () => clearTimeout(t);
   }, [episodes]);
 
   useEffect(() => {
@@ -1856,7 +1870,12 @@ function ChallengeStage({
 
       <div className="mldl-challenge-card">
         <div className="mldl-challenge-icon-row">
-          <div className="mldl-challenge-icon" style={{ ["--accent-gradient" as any]: GRADIENT_PBC }}><Icon size={22} color="#fff" /></div>
+          <div
+            className="mldl-challenge-icon"
+            style={{ ...( { ["--accent-gradient"]: GRADIENT_PBC } as React.CSSProperties) }}
+          >
+            <Icon size={22} color="#fff" />
+          </div>
           <div>
             <p className="mldl-challenge-title">{challenge.title}</p>
             <span className="mldl-challenge-num">Real-world problem #{index + 1}</span>

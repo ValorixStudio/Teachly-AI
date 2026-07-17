@@ -967,9 +967,8 @@ export default function NeuralNetworksLab() {
                 <Sparkles size={14} /> Hands-on playground
               </span>
               <p className="aiel-handson-note">
-                Everything below is fully interactive. Add inputs, tweak weights and bias, switch between
-                activation functions, and compare their curves side by side -- exactly the same lab you've
-                already built, dropped straight into this stage.
+               Add inputs, tweak weights and bias, switch between
+                activation functions, and compare their curves side by sid. Here you`ll visualize this entire process interactively by changing activation functions and observing how the network`s output changes.
               </p>
               <div className="aiel-handson-frame">
                 <ActivationFunctionLab />
@@ -1040,7 +1039,7 @@ export default function NeuralNetworksLab() {
               <Award size={36} color="#fff" />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 4</h2>
+            <h2 className="aiel-cert-title">You`ve completed Module 4</h2>
             <p className="aiel-cert-desc">
               You traced the path from biological neurons to artificial ones, built perceptrons, discovered
               why non-linearity matters, explored activation functions hands-on, stacked layers, and followed
