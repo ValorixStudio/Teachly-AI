@@ -618,7 +618,7 @@ function NonLinearityHero() {
         <line x1="20" y1="80" x2="230" y2="10" stroke={colors.coralDeep} strokeWidth="2" strokeDasharray="5 5" opacity="0.6" />
         <text x="105" y="50" className="aiel-neuron-tag" fill={colors.coralDeep}>no line works!</text>
       </svg>
-      <p className="aiel-hero-caption">XOR's purple and gold points are crossed diagonally -- no single straight line can ever separate them.</p>
+      <p className="aiel-hero-caption">XOR`s purple and gold points are crossed diagonally -- no single straight line can ever separate them.</p>
     </div>
   );
 }

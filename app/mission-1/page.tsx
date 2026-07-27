@@ -41,8 +41,7 @@ const colors = {
   codeText: "#ECE7FF",
 };
 
-/* All layout/spacing/typography lives in plain CSS below, so this component
-   has zero dependency on Tailwind being configured in the host project. */
+
 const STYLES = `
   .pel-root {
     min-height: 100vh;
@@ -314,7 +313,7 @@ const STYLES = `
   .pel-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
 `;
 
-/* ---------------------------- CONTENT DATA ---------------------------- */
+
 
 interface StageMetaItem {
   key: string;
@@ -510,7 +509,7 @@ function ChecklistHero({ items }: { items: { label: string; done: boolean }[] })
   );
 }
 
-/* ------------------------------- MAIN APP ------------------------------- */
+
 
 export default function PromptEngineeringLab() {
   const [current, setCurrent] = useState<number>(0); // 0..4 stages, 5 = certificate
@@ -689,7 +688,7 @@ export default function PromptEngineeringLab() {
                   <div className="pel-feedback">
                     <CheckCircle2 size={16} color={colors.tealDeep} className="pel-feedback-icon" />
                     <p className="pel-feedback-text">
-                      Notice how general that answer probably was — no age, no format, no focus.
+                      Notice how general that answer probably was no age, no format, no focus.
                     </p>
                   </div>
                 )}
