@@ -1,4 +1,5 @@
 "use client";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   Brain,
@@ -75,7 +76,23 @@ function seededRandom(seed:number) {
 /*  Static content                                                      */
 /* ------------------------------------------------------------------ */
 
-const NAV_ITEMS = [
+type TabKey = "home" | "builder" | "train" | "test" | "visualize" | "explain";
+
+interface ComponentItem {
+  label: string;
+  layerIndices: number[];
+}
+
+interface SavedModel {
+  id: number;
+  epoch: number;
+  accuracy: string;
+  trainLoss: string;
+  optimizer: string;
+  learningRate: number;
+}
+
+const NAV_ITEMS: { key: TabKey; label: string; icon: typeof Home }[] = [
   { key: "home", label: "Home", icon: Home },
   { key: "builder", label: "Builder", icon: Share2 },
   { key: "train", label: "Train", icon: LineChartIcon },
@@ -84,7 +101,7 @@ const NAV_ITEMS = [
   { key: "explain", label: "Explain", icon: Sparkles },
 ];
 
-const COMPONENTS = [
+const COMPONENTS: ComponentItem[] = [
   { label: "Input Layer", layerIndices: [0] },
   { label: "Dense Layer", layerIndices: [1, 2] },
   { label: "Activation", layerIndices: [1, 2, 3] },
@@ -466,7 +483,7 @@ const STYLES = `
 `;
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState("builder");
+  const [activeTab, setActiveTab] = useState<TabKey>("builder");
   const [dark, setDark] = useState(true);
 
   const [learningRate, setLearningRate] = useState(0.01);
@@ -478,19 +495,19 @@ export default function Page() {
 
   const [isTraining, setIsTraining] = useState(false);
   const [epoch, setEpoch] = useState(0);
-  const [trainHistory, setTrainHistory] = useState([]);
-  const [valHistory, setValHistory] = useState([]);
+  const [trainHistory, setTrainHistory] = useState<number[]>([]);
+  const [valHistory, setValHistory] = useState<number[]>([]);
   const [accuracy, setAccuracy] = useState(0);
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [selectedComponent, setSelectedComponent] = useState(null);
-  const [savedModels, setSavedModels] = useState([]);
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [dataTab, setDataTab] = useState("Dataset");
   const [showDataModal, setShowDataModal] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [testInputs, setTestInputs] = useState([0, 1, 0, 1]);
+  const [toast, setToast] = useState<string | null>(null);
+  const [testInputs, setTestInputs] = useState<number[]>([0, 1, 0, 1]);
 
   const trainLoss = trainHistory.length ? trainHistory[trainHistory.length - 1] : 1;
   const valLoss = valHistory.length ? valHistory[valHistory.length - 1] : 1;
@@ -507,7 +524,7 @@ export default function Page() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  function showToast(msg:any) {
+  function showToast(msg: string) {
     setToast(msg);
   }
 
@@ -557,7 +574,7 @@ export default function Page() {
     showToast("Network reset");
   }
 
-  function handleComponentClick(comp) {
+  function handleComponentClick(comp: ComponentItem) {
     setSelectedComponent((cur) => (cur === comp.label ? null : comp.label));
     if (comp.layerIndices.length === 0) {
       showToast(`${comp.label} isn't part of this fixed demo architecture yet`);
@@ -1102,7 +1119,23 @@ export default function Page() {
 /*  Sub components                                                      */
 /* ------------------------------------------------------------------ */
 
-function SliderField({ label, value, display, min, max, step, onChange }) {
+function SliderField({
+  label,
+  value,
+  display,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  display: string;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+}) {
   return (
     <div>
       <div className="nns-slider-row">
@@ -1122,7 +1155,17 @@ function SliderField({ label, value, display, min, max, step, onChange }) {
   );
 }
 
-function SelectField({ label, value, onChange, options }) {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+}) {
   return (
     <div>
       <p className="nns-select-label">{label}</p>
@@ -1140,7 +1183,15 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-function NetworkCanvas({ dark, zoom, highlightIndices = [] }) {
+function NetworkCanvas({
+  dark,
+  zoom,
+  highlightIndices = [],
+}: {
+  dark: boolean;
+  zoom: number;
+  highlightIndices?: number[];
+}) {
   const scale = zoom / 100;
   const textColor = dark ? "#cbd5e1" : "#334155";
   const boxTextColor = dark ? "#e2e8f0" : "#334155";
@@ -1255,7 +1306,15 @@ function Legend() {
   );
 }
 
-function LossChart({ trainHistory, valHistory, epochsTarget }) {
+function LossChart({
+  trainHistory,
+  valHistory,
+  epochsTarget,
+}: {
+  trainHistory: number[];
+  valHistory: number[];
+  epochsTarget: number;
+}) {
   const W = 640;
   const H = 220;
   const padL = 40;
@@ -1263,14 +1322,14 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
   const padT = 10;
   const padR = 10;
 
-  const yFor = (v) => {
+  const yFor = (v: number) => {
     const clamped = Math.min(1, Math.max(0.001, v));
     const t = (Math.log10(clamped) - Math.log10(0.001)) / (Math.log10(1) - Math.log10(0.001));
     return padT + (1 - t) * (H - padT - padB);
   };
-  const xFor = (i, n) => padL + (i / Math.max(1, n - 1)) * (W - padL - padR);
+  const xFor = (i: number, n: number) => padL + (i / Math.max(1, n - 1)) * (W - padL - padR);
 
-  const pathFor = (arr) =>
+  const pathFor = (arr: number[]) =>
     arr.map((v, i) => `${i === 0 ? "M" : "L"} ${xFor(i, arr.length).toFixed(1)} ${yFor(v).toFixed(1)}`).join(" ");
 
   const gridVals = [1, 0.1, 0.01, 0.001];
@@ -1322,7 +1381,17 @@ function LossChart({ trainHistory, valHistory, epochsTarget }) {
   );
 }
 
-function StatCard({ label, value, sub, colorClass }) {
+function StatCard({
+  label,
+  value,
+  sub,
+  colorClass,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+  colorClass: string;
+}) {
   return (
     <div className="nns-stat-card">
       <p className="nns-stat-label">{label}</p>
@@ -1334,12 +1403,12 @@ function StatCard({ label, value, sub, colorClass }) {
   );
 }
 
-function ActivationHeatmap({ rows, epoch }) {
+function ActivationHeatmap({ rows, epoch }: { rows: number; epoch: number }) {
   const cols = 8;
   const rand = seededRandom(epoch + 7);
   const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => rand() * 2 - 1));
 
-  function colorFor(v) {
+  function colorFor(v: number) {
     const t = (v + 1) / 2;
     const r = Math.round(30 + t * 40);
     const g = Math.round(30 + t * 90);
@@ -1377,7 +1446,7 @@ function ActivationHeatmap({ rows, epoch }) {
   );
 }
 
-function OutputPreview({ accuracy }) {
+function OutputPreview({ accuracy }: { accuracy: number }) {
   const confidence = 0.5 + Math.min(0.45, accuracy / 220);
   const y1 = confidence;
   const y2 = 1 - confidence;
@@ -1400,7 +1469,15 @@ function OutputPreview({ accuracy }) {
   );
 }
 
-function HomeTab({ onGo, epoch, accuracy }) {
+function HomeTab({
+  onGo,
+  epoch,
+  accuracy,
+}: {
+  onGo: (tab: TabKey) => void;
+  epoch: number;
+  accuracy: number;
+}) {
   return (
     <div className="nns-page" style={{ maxWidth: 768 }}>
       <section className="nns-hero">
@@ -1427,7 +1504,17 @@ function HomeTab({ onGo, epoch, accuracy }) {
   );
 }
 
-function TestTab({ testInputs, setTestInputs, trained, accuracy }) {
+function TestTab({
+  testInputs,
+  setTestInputs,
+  trained,
+  accuracy,
+}: {
+  testInputs: number[];
+  setTestInputs: Dispatch<SetStateAction<number[]>>;
+  trained: boolean;
+  accuracy: number;
+}) {
   const confidence = trained ? 0.5 + Math.min(0.45, accuracy / 220) : 0.5;
   const predicted = testInputs[0] === testInputs[1] ? 0 : 1;
 
