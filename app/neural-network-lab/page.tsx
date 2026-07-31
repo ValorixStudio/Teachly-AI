@@ -618,7 +618,7 @@ function NonLinearityHero() {
         <line x1="20" y1="80" x2="230" y2="10" stroke={colors.coralDeep} strokeWidth="2" strokeDasharray="5 5" opacity="0.6" />
         <text x="105" y="50" className="aiel-neuron-tag" fill={colors.coralDeep}>no line works!</text>
       </svg>
-      <p className="aiel-hero-caption">XOR's purple and gold points are crossed diagonally -- no single straight line can ever separate them.</p>
+      <p className="aiel-hero-caption">XOR`s purple and gold points are crossed diagonally -- no single straight line can ever separate them.</p>
     </div>
   );
 }
@@ -967,9 +967,8 @@ export default function NeuralNetworksLab() {
                 <Sparkles size={14} /> Hands-on playground
               </span>
               <p className="aiel-handson-note">
-                Everything below is fully interactive. Add inputs, tweak weights and bias, switch between
-                activation functions, and compare their curves side by side -- exactly the same lab you've
-                already built, dropped straight into this stage.
+               Add inputs, tweak weights and bias, switch between
+                activation functions, and compare their curves side by sid. Here you`ll visualize this entire process interactively by changing activation functions and observing how the network`s output changes.
               </p>
               <div className="aiel-handson-frame">
                 <ActivationFunctionLab />
@@ -1040,7 +1039,7 @@ export default function NeuralNetworksLab() {
               <Award size={36} color="#fff" />
             </div>
             <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You've completed Module 4</h2>
+            <h2 className="aiel-cert-title">You`ve completed Module 4</h2>
             <p className="aiel-cert-desc">
               You traced the path from biological neurons to artificial ones, built perceptrons, discovered
               why non-linearity matters, explored activation functions hands-on, stacked layers, and followed

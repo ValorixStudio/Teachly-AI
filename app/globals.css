@@ -1,4 +1,8 @@
+/* ════════════════════════════════════════
+   Fonts (must be first — before any other rule)
+   ════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
 @import "tailwindcss";
 
 /* ════════════════════════════════════════
@@ -59,7 +63,9 @@ body {
 }
 
 /* ════════════════════════════════════════
-   Layout Shell
+   NEURON LAB — Layout Shell
+   (classes prefixed nn- to avoid collisions
+   with other pages/components)
    ════════════════════════════════════════ */
 
 .lab-shell {
@@ -96,8 +102,6 @@ main {
   padding: 2.5rem 1.5rem 5rem;
 }
 
-
-
 /* ════════════════════════════════════════
    Hero
    ════════════════════════════════════════ */
@@ -130,18 +134,18 @@ main {
    Section Titles
    ════════════════════════════════════════ */
 
-.section-title {
+.nn-section-title {
   font-weight: 900;
   color: #FF7B00;
   text-align: center;
 }
 
-.card-title {
+.nn-card-title {
   font-weight: 800;
   color: #FF7B00;
 }
 
-.label-text {
+.nn-label-text {
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -153,7 +157,7 @@ main {
    Progress Bar
    ════════════════════════════════════════ */
 
-.progress-track {
+.nn-progress-track {
   width: 100%;
   height: 18px;
   background: #fff;
@@ -162,7 +166,7 @@ main {
   overflow: hidden;
 }
 
-.progress-fill {
+.nn-progress-fill {
   height: 100%;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, var(--orange), var(--yellow));
@@ -173,7 +177,7 @@ main {
    Step Tabs
    ════════════════════════════════════════ */
 
-.step-tab {
+.nn-step-tab {
   font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 800;
@@ -187,19 +191,19 @@ main {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.step-tab:hover {
+.nn-step-tab:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-.step-tab.active-orange {
+.nn-step-tab.nn-active-orange {
   background: linear-gradient(135deg, var(--orange), var(--yellow));
   color: #fff;
   transform: scale(1.06);
   box-shadow: 0 6px 20px rgba(255, 159, 28, 0.4);
 }
 
-.step-tab.active-blue {
+.nn-step-tab.nn-active-blue {
   background: linear-gradient(135deg, var(--purple), var(--blue));
   color: #fff;
   transform: scale(1.06);
@@ -210,7 +214,7 @@ main {
    Cards
    ════════════════════════════════════════ */
 
-.glass-card {
+.nn-glass-card {
   background: #fff;
   border: 5px solid #FFE08A;
   border-radius: var(--radius-card);
@@ -220,7 +224,7 @@ main {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.glass-card:hover {
+.nn-glass-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-hover);
 }
@@ -409,7 +413,6 @@ select:focus {
   gap: 14px;
   overflow-x: auto;
   padding: 0.5rem 0 1rem;
-  
 }
 
 .flow-inputs {
@@ -501,10 +504,9 @@ select:focus {
 }
 
 .flow-node-symbol {
-  font-size: 1 rem;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-
 }
 
 .flow-node-label {
@@ -576,7 +578,7 @@ button:hover {
   transform: scale(1.05);
 }
 
-.btn-next {
+.nn-btn-next {
   padding: 13px 30px;
   font-size: 1rem;
   font-weight: 900;
@@ -586,12 +588,12 @@ button:hover {
   box-shadow: 0 6px 20px rgba(255, 159, 28, 0.35);
 }
 
-.btn-next:hover {
+.nn-btn-next:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 8px 24px rgba(255, 159, 28, 0.45);
 }
 
-.btn-back {
+.nn-btn-back {
   padding: 13px 30px;
   font-size: 1rem;
   font-weight: 900;
@@ -601,7 +603,7 @@ button:hover {
   box-shadow: 0 4px 14px rgba(255, 211, 61, 0.35);
 }
 
-.btn-back:hover {
+.nn-btn-back:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 6px 18px rgba(255, 211, 61, 0.45);
 }
@@ -655,7 +657,7 @@ button:hover {
 }
 
 /* ════════════════════════════════════════
-   Responsive — mobile
+   Responsive — mobile (Neuron Lab)
    ════════════════════════════════════════ */
 
 @media (max-width: 640px) {
@@ -667,11 +669,11 @@ button:hover {
     font-size: 2rem !important;
   }
 
-  .section-title {
+  .nn-section-title {
     font-size: 1.5rem !important;
   }
 
-  .step-tab {
+  .nn-step-tab {
     padding: 9px 18px;
     font-size: 0.85rem;
   }
@@ -698,5 +700,505 @@ button:hover {
 
   .flow-node-activation {
     width: 96px;
+  }
+}
+
+/* ════════════════════════════════════════
+   ROADMAP / HOME PAGE (.al-*)
+   ════════════════════════════════════════ */
+
+.al-page {
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  --line: #e2e8f0;
+
+  min-height: 100vh;
+  padding: 4rem 1.5rem 6rem;
+  background-color: var(--bg-base);
+  background-image: url("/bg-light.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.al-wrap {
+  max-width: 58rem;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+
+.al-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.al-title {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.75rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  background: linear-gradient(
+    235deg,
+    #a62963 0%,
+    #a6497c 60%,
+    #bf984e 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.al-sub {
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  margin-bottom: 2rem;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.al-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.al-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.al-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--accent, #94a3b8);
+}
+
+.al-legend-label {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ---------- Levels (Roadmap Timeline) ---------- */
+
+.al-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  position: relative;
+  padding-left: 48px;
+}
+
+.al-levels::before {
+  content: "";
+  position: absolute;
+  top: 2rem;
+  bottom: 2rem;
+  left: 14px;
+  width: 4px;
+  background: var(--line);
+  border-radius: 4px;
+}
+
+.al-level {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Timeline Node */
+.al-level::before {
+  content: "";
+  position: absolute;
+  top: 1.5rem;
+  left: -42px; /* Centers the 16px circle on the 4px line at 14px */
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 4px solid var(--accent, #94a3b8);
+  z-index: 2;
+  box-shadow: 0 0 0 6px var(--bg-base);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.al-level[data-open="true"] {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent, #94a3b8) 50%, transparent);
+}
+
+.al-level[data-open="true"]::before {
+  transform: scale(1.2);
+}
+
+.al-level[data-locked="true"] {
+  opacity: 0.6;
+  filter: grayscale(100%);
+}
+
+.al-level[data-locked="true"]::before {
+  border-color: var(--line);
+}
+
+.al-level-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: background-color 0.2s ease;
+}
+
+.al-level-header:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.al-level[data-locked="true"] .al-level-header {
+  cursor: not-allowed;
+}
+
+.al-level[data-locked="true"] .al-level-header:hover {
+  background: transparent;
+}
+
+.al-level-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.al-level-title {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.al-chevron {
+  flex-shrink: 0;
+  color: var(--ink-soft);
+  transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.al-lock {
+  flex-shrink: 0;
+  color: var(--ink-soft);
+}
+
+/* ---------- Status badges (locked / completed) ---------- */
+
+.al-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.al-status-complete {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.al-status-locked {
+  color: var(--ink-soft);
+  background: rgba(100, 116, 139, 0.1);
+  border: 1px solid var(--line);
+}
+
+/* ---------- Tags (mono badges) ---------- */
+
+.al-tag {
+  flex-shrink: 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid var(--accent, #94a3b8);
+}
+
+.al-tag-level {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  color: var(--accent, #64748b);
+  background: color-mix(in srgb, var(--accent, #94a3b8) 15%, transparent);
+}
+
+.al-tag-module {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  color: var(--accent, #64748b);
+  background: color-mix(in srgb, var(--accent, #94a3b8) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #94a3b8) 30%, transparent);
+}
+
+/* ---------- Collapsible (animated height) ---------- */
+
+.al-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.al-collapsible.al-open {
+  grid-template-rows: 1fr;
+}
+
+.al-collapsible-inner {
+  overflow: hidden;
+}
+
+/* ---------- Modules ---------- */
+
+.al-modules {
+  border-top: 1px solid var(--line);
+}
+
+.al-module {
+  border-bottom: 1px solid var(--line);
+  transition: opacity 220ms ease;
+}
+
+.al-module[data-locked="true"] {
+  opacity: 0.6;
+}
+
+.al-module:last-child {
+  border-bottom: none;
+}
+
+.al-module-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: background-color 0.2s ease;
+}
+
+.al-module-header:hover {
+  background-color: rgba(0, 0, 0, 0.015);
+}
+
+.al-module[data-locked="true"] .al-module-header {
+  cursor: not-allowed;
+}
+
+.al-module[data-locked="true"] .al-module-header:hover {
+  background: transparent;
+}
+
+.al-module-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.al-module-title {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+/* ---------- Topics ---------- */
+
+.al-topics {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 1.5rem 1.25rem 2.75rem;
+}
+
+.al-topic {
+  border-bottom: 1px solid var(--line);
+}
+
+.al-topic:last-child {
+  border-bottom: none;
+}
+
+.al-topic-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  color: var(--ink);
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.al-topic-link {
+  text-decoration: none;
+}
+
+.al-topic-row:hover {
+  color: var(--accent, #0f172a);
+  transform: translateX(4px);
+}
+
+.al-topic-locked {
+  cursor: not-allowed;
+  color: var(--ink-soft);
+}
+
+.al-topic-locked:hover {
+  color: var(--ink-soft);
+  transform: none;
+}
+
+.al-topic-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.al-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent, #64748b);
+  background: color-mix(in srgb, var(--accent, #94a3b8) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #94a3b8) 30%, transparent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
+.al-arrow {
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+  color: var(--accent, #0f172a);
+}
+
+.al-topic-link:hover .al-arrow,
+.al-topic-link:focus-visible .al-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.al-empty {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.01);
+}
+
+/* ---------- Accessibility ---------- */
+
+.al-level-header:focus-visible,
+.al-module-header:focus-visible,
+.al-topic-row:focus-visible {
+  outline: 2px solid var(--accent, #0f172a);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al-collapsible,
+  .al-chevron,
+  .al-arrow,
+  .al-level,
+  .al-topic-row {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .al-page {
+    padding: 2.5rem 1rem 4rem;
+  }
+  .al-title {
+    font-size: 2.25rem;
+  }
+  .al-levels {
+    padding-left: 32px;
+  }
+  .al-levels::before {
+    left: 8px;
+  }
+  .al-level::before {
+    left: -34px;
+    width: 16px;
+    height: 16px;
+    top: 1.4rem;
+  }
+  .al-level-header,
+  .al-module-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .al-topics {
+    padding-left: 1.5rem;
   }
 }

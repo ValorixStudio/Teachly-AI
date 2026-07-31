@@ -1,5 +1,7 @@
 "use client";
-import React, { useState, useMemo } from "react";
+
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Image as ImageIcon,
   Workflow,
@@ -10,197 +12,49 @@ import {
   XCircle,
   ChevronRight,
   ChevronLeft,
-  Award,
-  RotateCcw,
-  LucideIcon,
+  type LucideIcon,
 } from "lucide-react";
 
+/* ============================================================================
+   COLOR SYSTEM -- matches the AI Foundations Lab exactly
+============================================================================ */
+
 const colors = {
-  bg: "#FFF7E3",
-  bgSoft: "#FFEFC8",
+  bg: "#F0F4F8",
+  bgSoft: "#E7ECF3",
   card: "#FFFFFF",
-  cardAlt: "#F6F1FF",
-  border: "#FFD866",
-  borderSoft: "#FFE9A8",
-  gold: "#F5A623",
-  goldDeep: "#E2860A",
-  goldDeepest: "#B96A05",
-  coral: "#FF7A59",
-  coralDeep: "#E85A38",
-  purple: "#A855F7",
-  purpleDeep: "#8B34E0",
-  teal: "#2FB6A3",
-  tealDeep: "#1F9585",
-  ink: "#3A2E1E",
-  inkSoft: "#5A4B34",
-  muted: "#8A7A5C",
-  codeBg: "#2B2440",
+  cardAlt: "#F8FAFC",
+  border: "rgba(148,163,184,0.25)",
+  borderSoft: "rgba(148,163,184,0.18)",
+  gold: "#F59E0B",
+  goldDeep: "#B45309",
+  coral: "#F43F5E",
+  coralDeep: "#BE123C",
+  purple: "#8B5CF6",
+  purpleDeep: "#6D28D9",
+  teal: "#06B6D4",
+  tealDeep: "#0E7490",
+  ink: "#1E293B",
+  inkSoft: "#475569",
+  muted: "#94A3B8",
+  codeBg: "#211D3A",
   codeText: "#F3EFFF",
+  indigo: "#6366F1",
+  indigoDeep: "#4F46E5",
+  indigoLight: "#A5B4FC",
+  emerald: "#10B981",
 };
 
-/* All layout/spacing/typography lives in plain CSS below, so this component
-   has zero dependency on Tailwind being configured in the host project. */
-const STYLES = `
-  .aiel-root {
-    min-height: 100vh;
-    width: 100%;
-    padding: 32px 16px;
-    background: radial-gradient(circle at 20% -10%, ${colors.bgSoft} 0%, ${colors.bg} 55%);
-    font-family: 'Poppins', sans-serif;
-    box-sizing: border-box;
-  }
-  .aiel-root *, .aiel-root *::before, .aiel-root *::after { box-sizing: border-box; }
-  .aiel-root button { font-family: inherit; border: none; background: none; cursor: pointer; }
-  .aiel-root button:focus-visible { outline: 3px solid ${colors.purple}; outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) {
-    .aiel-root * { transition: none !important; animation: none !important; }
-  }
-
-  .aiel-container { max-width: 760px; margin: 0 auto; }
-
-  .aiel-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; margin-bottom: 28px; }
-  .aiel-header-icon {
-    width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: ${colors.card}; border: 2.5px solid ${colors.border};
-    box-shadow: 0 6px 0 ${colors.border};
-  }
-  .aiel-eyebrow {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
-    color: ${colors.goldDeep}; margin: 4px 0 0 0;
-  }
-  .aiel-h1 {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; margin: 0; line-height: 1.15;
-    font-size: 28px;
-    background: linear-gradient(90deg, #D9A62B 0%, ${colors.coral} 45%, ${colors.purple} 100%);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: ${colors.purple};
-  }
-  @media (min-width: 640px) { .aiel-h1 { font-size: 34px; } }
-  .aiel-subtitle { font-size: 15px; color: ${colors.muted}; max-width: 560px; margin: 4px auto 0 auto; line-height: 1.55; }
-
-  .aiel-progress-track {
-    width: 100%; height: 14px; border-radius: 999px; background: #FFFFFF;
-    border: 2px solid ${colors.borderSoft}; overflow: hidden; margin-bottom: 18px;
-  }
-  .aiel-progress-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, ${colors.gold} 0%, ${colors.coral} 100%);
-    transition: width 0.35s ease;
-  }
-
-  .aiel-stampbar {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px; margin-bottom: 28px; flex-wrap: wrap;
-  }
-  .aiel-stamp-btn {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 18px; border-radius: 999px; font-weight: 700; font-size: 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease; flex: 1; min-width: 130px; justify-content: center;
-  }
-  .aiel-stamp-btn:hover { transform: translateY(-2px); }
-  .aiel-stamp-label {
-    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700;
-    text-align: center; white-space: nowrap;
-  }
-  @media (max-width: 639px) {
-    .aiel-stamp-label { display: none; }
-    .aiel-stamp-btn { min-width: 0; padding: 12px; }
-  }
-
-  .aiel-stage-shell { border-radius: 28px; padding: 20px; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; }
-  @media (min-width: 640px) { .aiel-stage-shell { padding: 32px; } }
-  .aiel-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .aiel-stage-tag {
-    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal};
-  }
-  .aiel-stage-progress { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: ${colors.muted}; }
-  .aiel-stage-title {
-    font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep};
-    font-size: 24px; margin: 4px 0 8px 0;
-  }
-  @media (min-width: 640px) { .aiel-stage-title { font-size: 28px; } }
-  .aiel-stage-subtitle { font-size: 14px; color: ${colors.muted}; margin: 0 0 24px 0; }
-
-  .aiel-item-list { display: flex; flex-direction: column; gap: 12px; }
-  .aiel-item-card { border-radius: 20px; padding: 16px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
-  .aiel-item-text { font-size: 14px; color: ${colors.ink}; margin: 0 0 12px 0; font-weight: 500; }
-
-  .aiel-code-block {
-    background: ${colors.codeBg}; color: ${colors.codeText}; border-radius: 14px; padding: 14px 16px;
-    font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; line-height: 1.6;
-    white-space: pre; overflow-x: auto; margin: 0 0 10px 0;
-  }
-  .aiel-item-question { font-size: 13px; color: ${colors.inkSoft}; margin: 0 0 12px 0; font-weight: 600; }
-
-  .aiel-choice-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .aiel-choice-btn {
-    flex: 1; font-size: 12px; font-weight: 700; padding: 12px 8px; border-radius: 999px; color: ${colors.ink};
-    box-shadow: 0 4px 0 rgba(0,0,0,0.18); transition: transform 0.12s ease, box-shadow 0.12s ease;
-    min-width: 100px;
-  }
-  .aiel-choice-btn:hover { transform: translateY(-1px); }
-  .aiel-choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.18); }
-  .aiel-choice-teal { background: linear-gradient(180deg, #7EE6D6 0%, ${colors.teal} 100%); }
-  .aiel-choice-coral { background: linear-gradient(180deg, #FFAD8F 0%, ${colors.coral} 100%); }
-  .aiel-choice-gold { background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%); }
-
-  .aiel-feedback { display: flex; align-items: flex-start; gap: 8px; }
-  .aiel-feedback-text { font-size: 12px; color: ${colors.muted}; margin: 0; line-height: 1.5; }
-  .aiel-feedback-icon { margin-top: 2px; flex-shrink: 0; }
-
-  .aiel-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; }
-  .aiel-nav-back {
-    display: flex; align-items: center; gap: 4px; padding: 10px 18px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.inkSoft}; background: ${colors.cardAlt};
-    transition: transform 0.12s ease, background 0.15s ease;
-  }
-  .aiel-nav-back:not([disabled]):hover { background: ${colors.borderSoft}; transform: translateY(-1px); }
-  .aiel-nav-next {
-    display: flex; align-items: center; gap: 4px; padding: 12px 22px; border-radius: 999px;
-    font-size: 14px; font-weight: 700; color: ${colors.ink};
-    background: linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%);
-    box-shadow: 0 5px 0 ${colors.goldDeep};
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-  }
-  .aiel-nav-next:not([disabled]):hover { transform: translateY(-1px); }
-  .aiel-nav-next:not([disabled]):active { transform: translateY(4px); box-shadow: 0 1px 0 ${colors.goldDeep}; }
-  .aiel-nav-next[disabled], .aiel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
-
-  .aiel-cert { border-radius: 28px; padding: 32px 20px; text-align: center; background: ${colors.card}; border: 3px solid ${colors.border}; box-shadow: 0 10px 0 ${colors.borderSoft}; }
-  @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
-  .aiel-cert-badge {
-    margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(180deg, #FFC65C 0%, ${colors.gold} 100%);
-    box-shadow: 0 6px 0 ${colors.goldDeep};
-  }
-  .aiel-cert-eyebrow { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.teal}; margin: 0 0 8px 0; }
-  .aiel-cert-title { font-family: 'Baloo 2', sans-serif; font-weight: 800; color: ${colors.goldDeep}; font-size: 26px; margin: 0 0 12px 0; }
-  .aiel-cert-desc { font-size: 14px; color: ${colors.muted}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-  .aiel-cert-score {
-    display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft};
-  }
-  .aiel-cert-score-num { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.goldDeep}; }
-  .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
-  .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; }
-  @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(4, 1fr); } }
-  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.cardAlt}; border: 2px solid ${colors.borderSoft}; }
-  .aiel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
-  .aiel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;
-    padding: 12px 22px; border-radius: 999px; background: ${colors.cardAlt}; border: 2px solid ${colors.border}; color: ${colors.ink};
-  }
-`;
-
-/* ---------------------------- TYPES ---------------------------- */
+/* ============================================================================
+   TYPES
+============================================================================ */
 
 interface StageMetaItem {
   key: string;
   title: string;
   icon: LucideIcon;
   tag: string;
+  subtitle: string;
 }
 
 interface QuizItem {
@@ -214,13 +68,39 @@ interface QuizItem {
 
 type AnswerMap = Record<string, string>;
 
-/* ---------------------------- CONTENT DATA ---------------------------- */
+/* ============================================================================
+   CONTENT DATA
+============================================================================ */
 
 const STAGE_META: StageMetaItem[] = [
-  { key: "cnn", title: "CNN", icon: ImageIcon, tag: "Stage 1 - Spot the Pattern" },
-  { key: "rnn", title: "RNN", icon: Workflow, tag: "Stage 2 - Follow the Sequence" },
-  { key: "lstm", title: "LSTM", icon: Brain, tag: "Stage 3 - Remember Longer" },
-  { key: "transformers", title: "Transformers", icon: Sparkles, tag: "Stage 4 - Pay Attention" },
+  {
+    key: "cnn",
+    title: "CNN",
+    icon: ImageIcon,
+    tag: "Stage 1 · Spot the Pattern",
+    subtitle: "CNNs slide small filters across an image, hunting for specific local patterns.",
+  },
+  {
+    key: "rnn",
+    title: "RNN",
+    icon: Workflow,
+    tag: "Stage 2 · Follow the Sequence",
+    subtitle: "RNNs process data one step at a time, carrying a running memory forward.",
+  },
+  {
+    key: "lstm",
+    title: "LSTM",
+    icon: Brain,
+    tag: "Stage 3 · Remember Longer",
+    subtitle: "LSTMs add gates and a memory cell so important details survive much longer sequences.",
+  },
+  {
+    key: "transformers",
+    title: "Transformers",
+    icon: Sparkles,
+    tag: "Stage 4 · Pay Attention",
+    subtitle: "Transformers look at a whole sequence at once and use attention to connect distant words.",
+  },
 ];
 
 const CNN_ITEMS: QuizItem[] = [
@@ -255,7 +135,250 @@ const TRANSFORMER_ITEMS: QuizItem[] = [
   { id: "t5", code: 'Sentence: "The cat sat on the mat because it was tired."', question: "Which word would a transformer's attention most likely link 'it' back to?", options: ["cat", "mat", "was"], answer: "cat", explain: "A cat can be tired in a way a mat can't, so attention learns to connect 'it' back to 'cat' based on meaning, not just position." },
 ];
 
-/* ------------------------------- HELPERS ------------------------------- */
+const STAGE_ITEMS: Record<string, QuizItem[]> = {
+  cnn: CNN_ITEMS,
+  rnn: RNN_ITEMS,
+  lstm: LSTM_ITEMS,
+  transformers: TRANSFORMER_ITEMS,
+};
+
+const POSITIVE_PHRASES = ["Nice! 🎉", "Great instinct!", "Sharp move! ✨", "That's it!", "Exactly right!"];
+const GENTLE_PHRASES = ["Not quite 🤔", "Close -- try the next one", "Keep going", "Almost there!"];
+
+/* ============================================================================
+   STYLES -- matches the AI Foundations Lab's design language exactly
+   (glassmorphism, Inter type, indigo/violet/cyan/amber/rose accents,
+   floating background orbs, soft pill buttons, animated stepper)
+============================================================================ */
+
+const STYLES = `
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 15px) scale(0.97); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-25px, 25px) scale(0.96); }
+    66% { transform: translate(20px, -15px) scale(1.04); }
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes dlfl-toast-in {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.9); }
+    60% { opacity: 1; transform: translateX(-50%) translateY(2px) scale(1.03); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+  @keyframes dlfl-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes dlfl-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .dlfl-root {
+    min-height: 100vh; width: 100%; position: relative; overflow-x: hidden;
+    background: ${colors.bg};
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 32px 16px 60px;
+    box-sizing: border-box;
+  }
+  .dlfl-root *, .dlfl-root *::before, .dlfl-root *::after { box-sizing: border-box; }
+  .dlfl-root button { font-family: inherit; border: none; background: none; cursor: pointer; }
+  .dlfl-root button:focus-visible { outline: 3px solid ${colors.indigo}; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .dlfl-root * { transition: none !important; animation: none !important; }
+  }
+
+  .dlfl-blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px); opacity: 0.35; }
+  .dlfl-blob-1 { width: 460px; height: 460px; top: -110px; right: -90px; background: ${colors.indigoLight}; animation: float1 18s ease-in-out infinite; }
+  .dlfl-blob-2 { width: 380px; height: 380px; bottom: -80px; left: -80px; background: ${colors.teal}; opacity: 0.22; animation: float2 22s ease-in-out infinite; }
+  .dlfl-blob-3 { width: 300px; height: 300px; top: 45%; left: 55%; background: ${colors.gold}; opacity: 0.16; animation: float1 25s ease-in-out infinite reverse; }
+  .dlfl-blob-4 { width: 260px; height: 260px; top: 60%; right: 4%; background: ${colors.coral}; opacity: 0.14; animation: float2 20s ease-in-out infinite; }
+
+  .dlfl-container { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .dlfl-back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600; color: ${colors.inkSoft};
+    padding: 8px 16px; border-radius: 12px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid ${colors.border};
+    transition: all 0.2s ease; margin-bottom: 28px;
+  }
+  .dlfl-back-btn:hover { color: ${colors.indigo}; border-color: rgba(99,102,241,0.4); transform: translateX(-2px); }
+
+  .dlfl-header { text-align: center; margin-bottom: 28px; animation: fadeSlideUp 0.6s ease both; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .dlfl-header-icon {
+    width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, ${colors.indigo}, ${colors.purple});
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+  }
+  .dlfl-h1 {
+    font-size: 32px; font-weight: 800; margin: 0; line-height: 1.2; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, ${colors.indigoDeep}, ${colors.purple} 55%, ${colors.coral});
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: ${colors.purple};
+  }
+  @media (min-width: 640px) { .dlfl-h1 { font-size: 40px; } }
+  .dlfl-subtitle { font-size: 16px; color: ${colors.inkSoft}; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+
+  .dlfl-toast {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+    font-weight: 700; font-size: 13.5px; color: white; z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    animation: dlfl-toast-in 0.35s ease forwards;
+  }
+  .dlfl-toast-up { background: linear-gradient(135deg, ${colors.emerald}, #059669); }
+  .dlfl-toast-down { background: linear-gradient(135deg, ${colors.coral}, ${colors.coralDeep}); }
+
+  .dlfl-progress-track {
+    width: 100%; height: 8px; border-radius: 999px; background: rgba(148,163,184,0.18);
+    overflow: hidden; margin-bottom: 18px; position: relative;
+  }
+  .dlfl-progress-fill {
+    height: 100%; border-radius: 999px; position: relative; overflow: hidden;
+    background: linear-gradient(90deg, ${colors.indigo}, ${colors.purple});
+    transition: width 0.35s ease;
+  }
+  .dlfl-progress-fill::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
+    animation: shimmer 2.2s linear infinite;
+  }
+
+  .dlfl-stampbar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 32px; flex-wrap: wrap; animation: fadeSlideUp 0.7s ease both 0.1s; }
+  .dlfl-stamp-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 18px; border-radius: 14px; font-weight: 700; font-size: 13px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 2px solid ${colors.border}; color: ${colors.muted};
+    transition: all 0.25s ease; flex: 1; min-width: 54px; justify-content: center;
+  }
+  .dlfl-stamp-btn:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.4); }
+  .dlfl-stamp-label { font-size: 12px; font-weight: 700; text-align: center; white-space: nowrap; }
+  @media (max-width: 639px) { .dlfl-stamp-label { display: none; } .dlfl-stamp-btn { min-width: 0; padding: 11px; } }
+
+  .dlfl-stage-shell {
+    border-radius: 24px; padding: 28px 24px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid ${colors.border};
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    animation: fadeSlideUp 0.55s ease both 0.2s;
+  }
+  @media (min-width: 640px) { .dlfl-stage-shell { padding: 36px 32px; } }
+  .dlfl-stage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .dlfl-stage-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: ${colors.indigo}; padding: 5px 14px; border-radius: 999px; background: rgba(99,102,241,0.08);
+  }
+  .dlfl-stage-progress { font-size: 13px; font-weight: 700; color: ${colors.muted}; }
+  .dlfl-stage-title { font-size: 26px; font-weight: 800; color: ${colors.ink}; margin: 8px 0 6px 0; letter-spacing: -0.01em; }
+  @media (min-width: 640px) { .dlfl-stage-title { font-size: 30px; } }
+  .dlfl-stage-subtitle { font-size: 15px; color: ${colors.inkSoft}; margin: 0 0 18px 0; line-height: 1.6; }
+
+  .dlfl-item-list { display: flex; flex-direction: column; gap: 12px; }
+  .dlfl-item-card {
+    border-radius: 18px; padding: 20px; background: ${colors.card};
+    border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    opacity: 0; animation: fadeSlideUp 0.4s ease forwards; transition: all 0.2s ease;
+  }
+  .dlfl-item-card:hover { border-color: rgba(99,102,241,0.4); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+  .dlfl-code-block {
+    background: ${colors.codeBg}; color: ${colors.codeText}; border-radius: 14px; padding: 14px 16px;
+    font-family: 'Menlo', 'Consolas', monospace; font-size: 12.5px; line-height: 1.6;
+    white-space: pre; overflow-x: auto; margin: 0 0 12px 0;
+  }
+  .dlfl-item-question { font-size: 14px; color: ${colors.ink}; margin: 0 0 14px 0; font-weight: 700; }
+
+  .dlfl-choice-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .dlfl-choice-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 12.5px; font-weight: 700; padding: 13px 12px; border-radius: 14px; color: #1E1B2E;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12); border: 2px solid transparent;
+    transition: all 0.2s ease; min-width: 108px;
+  }
+  .dlfl-choice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.16); }
+  .dlfl-choice-btn:active { transform: translateY(1px); }
+  .dlfl-choice-teal { background: linear-gradient(135deg, #7EE6D6, ${colors.teal}); }
+  .dlfl-choice-coral { background: linear-gradient(135deg, #FFAD8F, ${colors.coral}); }
+  .dlfl-choice-gold { background: linear-gradient(135deg, #FFD98A, ${colors.gold}); }
+
+  .dlfl-feedback-line { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 14px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.18); animation: popIn 0.3s ease both; }
+  .dlfl-feedback-line p { font-size: 12.5px; color: ${colors.inkSoft}; margin: 0; line-height: 1.55; font-weight: 500; }
+  .dlfl-feedback-icon { margin-top: 2px; flex-shrink: 0; }
+
+  .dlfl-nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; gap: 12px; }
+  .dlfl-step-counter { font-size: 12px; font-weight: 700; color: ${colors.muted}; }
+  .dlfl-nav-back {
+    display: flex; align-items: center; gap: 6px; padding: 12px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: ${colors.inkSoft};
+    background: ${colors.card}; border: 1px solid ${colors.border};
+    transition: all 0.2s ease;
+  }
+  .dlfl-nav-back:not([disabled]):hover { color: ${colors.indigo}; border-color: rgba(99,102,241,0.4); transform: translateX(-2px); }
+  .dlfl-nav-next {
+    display: flex; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, ${colors.indigo}, ${colors.purple});
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    transition: all 0.2s ease;
+  }
+  .dlfl-nav-next:not([disabled]):hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.35); }
+  .dlfl-nav-next:not([disabled]):active { transform: translateY(1px); }
+  .dlfl-nav-next[disabled], .dlfl-nav-back[disabled] { opacity: 0.4; cursor: default; }
+  .dlfl-nav-next[disabled] { background: ${colors.muted}; box-shadow: none; }
+
+  .dlfl-completion-overlay {
+    position: fixed; inset: 0; background: rgba(5,10,25,0.75);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
+    animation: dlfl-fade-in 0.35s ease;
+  }
+  .dlfl-completion-modal {
+    width: 480px; max-width: 90%;
+    background: rgba(20,28,45,0.95);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px; padding: 40px; text-align: center; color: #fff;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: dlfl-pop 0.4s ease;
+  }
+  .dlfl-completion-icon {
+    width: 68px; height: 68px; border-radius: 50%; margin: 0 auto 18px auto;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, ${colors.indigo}, ${colors.purple});
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+  }
+  .dlfl-completion-modal h2 { margin: 0 0 10px 0; font-size: 22px; font-weight: 800; }
+  .dlfl-completion-modal p { color: #b8c5e1; line-height: 1.6; font-size: 14.5px; margin: 0; }
+  .dlfl-completion-modal button {
+    margin-top: 26px; padding: 13px 30px; border: none; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(135deg, ${colors.indigo}, ${colors.teal});
+    color: white; font-weight: 700; font-size: 15px;
+    display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 22px rgba(99,102,241,0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .dlfl-completion-modal button:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(99,102,241,0.4); }
+`;
+
+/* ============================================================================
+   SHARED HELPERS
+============================================================================ */
+
+const PALETTE = ["dlfl-choice-teal", "dlfl-choice-coral", "dlfl-choice-gold"];
 
 interface StampBarProps {
   current: number;
@@ -268,35 +391,32 @@ function StampBar({ current, completed, onJump }: StampBarProps) {
   const pct = (doneCount / STAGE_META.length) * 100;
   return (
     <div>
-      <div className="aiel-progress-track">
-        <div className="aiel-progress-fill" style={{ width: `${pct}%` }} />
+      <div className="dlfl-progress-track">
+        <div className="dlfl-progress-fill" style={{ width: `${pct}%` }} />
       </div>
-      <div className="aiel-stampbar">
+      <div className="dlfl-stampbar">
         {STAGE_META.map((s, i) => {
           const Icon = s.icon;
           const isDone = completed[i];
           const isCurrent = current === i;
-          const bg =
-            isDone || isCurrent
-              ? `linear-gradient(180deg, #FFD98A 0%, ${colors.gold} 100%)`
-              : colors.card;
+          const active = isDone || isCurrent;
           return (
             <button
               key={s.key}
-              className="aiel-stamp-btn"
+              className="dlfl-stamp-btn"
               onClick={() => onJump(i)}
               style={{
-                background: bg,
-                border: `2px solid ${isDone || isCurrent ? colors.goldDeep : colors.borderSoft}`,
-                boxShadow: isDone || isCurrent ? `0 4px 0 ${colors.goldDeep}` : "none",
+                background: active ? `linear-gradient(135deg, ${colors.indigo}, ${colors.purple})` : undefined,
+                borderColor: active ? "transparent" : colors.border,
+                boxShadow: active ? "0 4px 15px rgba(99,102,241,0.3)" : "none",
               }}
             >
               {isDone ? (
-                <CheckCircle2 size={18} color={colors.ink} strokeWidth={2.5} />
+                <CheckCircle2 size={18} color="#fff" strokeWidth={2.5} />
               ) : (
-                <Icon size={16} color={isCurrent ? colors.ink : colors.muted} />
+                <Icon size={16} color={isCurrent ? "#fff" : colors.muted} />
               )}
-              <span className="aiel-stamp-label" style={{ color: isDone || isCurrent ? colors.ink : colors.muted }}>
+              <span className="dlfl-stamp-label" style={{ color: active ? "#fff" : colors.muted }}>
                 {s.title}
               </span>
             </button>
@@ -317,13 +437,13 @@ interface StageShellProps {
 
 function StageShell({ tag, title, subtitle, progressLabel, children }: StageShellProps) {
   return (
-    <div className="aiel-stage-shell">
-      <div className="aiel-stage-top">
-        <span className="aiel-stage-tag">{tag}</span>
-        {progressLabel && <span className="aiel-stage-progress">{progressLabel}</span>}
+    <div className="dlfl-stage-shell">
+      <div className="dlfl-stage-top">
+        <span className="dlfl-stage-tag">{tag}</span>
+        {progressLabel && <span className="dlfl-stage-progress">{progressLabel}</span>}
       </div>
-      <h2 className="aiel-stage-title">{title}</h2>
-      {subtitle && <p className="aiel-stage-subtitle">{subtitle}</p>}
+      <h2 className="dlfl-stage-title">{title}</h2>
+      {subtitle && <p className="dlfl-stage-subtitle">{subtitle}</p>}
       {children}
     </div>
   );
@@ -335,15 +455,18 @@ interface NavButtonsProps {
   backDisabled?: boolean;
   nextDisabled?: boolean;
   nextLabel?: string;
+  step: number;
+  total: number;
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
+function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel, step, total }: NavButtonsProps) {
   return (
-    <div className="aiel-nav-row">
-      <button className="aiel-nav-back" onClick={onBack} disabled={backDisabled}>
+    <div className="dlfl-nav-row">
+      <button className="dlfl-nav-back" onClick={onBack} disabled={backDisabled}>
         <ChevronLeft size={16} /> Back
       </button>
-      <button className="aiel-nav-next" onClick={onNext} disabled={nextDisabled}>
+      <span className="dlfl-step-counter">{step} / {total}</span>
+      <button className="dlfl-nav-next" onClick={onNext} disabled={nextDisabled}>
         {nextLabel || "Continue"} <ChevronRight size={16} />
       </button>
     </div>
@@ -357,22 +480,21 @@ interface QuizListProps {
 }
 
 function QuizList({ items, answers, onAnswer }: QuizListProps) {
-  const palette = ["aiel-choice-teal", "aiel-choice-coral", "aiel-choice-gold"];
   return (
-    <div className="aiel-item-list">
-      {items.map((item) => {
+    <div className="dlfl-item-list">
+      {items.map((item, idx) => {
         const chosen = answers[item.id];
         const isCorrect = chosen === item.answer;
         return (
-          <div key={item.id} className="aiel-item-card">
-            {item.code && <pre className="aiel-code-block">{item.code}</pre>}
-            <p className="aiel-item-question">{item.question}</p>
+          <div key={item.id} className="dlfl-item-card" style={{ animationDelay: `${idx * 0.05}s` }}>
+            {item.code && <pre className="dlfl-code-block">{item.code}</pre>}
+            <p className="dlfl-item-question">{item.question}</p>
             {!chosen ? (
-              <div className="aiel-choice-row">
+              <div className="dlfl-choice-row">
                 {item.options.map((opt, i) => (
                   <button
                     key={opt}
-                    className={`aiel-choice-btn ${palette[i % palette.length]}`}
+                    className={`dlfl-choice-btn ${PALETTE[i % PALETTE.length]}`}
                     onClick={() => onAnswer(item.id, opt)}
                   >
                     {opt}
@@ -380,13 +502,13 @@ function QuizList({ items, answers, onAnswer }: QuizListProps) {
                 ))}
               </div>
             ) : (
-              <div className="aiel-feedback">
+              <div className="dlfl-feedback-line">
                 {isCorrect ? (
-                  <CheckCircle2 size={16} color={colors.teal} className="aiel-feedback-icon" />
+                  <CheckCircle2 size={16} color={colors.tealDeep} className="dlfl-feedback-icon" />
                 ) : (
-                  <XCircle size={16} color={colors.coral} className="aiel-feedback-icon" />
+                  <XCircle size={16} color={colors.coralDeep} className="dlfl-feedback-icon" />
                 )}
-                <p className="aiel-feedback-text">
+                <p>
                   {isCorrect ? "Correct -- " : `Actually, the answer is "${item.answer}". `}
                   {item.explain}
                 </p>
@@ -399,16 +521,44 @@ function QuizList({ items, answers, onAnswer }: QuizListProps) {
   );
 }
 
-/* ------------------------------- MAIN APP ------------------------------- */
+/* ============================================================================
+   MAIN APP
+============================================================================ */
 
 export default function DeepLearningLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..3 stages, 4 = certificate
-  const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
+  const router = useRouter();
+  const total = STAGE_META.length;
+
+  const [current, setCurrent] = useState<number>(0);
+  const [completed, setCompleted] = useState<boolean[]>(STAGE_META.map(() => false));
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [cnnAnswers, setCnnAnswers] = useState<AnswerMap>({});
   const [rnnAnswers, setRnnAnswers] = useState<AnswerMap>({});
   const [lstmAnswers, setLstmAnswers] = useState<AnswerMap>({});
   const [transformerAnswers, setTransformerAnswers] = useState<AnswerMap>({});
+
+  const [toast, setToast] = useState<{ mood: "up" | "down"; text: string } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+  }, []);
+
+  const fireToast = (correct: boolean) => {
+    const pool = correct ? POSITIVE_PHRASES : GENTLE_PHRASES;
+    const text = pool[Math.floor(Math.random() * pool.length)];
+    setToast({ mood: correct ? "up" : "down", text });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 1400);
+  };
+
+  const answerMaps: Record<string, [AnswerMap, React.Dispatch<React.SetStateAction<AnswerMap>>]> = {
+    cnn: [cnnAnswers, setCnnAnswers],
+    rnn: [rnnAnswers, setRnnAnswers],
+    lstm: [lstmAnswers, setLstmAnswers],
+    transformers: [transformerAnswers, setTransformerAnswers],
+  };
 
   const markComplete = (idx: number) => {
     setCompleted((prev) => {
@@ -421,169 +571,102 @@ export default function DeepLearningLab() {
 
   const goTo = (idx: number) => setCurrent(idx);
 
-  const cnnDone = Object.keys(cnnAnswers).length === CNN_ITEMS.length;
-  const rnnDone = Object.keys(rnnAnswers).length === RNN_ITEMS.length;
-  const lstmDone = Object.keys(lstmAnswers).length === LSTM_ITEMS.length;
-  const transformerDone = Object.keys(transformerAnswers).length === TRANSFORMER_ITEMS.length;
+  const stageKey = STAGE_META[current]?.key;
+  const [currentAnswers, setCurrentAnswers] = stageKey ? answerMaps[stageKey] : [{}, () => {}];
+  const currentItems = stageKey ? STAGE_ITEMS[stageKey] : [];
+  const currentDone = currentItems.length > 0 && Object.keys(currentAnswers).length === currentItems.length;
 
-  const scores = useMemo(() => {
-    const cnnCorrect = CNN_ITEMS.filter((it) => cnnAnswers[it.id] === it.answer).length;
-    const rnnCorrect = RNN_ITEMS.filter((it) => rnnAnswers[it.id] === it.answer).length;
-    const lstmCorrect = LSTM_ITEMS.filter((it) => lstmAnswers[it.id] === it.answer).length;
-    const transformerCorrect = TRANSFORMER_ITEMS.filter((it) => transformerAnswers[it.id] === it.answer).length;
-    return { cnnCorrect, rnnCorrect, lstmCorrect, transformerCorrect };
-  }, [cnnAnswers, rnnAnswers, lstmAnswers, transformerAnswers]);
-
-  const totalScore = scores.cnnCorrect + scores.rnnCorrect + scores.lstmCorrect + scores.transformerCorrect;
-  const totalPossible = CNN_ITEMS.length + RNN_ITEMS.length + LSTM_ITEMS.length + TRANSFORMER_ITEMS.length;
-
-  const resetAll = () => {
-    setCurrent(0);
-    setCompleted([false, false, false, false]);
-    setCnnAnswers({});
-    setRnnAnswers({});
-    setLstmAnswers({});
-    setTransformerAnswers({});
+  const handleAnswer = (id: string, value: string) => {
+    const item = currentItems.find((it) => it.id === id);
+    setCurrentAnswers((prev) => ({ ...prev, [id]: value }));
+    if (item) fireToast(value === item.answer);
   };
 
+  const goNext = () => {
+    markComplete(current);
+    if (current === total - 1) {
+      setLabCompleted(true);
+      return;
+    }
+    setCurrent(current + 1);
+  };
+
+  const goBack = () => setCurrent((c) => Math.max(0, c - 1));
+
+  const stage = STAGE_META[current];
+
   return (
-    <div className="aiel-root">
+    <div className="dlfl-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         ${STYLES}
       `}</style>
 
-      <div className="aiel-container">
-        <div className="aiel-header">
-          <div className="aiel-header-icon">
-            <Compass size={26} color={colors.gold} />
+      <div className="dlfl-blob dlfl-blob-1" />
+      <div className="dlfl-blob dlfl-blob-2" />
+      <div className="dlfl-blob dlfl-blob-3" />
+      <div className="dlfl-blob dlfl-blob-4" />
+
+      {toast && (
+        <div className={`dlfl-toast ${toast.mood === "up" ? "dlfl-toast-up" : "dlfl-toast-down"}`}>
+          {toast.mood === "up" ? <Sparkles size={15} /> : <Brain size={15} />}
+          {toast.text}
+        </div>
+      )}
+
+      <div className="dlfl-container">
+        <button className="dlfl-back-btn" onClick={() => router.push("/")}>
+          <ChevronLeft size={16} /> Back
+        </button>
+
+        <div className="dlfl-header">
+          <div className="dlfl-header-icon">
+            <Compass size={26} color="#fff" />
           </div>
-          <h1 className="aiel-h1">Deep Learning Lab</h1>
-          <p className="aiel-subtitle">
+          <h1 className="dlfl-h1">Deep Learning Lab</h1>
+          <p className="dlfl-subtitle">
             Slide filters across images, trace memory through sequences, see how LSTMs remember
             longer, and watch attention connect words across a whole sentence.
           </p>
         </div>
 
-        {current <= 3 && <StampBar current={current} completed={completed} onJump={goTo} />}
+        <StampBar current={current} completed={completed} onJump={goTo} />
 
-        {/* STAGE 0: CNN */}
-        {current === 0 && (
-          <StageShell
-            tag={STAGE_META[0].tag}
-            title="Spot the Pattern"
-            subtitle="CNNs slide small filters across an image, hunting for specific local patterns."
-            progressLabel={`${Object.keys(cnnAnswers).length}/${CNN_ITEMS.length} solved`}
-          >
-            <QuizList items={CNN_ITEMS} answers={cnnAnswers} onAnswer={(id, value) => setCnnAnswers((p) => ({ ...p, [id]: value }))} />
-            <NavButtons
-              backDisabled
-              onBack={() => {}}
-              nextDisabled={!cnnDone}
-              onNext={() => {
-                markComplete(0);
-                setCurrent(1);
-              }}
-            />
-          </StageShell>
-        )}
+        <StageShell
+          tag={stage.tag}
+          title={stage.title}
+          subtitle={stage.subtitle}
+          progressLabel={`${Object.keys(currentAnswers).length}/${currentItems.length} solved`}
+        >
+          <QuizList items={currentItems} answers={currentAnswers} onAnswer={handleAnswer} />
 
-        {/* STAGE 1: RNN */}
-        {current === 1 && (
-          <StageShell
-            tag={STAGE_META[1].tag}
-            title="Follow the Sequence"
-            subtitle="RNNs process data one step at a time, carrying a running memory forward."
-            progressLabel={`${Object.keys(rnnAnswers).length}/${RNN_ITEMS.length} solved`}
-          >
-            <QuizList items={RNN_ITEMS} answers={rnnAnswers} onAnswer={(id, value) => setRnnAnswers((p) => ({ ...p, [id]: value }))} />
-            <NavButtons
-              onBack={() => setCurrent(0)}
-              nextDisabled={!rnnDone}
-              onNext={() => {
-                markComplete(1);
-                setCurrent(2);
-              }}
-            />
-          </StageShell>
-        )}
+          <NavButtons
+            step={current + 1}
+            total={total}
+            backDisabled={current === 0}
+            onBack={goBack}
+            nextDisabled={!currentDone}
+            nextLabel={current === total - 1 ? "Finish Lab" : "Continue"}
+            onNext={goNext}
+          />
+        </StageShell>
 
-        {/* STAGE 2: LSTM */}
-        {current === 2 && (
-          <StageShell
-            tag={STAGE_META[2].tag}
-            title="Remember Longer"
-            subtitle="LSTMs add gates and a memory cell so important details survive much longer sequences."
-            progressLabel={`${Object.keys(lstmAnswers).length}/${LSTM_ITEMS.length} solved`}
-          >
-            <QuizList items={LSTM_ITEMS} answers={lstmAnswers} onAnswer={(id, value) => setLstmAnswers((p) => ({ ...p, [id]: value }))} />
-            <NavButtons
-              onBack={() => setCurrent(1)}
-              nextDisabled={!lstmDone}
-              onNext={() => {
-                markComplete(2);
-                setCurrent(3);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* STAGE 3: Transformers */}
-        {current === 3 && (
-          <StageShell
-            tag={STAGE_META[3].tag}
-            title="Pay Attention"
-            subtitle="Transformers look at a whole sequence at once and use attention to connect distant words."
-            progressLabel={`${Object.keys(transformerAnswers).length}/${TRANSFORMER_ITEMS.length} solved`}
-          >
-            <QuizList
-              items={TRANSFORMER_ITEMS}
-              answers={transformerAnswers}
-              onAnswer={(id, value) => setTransformerAnswers((p) => ({ ...p, [id]: value }))}
-            />
-            <NavButtons
-              onBack={() => setCurrent(2)}
-              nextDisabled={!transformerDone}
-              nextLabel="Finish Lab"
-              onNext={() => {
-                markComplete(3);
-                setCurrent(4);
-              }}
-            />
-          </StageShell>
-        )}
-
-        {/* CERTIFICATE */}
-        {current === 4 && (
-          <div className="aiel-cert">
-            <div className="aiel-cert-badge">
-              <Award size={36} color={colors.ink} />
+        {labCompleted && (
+          <div className="dlfl-completion-overlay">
+            <div className="dlfl-completion-modal">
+              <div className="dlfl-completion-icon">
+                <Sparkles size={30} color="#fff" />
+              </div>
+              <h2>Lab Completed!</h2>
+              <p>
+                You explored how CNNs scan images for patterns, how RNNs carry memory through a
+                sequence, how LSTMs remember over much longer stretches, and how transformers use
+                attention to connect words across an entire sentence.
+              </p>
+              <button onClick={() => router.push("/")}>
+                Finished <ChevronRight size={16} />
+              </button>
             </div>
-            <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You`ve completed Module 5</h2>
-            <p className="aiel-cert-desc">
-              You explored how CNNs scan images for patterns, how RNNs carry memory through a
-              sequence, how LSTMs remember over much longer stretches, and how transformers use
-              attention to connect words across an entire sentence.
-            </p>
-
-            <div className="aiel-cert-score">
-              <span className="aiel-cert-score-num">{totalScore}/{totalPossible}</span>
-              <span className="aiel-cert-score-label">correct across all four stages</span>
-            </div>
-
-            <div className="aiel-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="aiel-cert-item">
-                  <CheckCircle2 size={14} color={colors.teal} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
-
-            <button className="aiel-reset-btn" onClick={resetAll}>
-              <RotateCcw size={14} /> Restart the Lab
-            </button>
           </div>
         )}
       </div>

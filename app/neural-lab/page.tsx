@@ -246,7 +246,7 @@ export default function Home() {
                 <button
                   onClick={addInput}
                   disabled={inputs.length >= 6}
-                  className="flex items-center gap-1 rounded-xxl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-bold text-white shadow hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="flex items-center gap-1 rounded-xxl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-bold text-black shadow hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   + Add Input
                 </button>
@@ -570,12 +570,7 @@ export default function Home() {
           </div>
           <br />
 
-          {/* Next button */}
-          <div className="flex justify-end mt-8">
-            <button className="btn-next" onClick={() => setStep(1)}>
-              Next: Explore Activations -&gt;
-            </button>
-          </div>
+       
         </section>
       )}
 
@@ -591,7 +586,7 @@ export default function Home() {
 
           {inputs.length > 1 && (
             <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-700">
-              <strong>Note:</strong> The graph is drawn by varying x1 from -10 to 10 while keeping x2 and the bias fixed. This changes the neuron's linear output (z), and the graph shows how the activation function transforms z into the activated output (a).
+              <strong>Note:</strong> The graph is drawn by varying x1 from -10 to 10 while keeping x2 and the bias fixed. This changes the neuron`s linear output (z), and the graph shows how the activation function transforms z into the activated output (a).
             </div>
           )}
 
@@ -685,9 +680,6 @@ export default function Home() {
 
           {/* Nav buttons */}
           <div className="flex justify-between items-center mt-8">
-            <button className="btn-back" onClick={() => setStep(0)}>
-              Back
-            </button>
             <div className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-yellow-100 via-orange-100 to-pink-100 px-6 py-4 border-2 border-yellow-300 shadow-lg">
               <br />
               <br />
