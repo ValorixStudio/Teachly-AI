@@ -132,7 +132,7 @@ interface TopicContent {
   accent: AccentKey | string;
   icon: typeof Lightbulb;
   sections: Section[];
- 
+  handsOnPrompt?: string;
 }
 
 /* ---------------------------- STYLES ---------------------------- */

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 
 import "./globals.css";
@@ -521,8 +522,87 @@ const levelThemes = [
 // Progression system — topic → module → level, all sequential.
 // -----------------------------------------------------------------------
 
-// Add "export" so doc 1 can import these:
 export const PROGRESS_STORAGE_KEY = "ai-labs-completed-topics-v2";
+const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
+const LOGIN_TOKEN_KEY = "teachly-ai-token";
+const LOGIN_USER_KEY = "teachly-ai-user";
+const LOGIN_COOKIE = "teachly_ai_logged_in";
+
+interface LoggedInUser {
+  email: string;
+  name?: string;
+}
+
+interface VerifyTokenResponse {
+  token?: unknown;
+  user?: unknown;
+  data?: unknown;
+  email?: unknown;
+  name?: unknown;
+  msg?: unknown;
+  message?: unknown;
+  error?: unknown;
+}
+
+function getVerifyTokenUrl() {
+  return "/api/verify-token";
+}
+
+function getApiErrorMessage(value: unknown, fallback: string) {
+  if (!value || typeof value !== "object") return fallback;
+
+  const data = value as VerifyTokenResponse;
+  const nestedData =
+    data.data && typeof data.data === "object"
+      ? (data.data as VerifyTokenResponse)
+      : null;
+  const message =
+    data.msg ?? data.message ?? data.error ?? nestedData?.msg ??
+    nestedData?.message ?? nestedData?.error;
+
+  return typeof message === "string" && message.trim()
+    ? message.trim()
+    : fallback;
+}
+
+function hasLoginCookie() {
+  return document.cookie
+    .split(";")
+    .some((cookie) => cookie.trim() === `${LOGIN_COOKIE}=true`);
+}
+
+function clearSavedLogin() {
+  try {
+    window.localStorage.removeItem(LOGIN_STORAGE_KEY);
+    window.localStorage.removeItem(LOGIN_TOKEN_KEY);
+    window.localStorage.removeItem(LOGIN_USER_KEY);
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function pickVerifiedUser(data: VerifyTokenResponse): LoggedInUser {
+  const nestedData =
+    data.data && typeof data.data === "object"
+      ? (data.data as VerifyTokenResponse)
+      : null;
+  const userSource =
+    data.user && typeof data.user === "object"
+      ? (data.user as VerifyTokenResponse)
+      : nestedData?.user && typeof nestedData.user === "object"
+        ? (nestedData.user as VerifyTokenResponse)
+        : nestedData ?? data;
+  const email =
+    typeof userSource.email === "string" && userSource.email.trim()
+      ? userSource.email.trim()
+      : "verified@student";
+  const name =
+    typeof userSource.name === "string" && userSource.name.trim()
+      ? userSource.name.trim()
+      : email.split("@")[0];
+
+  return { email, name };
+}
 
 export function topicKey(levelIndex: number, moduleIndex: number, topicIndex: number) {
   return `${levelIndex}:${moduleIndex}:${topicIndex}`;
@@ -674,6 +754,7 @@ function CheckIcon() {
 // -----------------------------------------------------------------------
 
 export default function Home() {
+  const router = useRouter();
   const [openLevel, setOpenLevel] = useState<string | null>(
     curriculum[0]?.title ?? null,
   );
@@ -690,12 +771,16 @@ export default function Home() {
     () => new Set(),
   );
   const [hydrated, setHydrated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authToast, setAuthToast] = useState<string | null>(null);
 
-  // Load saved progress once, on the client, after mount. This runs after
-  // hydration has completed, so updating state here is a normal re-render,
-  // not a hydration mismatch.
+  // Verify URL tokens first, then load saved progress for authenticated users.
   useEffect(() => {
-    try {
+    let cancelled = false;
+    const token =
+      new URLSearchParams(window.location.search).get("token")?.trim() ?? "";
+
+    function loadSavedProgress() {
       const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -705,11 +790,100 @@ export default function Home() {
           setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
         }
       }
-    } catch {
-      // ignore corrupt/missing storage
+
+      setHydrated(true);
+      setAuthChecked(true);
     }
-    setTimeout(() => setHydrated(true), 0);
-  }, []);
+
+    async function verifyUrlToken(urlToken: string) {
+      try {
+        const response = await fetch(getVerifyTokenUrl(), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${urlToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token: urlToken }),
+        });
+
+        const data = (await response.json().catch(() => ({}))) as
+          | VerifyTokenResponse
+          | null;
+
+        if (!response.ok || !data) {
+          throw new Error(
+            getApiErrorMessage(
+              data,
+              `Token verification failed with status ${response.status}`,
+            ),
+          );
+        }
+
+        const verifiedToken = typeof data.token === "string" ? data.token : urlToken;
+        const verifiedUser = pickVerifiedUser(data);
+
+        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
+        window.localStorage.setItem(LOGIN_TOKEN_KEY, verifiedToken);
+        window.localStorage.setItem(LOGIN_USER_KEY, JSON.stringify(verifiedUser));
+        document.cookie = `${LOGIN_COOKIE}=true; path=/; max-age=2592000; SameSite=Lax`;
+
+        if (!cancelled) {
+          loadSavedProgress();
+          router.replace("/");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Token verification failed";
+
+          setAuthToast(message);
+          setAuthChecked(true);
+          window.setTimeout(() => {
+            if (!cancelled) {
+              router.replace(`/login?error=${encodeURIComponent(message)}`);
+            }
+          }, 2200);
+        }
+      }
+    }
+
+    try {
+      if (token) {
+        void verifyUrlToken(token);
+        return () => {
+          cancelled = true;
+        };
+      }
+
+      const isCookieLoggedIn = hasLoginCookie();
+      const hasLoginStorage =
+        window.localStorage.getItem(LOGIN_STORAGE_KEY) === "true";
+
+      if (!isCookieLoggedIn) {
+        clearSavedLogin();
+        router.replace("/login");
+        return;
+      }
+
+      if (!hasLoginStorage) {
+        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
+      }
+
+      if (!cancelled) {
+        loadSavedProgress();
+      }
+    } catch {
+      router.replace("/login");
+      return;
+    } finally {
+      if (!token && !cancelled) {
+        setHydrated(true);
+        setAuthChecked(true);
+      }
+    }
+  }, [router]);
 
   // Persist progress whenever it changes.
   useEffect(() => {
@@ -724,6 +898,41 @@ export default function Home() {
     }
   }, [completedTopics, hydrated]);
 
+  useEffect(() => {
+    if (!authChecked || authToast) return;
+
+    function syncLogoutAcrossLocalhostApps() {
+      if (hasLoginCookie()) return;
+
+      clearSavedLogin();
+      router.replace("/login");
+    }
+
+    const intervalId = window.setInterval(syncLogoutAcrossLocalhostApps, 1500);
+    window.addEventListener("focus", syncLogoutAcrossLocalhostApps);
+    document.addEventListener("visibilitychange", syncLogoutAcrossLocalhostApps);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", syncLogoutAcrossLocalhostApps);
+      document.removeEventListener(
+        "visibilitychange",
+        syncLogoutAcrossLocalhostApps,
+      );
+    };
+  }, [authChecked, authToast, router]);
+
+  function markTopicComplete(
+    levelIndex: number,
+    moduleIndex: number,
+    topicIndex: number,
+  ) {
+    setCompletedTopics((prev) => {
+      const next = new Set(prev);
+      next.add(topicKey(levelIndex, moduleIndex, topicIndex));
+      return next;
+    });
+  }
 
   // Used purely for unlocking the NEXT module/level. Empty-content modules
   // auto-pass here so they never permanently block progression.
@@ -773,6 +982,44 @@ export default function Home() {
     if (topicIndex === 0) return true;
     return completedTopics.has(
       topicKey(levelIndex, moduleIndex, topicIndex - 1),
+    );
+  }
+
+  if (!authChecked || authToast) {
+    return (
+      <main
+        style={{
+          minHeight: "calc(100vh - 6px)",
+          display: "grid",
+          placeItems: "center",
+          color: "#4b5563",
+          fontWeight: 800,
+        }}
+      >
+        {authToast ? "Sending you to login..." : "Loading your lab..."}
+        {authToast && (
+          <div
+            role="alert"
+            style={{
+              position: "fixed",
+              top: "1rem",
+              right: "1rem",
+              maxWidth: "min(92vw, 26rem)",
+              padding: "0.9rem 1rem",
+              border: "1px solid rgba(220, 38, 38, 0.24)",
+              borderRadius: "10px",
+              background: "#ffffff",
+              boxShadow: "0 18px 42px rgba(15, 23, 42, 0.16)",
+              color: "#991b1b",
+              fontSize: "0.9rem",
+              fontWeight: 700,
+              lineHeight: 1.45,
+            }}
+          >
+            {authToast}
+          </div>
+        )}
+      </main>
     );
   }
 
