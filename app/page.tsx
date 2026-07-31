@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { Check } from "lucide-react";
+
 import "./globals.css";
 interface Topic {
   title: string;
@@ -325,6 +325,11 @@ const curriculum: Level[] = [
           { title: "GloVe"},
             { title: "BERT"},
                 { title: "Transformers"},
+                 {
+            title: "Transformers Simulation Lab",
+            isHandsOn: true,
+            labPath: "/transformers-lab"
+          }
         ] },
       { title: "Module 9: Generative AI & LLMs", topics: [
  { title: "Introduction to LLMs" },
@@ -365,7 +370,7 @@ const curriculum: Level[] = [
          {title: "AI Engineer: Your Next Mission!! ", topics: [{
            title: "Try It Yourself (Mini Project 2) ",
             isHandsOn: true,
-            labPath: "/mission3"}, ], },
+            labPath: "/mission-3"}, ], },
     ],
     
   },
@@ -539,6 +544,34 @@ export function findTopicLocation(slug: string) {
   return null;
 }
 
+// Shared "mark this lab/topic as complete" function — every lab page
+// (the dynamic [slug] page, AI Foundations Lab, and any future lab) should
+// import this instead of re-implementing the localStorage read/write logic.
+// This MUST live at module scope (not inside the Home component) so it can
+// be exported and imported elsewhere.
+export function markLabTopicComplete(slug: string): void {
+  try {
+    const location = findTopicLocation(slug);
+    if (!location) return;
+
+    const key = topicKey(
+      location.levelIndex,
+      location.moduleIndex,
+      location.topicIndex,
+    );
+
+    const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+    const parsed: string[] = stored ? JSON.parse(stored) : [];
+
+    if (!parsed.includes(key)) {
+      parsed.push(key);
+      window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch {
+    // ignore storage errors — don't block navigation over a progress-save failure
+  }
+}
+
 // -----------------------------------------------------------------------
 // Small inline icons (no extra dependency)
 // -----------------------------------------------------------------------
@@ -691,17 +724,6 @@ export default function Home() {
     }
   }, [completedTopics, hydrated]);
 
-  function markTopicComplete(
-    levelIndex: number,
-    moduleIndex: number,
-    topicIndex: number,
-  ) {
-    setCompletedTopics((prev) => {
-      const next = new Set(prev);
-      next.add(topicKey(levelIndex, moduleIndex, topicIndex));
-      return next;
-    });
-  }
 
   // Used purely for unlocking the NEXT module/level. Empty-content modules
   // auto-pass here so they never permanently block progression.

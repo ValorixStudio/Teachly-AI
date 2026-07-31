@@ -182,7 +182,7 @@ export default function Home() {
   const midY = svgH / 2;
 
   return (
-    <main>
+    <main className="nn-lab">
   
 
       {/* -- PROGRESS BAR -- */}
