@@ -1,6 +1,8 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   Terminal,
   FolderTree,
@@ -16,8 +18,6 @@ import {
   Circle,
   ChevronRight,
   ChevronLeft,
-  Award,
-  RotateCcw,
   LucideIcon,
 } from "lucide-react";
 
@@ -297,43 +297,73 @@ const STYLES = `
   .acc-nav-next:not([disabled]):active { transform: translateY(1px); }
   .acc-nav-next[disabled], .acc-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
 
-  .acc-cert {
-    border-radius: 24px; padding: 32px 20px; text-align: center;
-    background: rgba(255,255,255,0.72);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid ${colors.border};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    position: relative; overflow: hidden;
+  /* ---- Completion overlay (matches AI Foundations Lab / ML Without Math Lab / Computer Vision Lab / Generative AI Lab / Mission 1) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @media (min-width: 640px) { .acc-cert { padding: 40px; } }
-  .acc-cert-badge {
-    margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #F59E0B, #F97316);
-    box-shadow: 0 10px 28px rgba(245,158,11,0.35);
-    position: relative; z-index: 1;
-    animation: acc-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
   }
-  @keyframes acc-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .acc-cert-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.gold}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .acc-cert-title { font-weight: 800; color: ${colors.ink}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .acc-cert-desc { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 24px 0; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
-  .acc-cert-score {
-    display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.card}; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; z-index: 1;
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
   }
-  .acc-cert-score-num { font-weight: 800; font-size: 30px; color: ${colors.gold}; }
-  .acc-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 150px; }
-  .acc-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
-  @media (min-width: 560px) { .acc-cert-grid { grid-template-columns: repeat(3, 1fr); } }
-  .acc-cert-item { border-radius: 14px; padding: 12px; background: ${colors.card}; border: 1px solid ${colors.border}; display: flex; align-items: center; gap: 8px; }
-  .acc-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 0; font-weight: 600; }
-  .acc-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-    padding: 14px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft};
-    position: relative; z-index: 1; transition: color 0.2s ease, border-color 0.2s ease;
+
+  .completion-modal h2{
+      margin-bottom:10px;
   }
-  .acc-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
+  }
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
+  }
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
+  }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 `;
 
 /* ---------------------------- CONTENT DATA ---------------------------- */
@@ -1015,9 +1045,11 @@ function renderHero(kind: PhaseData["hero"]) {
 /* ------------------------------- MAIN APP ------------------------------- */
 
 export default function StudentPerformancePredictorGuide() {
-  const [current, setCurrent] = useState<number>(0); // 0..PHASES.length-1, PHASES.length = certificate
+  const router = useRouter();
+  const [current, setCurrent] = useState<number>(0); // 0..PHASES.length-1
   const [completedPhases, setCompletedPhases] = useState<boolean[]>(PHASES.map(() => false));
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
+  const [labCompleted, setLabCompleted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1057,11 +1089,15 @@ export default function StudentPerformancePredictorGuide() {
 
   const totalChecked = Object.values(checkedSteps).filter(Boolean).length;
 
-  const resetAll = () => {
-    setCurrent(0);
-    setCompletedPhases(PHASES.map(() => false));
-    setCheckedSteps({});
-    setToast(null);
+  // Same pattern as AI Foundations Lab / ML Without Math Lab / Computer Vision
+  // Lab / Generative AI Lab / Mission 1: when the final phase's "Finish Guide"
+  // button is pressed, mark this exact topic complete (slug MUST match the
+  // labPath registered in page.tsx: "/mission-2") and show the completion
+  // overlay — no separate certificate page.
+  const finishLab = () => {
+    markPhaseComplete(PHASES.length - 1);
+    markLabTopicComplete("mission-2");
+    setLabCompleted(true);
   };
 
   return (
@@ -1102,108 +1138,99 @@ export default function StudentPerformancePredictorGuide() {
           </p>
         </div>
 
-        {current <= PHASES.length - 1 && <StampBar current={current} completedPhases={completedPhases} onJump={goTo} />}
+        <StampBar current={current} completedPhases={completedPhases} onJump={goTo} />
 
-        {current < PHASES.length &&
-          (() => {
-            const phase = PHASES[current];
-            const allChecked = isPhaseFullyChecked(current);
-            return (
-              <StageShell
-                tag={phase.tag}
-                title={phase.title}
-                subtitle={phase.subtitle}
-                progressLabel={`${phase.steps.filter((s) => checkedSteps[s.num]).length}/${phase.steps.length}`}
-                hero={renderHero(phase.hero)}
-              >
-                <div className="acc-item-list">
-                  {phase.steps.map((s) => {
-                    const done = !!checkedSteps[s.num];
-                    return (
-                      <div
-                        key={s.num}
-                        className={`acc-item-card ${done ? "acc-item-done" : ""}`}
-                        onClick={() => toggleStep(s.num)}
-                      >
-                        <span className="acc-item-check">
-                          {done ? (
-                            <CheckCircle2 size={20} color={colors.tealDeep} />
-                          ) : (
-                            <Circle size={20} color={colors.border} />
-                          )}
-                        </span>
-                        <div className="acc-item-body">
-                          <div className="acc-item-num">Step {s.num}</div>
-                          <p className="acc-item-title">{s.title}</p>
-                          {s.explanation.map((para, i) => (
-                            <p key={i} className="acc-item-explain">
-                              {para}
-                            </p>
-                          ))}
-                          {s.blocks?.map((b, i) => (
-                            <CodeBlock key={i} block={b} />
-                          ))}
-                          {s.tip && (
-                            <div className="acc-item-tip">
-                              <Sparkles size={13} style={{ flexShrink: 0, marginTop: 2 }} />
-                              <span>{s.tip}</span>
-                            </div>
-                          )}
-                        </div>
+        {(() => {
+          const phase = PHASES[current];
+          const allChecked = isPhaseFullyChecked(current);
+          const isLastPhase = current === PHASES.length - 1;
+          return (
+            <StageShell
+              tag={phase.tag}
+              title={phase.title}
+              subtitle={phase.subtitle}
+              progressLabel={`${phase.steps.filter((s) => checkedSteps[s.num]).length}/${phase.steps.length}`}
+              hero={renderHero(phase.hero)}
+            >
+              <div className="acc-item-list">
+                {phase.steps.map((s) => {
+                  const done = !!checkedSteps[s.num];
+                  return (
+                    <div
+                      key={s.num}
+                      className={`acc-item-card ${done ? "acc-item-done" : ""}`}
+                      onClick={() => toggleStep(s.num)}
+                    >
+                      <span className="acc-item-check">
+                        {done ? (
+                          <CheckCircle2 size={20} color={colors.tealDeep} />
+                        ) : (
+                          <Circle size={20} color={colors.border} />
+                        )}
+                      </span>
+                      <div className="acc-item-body">
+                        <div className="acc-item-num">Step {s.num}</div>
+                        <p className="acc-item-title">{s.title}</p>
+                        {s.explanation.map((para, i) => (
+                          <p key={i} className="acc-item-explain">
+                            {para}
+                          </p>
+                        ))}
+                        {s.blocks?.map((b, i) => (
+                          <CodeBlock key={i} block={b} />
+                        ))}
+                        {s.tip && (
+                          <div className="acc-item-tip">
+                            <Sparkles size={13} style={{ flexShrink: 0, marginTop: 2 }} />
+                            <span>{s.tip}</span>
+                          </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-                <NavButtons
-                  backDisabled={current === 0}
-                  onBack={() => setCurrent(current - 1)}
-                  nextDisabled={!allChecked}
-                  nextLabel={current === PHASES.length - 1 ? "Finish Guide" : "Continue"}
-                  onNext={() => {
+                    </div>
+                  );
+                })}
+              </div>
+              <NavButtons
+                backDisabled={current === 0}
+                onBack={() => setCurrent(current - 1)}
+                nextDisabled={!allChecked}
+                nextLabel={isLastPhase ? "Finish & Unlock Next" : "Continue"}
+                onNext={() => {
+                  if (isLastPhase) {
+                    finishLab();
+                  } else {
                     markPhaseComplete(current);
-                    if (current === PHASES.length - 1) {
-                      setCurrent(PHASES.length);
-                    } else {
-                      fireToast();
-                      setCurrent(current + 1);
-                    }
-                  }}
-                />
-              </StageShell>
-            );
-          })()}
+                    fireToast();
+                    setCurrent(current + 1);
+                  }
+                }}
+              />
+            </StageShell>
+          );
+        })()}
 
-        {/* CERTIFICATE */}
-        {current === PHASES.length && (
-          <div className="acc-cert">
-            <div className="acc-cert-badge">
-              <Award size={36} color="#fff" />
+        {labCompleted && (
+          <div className="completion-overlay">
+            <div className="completion-modal">
+              <div className="completion-icon">🎉</div>
+
+              <h2>Mission Completed!</h2>
+
+              <p>
+                Congratulations! You&apos;ve built a complete end-to-end machine learning app —
+                the <strong>Student Performance Predictor</strong> — from raw CSV data all the
+                way to a working Pass/Fail predictor.
+              </p>
+
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
+                Continue
+              </button>
             </div>
-            <p className="acc-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="acc-cert-title">You&apos;ve built the Student Performance Predictor</h2>
-            <p className="acc-cert-desc">
-              A complete end-to-end machine learning application — from a CSV dataset and data cleaning to
-              feature engineering, Decision Tree and KNN models, and a working Pass/Fail predictor. A great
-              first project for anyone learning the practical AI/ML workflow.
-            </p>
-
-            <div className="acc-cert-score">
-              <span className="acc-cert-score-num">{totalChecked}/{TOTAL_STEPS}</span>
-              <span className="acc-cert-score-label">build steps checked off</span>
-            </div>
-
-            <div className="acc-cert-grid">
-              {PHASES.map((p) => (
-                <div key={p.key} className="acc-cert-item">
-                  <CheckCircle2 size={14} color={colors.tealDeep} />
-                  <p>{p.title}</p>
-                </div>
-              ))}
-            </div>
-
-            <button className="acc-reset-btn" onClick={resetAll}>
-              <RotateCcw size={14} /> Restart the Guide
-            </button>
           </div>
         )}
       </div>

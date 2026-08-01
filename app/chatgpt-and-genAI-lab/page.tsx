@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   MessageSquare,
   Braces,
@@ -12,8 +14,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
-  Award,
-  RotateCcw,
   LucideIcon,
   ArrowLeft,
   Target,
@@ -42,9 +42,6 @@ import {
   Camera,
   UserX,
   Languages,
-  Search,
-  Code2,
-  Zap,
 } from "lucide-react";
 
 /* ─────────────────────────── DESIGN TOKENS ─────────────────────────── */
@@ -480,58 +477,73 @@ const STYLES = `
   }
   .gal-nav-next[disabled] { background: ${palette.muted}; box-shadow: none; }
 
-  /* Certificate */
-  .gal-cert {
-    border-radius: 28px; padding: 40px 24px; text-align: center;
-    background: ${palette.cardBg};
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid ${palette.border};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    animation: fadeSlideUp 0.6s ease both;
+  /* ---- Completion overlay (matches AI Foundations Lab / ML Without Math Lab / Computer Vision Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @media (min-width: 640px) { .gal-cert { padding: 52px 40px; } }
-  .gal-cert-badge {
-    margin: 0 auto 24px auto; width: 88px; height: 88px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, ${palette.amber}, #F97316);
-    box-shadow: 0 8px 30px rgba(245,158,11,0.35);
-    animation: bounceIn 0.6s ease both 0.2s;
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
   }
-  .gal-cert-eyebrow {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: ${palette.indigo}; margin: 0 0 8px 0;
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
   }
-  .gal-cert-title { font-size: 28px; font-weight: 800; color: ${palette.ink}; margin: 0 0 14px 0; }
-  .gal-cert-desc { font-size: 15px; color: ${palette.inkSoft}; margin: 0 0 28px 0; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.65; }
-  .gal-cert-score-wrap {
-    display: inline-flex; flex-direction: column; align-items: stretch; gap: 14px; border-radius: 20px;
-    padding: 20px 28px; margin-bottom: 32px; width: 100%; max-width: 360px;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border};
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+  .completion-modal h2{
+      margin-bottom:10px;
   }
-  .gal-cert-score-top { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
-  .gal-cert-score-num { font-size: 36px; font-weight: 800; color: ${palette.indigo}; }
-  .gal-cert-score-label { font-size: 13px; color: ${palette.muted}; }
-  .gal-cert-scorebar-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(148,163,184,0.2); overflow: hidden; }
-  .gal-cert-scorebar-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, ${palette.emerald}, ${palette.cyan});
-    animation: growBar 1s ease both 0.3s;
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
   }
-  .gal-cert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 32px; }
-  .gal-cert-item {
-    border-radius: 16px; padding: 14px; text-align: left;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border};
-    display: flex; align-items: center; gap: 10px;
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
   }
-  .gal-cert-item p { font-size: 13px; color: ${palette.ink}; margin: 0; font-weight: 600; }
-  .gal-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-    padding: 14px 24px; border-radius: 14px;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border}; color: ${palette.inkSoft};
-    transition: all 0.2s ease;
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
   }
-  .gal-reset-btn:hover { color: ${palette.indigo}; border-color: ${palette.borderActive}; }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .gal-root * { transition: none !important; animation: none !important; }
@@ -876,7 +888,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
         <ChevronLeft size={16} /> Back
       </button>
       <button className="gal-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -885,8 +897,10 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
 /* ────────────────────────────── MAIN APP ────────────────────────────── */
 
 export default function GenerativeAILab() {
-  const [current, setCurrent] = useState<number>(0); // 0..3 stages, 4 = certificate
+  const router = useRouter();
+  const [current, setCurrent] = useState<number>(0); // 0..3 stages
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [wordAnswers, setWordAnswers] = useState<WordAnswerMap>({});
   const [promptAnswers, setPromptAnswers] = useState<PromptAnswerMap>({});
@@ -943,26 +957,15 @@ export default function GenerativeAILab() {
     [ethicsAnswers]
   );
 
-  const scores = useMemo(() => {
-    const wordCorrect = WORD_ITEMS.filter((it) => wordAnswers[it.id] === it.answer).length;
-    const promptCorrect = PROMPT_ITEMS.filter((it) => promptAnswers[it.id] === "strong").length;
-    const toolCorrect = TOOL_ITEMS.filter((it) => toolAnswers[it.id] === it.answer).length;
-    const ethicsCorrect = ETHICS_ITEMS.filter((it) => ethicsAnswers[it.id] === it.answer).length;
-    return { wordCorrect, promptCorrect, toolCorrect, ethicsCorrect };
-  }, [wordAnswers, promptAnswers, toolAnswers, ethicsAnswers]);
-
-  const totalScore = scores.wordCorrect + scores.promptCorrect + scores.toolCorrect + scores.ethicsCorrect;
-  const totalPossible = WORD_ITEMS.length + PROMPT_ITEMS.length + TOOL_ITEMS.length + ETHICS_ITEMS.length;
-  const scorePct = Math.round((totalScore / totalPossible) * 100);
-
-  const resetAll = () => {
-    setCurrent(0);
-    setCompleted([false, false, false, false]);
-    setWordAnswers({});
-    setPromptAnswers({});
-    setToolAnswers({});
-    setEthicsAnswers({});
-    setToast(null);
+  // Same pattern as AI Foundations Lab / ML Without Math Lab / Computer Vision Lab:
+  // when the final stage's "Finish Lab" button is pressed, mark this exact topic
+  // complete (slug MUST match the labPath registered in page.tsx, e.g.
+  // "/generative-ai-lab") and show the completion overlay — no separate
+  // certificate page.
+  const finishLab = () => {
+    markComplete(3);
+    markLabTopicComplete("chatgpt-and-genAI-lab");
+    setLabCompleted(true);
   };
 
   return (
@@ -1000,9 +1003,7 @@ export default function GenerativeAILab() {
           </p>
         </div>
 
-        {current <= 3 && (
-          <Stepper current={current} completed={completed} onJump={goTo} />
-        )}
+        <Stepper current={current} completed={completed} onJump={goTo} />
 
         {/* STAGE 0: LLMs */}
         {current === 0 && (
@@ -1228,46 +1229,31 @@ export default function GenerativeAILab() {
                 );
               })}
             </div>
-            <NavButtons onBack={() => setCurrent(2)} nextDisabled={!ethicsDone} nextLabel="Finish Lab" onNext={() => { markComplete(3); setCurrent(4); }} />
+            <NavButtons onBack={() => setCurrent(2)} nextDisabled={!ethicsDone} nextLabel="Finish & Unlock Next" onNext={finishLab} />
           </StageShell>
         )}
 
-        {/* CERTIFICATE */}
-        {current === 4 && (
-          <div className="gal-cert">
-            <div className="gal-cert-badge">
-              <Award size={40} color="white" />
-            </div>
-            <p className="gal-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="gal-cert-title">You&apos;ve completed Module 4</h2>
-            <p className="gal-cert-desc">
-              You played the next-word prediction game LLMs are trained on, sharpened weak prompts
-              into strong ones, matched tasks to the right AI tools, and spotted real ethical
-              concerns in AI.
-            </p>
+        {labCompleted && (
+          <div className="completion-overlay">
+            <div className="completion-modal">
+              <div className="completion-icon">🎉</div>
 
-            <div className="gal-cert-score-wrap">
-              <div className="gal-cert-score-top">
-                <span className="gal-cert-score-num">{totalScore}/{totalPossible}</span>
-                <span className="gal-cert-score-label">correct ({scorePct}%)</span>
-              </div>
-              <div className="gal-cert-scorebar-track">
-                <div className="gal-cert-scorebar-fill" style={{ width: `${scorePct}%` }} />
-              </div>
-            </div>
+              <h2>Lab Completed!</h2>
 
-            <div className="gal-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="gal-cert-item">
-                  <CheckCircle2 size={16} color={palette.emerald} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
+              <p>
+                Congratulations! You have successfully completed the
+                <strong> ChatGPT &amp; Generative AI Lab</strong>.
+              </p>
 
-            <button className="gal-reset-btn" onClick={resetAll}>
-              <RotateCcw size={15} /> Restart the Lab
-            </button>
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
       </div>

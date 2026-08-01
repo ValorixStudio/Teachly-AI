@@ -1159,7 +1159,7 @@ export default function MLWithoutMathLab() {
   const goPrev = () => jumpTo(clamp(current - 1, 0, total - 1));
   const goNext = () => {
     if (current === total - 1) {
-      markLabTopicComplete("ml-without-lab");
+      markLabTopicComplete("ml-without-math-lab");
       setLabCompleted(true);
       return;
     }

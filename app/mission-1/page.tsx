@@ -1,6 +1,8 @@
 "use client";
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   Wand2,
   Compass,
@@ -13,8 +15,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
-  Award,
-  RotateCcw,
   Globe,
   LucideIcon,
 } from "lucide-react";
@@ -274,43 +274,73 @@ const STYLES = `
   .pel-nav-next:not([disabled]):active { transform: translateY(1px); }
   .pel-nav-next[disabled], .pel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
 
-  .pel-cert {
-    border-radius: 24px; padding: 32px 20px; text-align: center;
-    background: rgba(255,255,255,0.72);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid ${colors.border};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    position: relative; overflow: hidden;
+  /* ---- Completion overlay (matches AI Foundations Lab / ML Without Math Lab / Computer Vision Lab / Generative AI Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @media (min-width: 640px) { .pel-cert { padding: 40px; } }
-  .pel-cert-badge {
-    margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #F59E0B, #F97316);
-    box-shadow: 0 10px 28px rgba(245,158,11,0.35);
-    position: relative; z-index: 1;
-    animation: pel-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
   }
-  @keyframes pel-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .pel-cert-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.gold}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .pel-cert-title { font-weight: 800; color: ${colors.ink}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .pel-cert-desc { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
-  .pel-cert-score {
-    display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.card}; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; z-index: 1;
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
   }
-  .pel-cert-score-num { font-weight: 800; font-size: 30px; color: ${colors.gold}; }
-  .pel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
-  .pel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
-  @media (min-width: 480px) { .pel-cert-grid { grid-template-columns: repeat(5, 1fr); } }
-  .pel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.card}; border: 1px solid ${colors.border}; }
-  .pel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
-  .pel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-    padding: 14px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft};
-    position: relative; z-index: 1; transition: color 0.2s ease, border-color 0.2s ease;
+
+  .completion-modal h2{
+      margin-bottom:10px;
   }
-  .pel-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
+  }
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
+  }
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
+  }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 `;
 
 
@@ -425,7 +455,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
         <ChevronLeft size={16} /> Back
       </button>
       <button className="pel-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -512,8 +542,10 @@ function ChecklistHero({ items }: { items: { label: string; done: boolean }[] })
 
 
 export default function PromptEngineeringLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..4 stages, 5 = certificate
+  const router = useRouter();
+  const [current, setCurrent] = useState<number>(0); // 0..4 stages
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false, false]);
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [openedConfirmed, setOpenedConfirmed] = useState(false);
   const [triedA, setTriedA] = useState(false);
@@ -560,15 +592,15 @@ export default function PromptEngineeringLab() {
 
   const reflectDone = reflection.trim().length >= 10;
 
-  const resetAll = () => {
-    setCurrent(0);
-    setCompleted([false, false, false, false, false]);
-    setOpenedConfirmed(false);
-    setTriedA(false);
-    setTriedB(false);
-    setCopiedId(null);
-    setReflection("");
-    setToast(null);
+  // Same pattern as AI Foundations Lab / ML Without Math Lab / Computer Vision
+  // Lab / Generative AI Lab: when the final stage's "Finish Task" button is
+  // pressed, mark this exact topic complete (slug MUST match the labPath
+  // registered in page.tsx: "/mission-1") and show the completion overlay —
+  // no separate certificate page.
+  const finishLab = () => {
+    markComplete(4);
+    markLabTopicComplete("mission-1");
+    setLabCompleted(true);
   };
 
   return (
@@ -607,7 +639,7 @@ export default function PromptEngineeringLab() {
           </p>
         </div>
 
-        {current <= 4 && <StampBar current={current} completed={completed} onJump={goTo} />}
+        <StampBar current={current} completed={completed} onJump={goTo} />
 
         {/* STAGE 0: Open ChatGPT */}
         {current === 0 && (
@@ -811,45 +843,33 @@ export default function PromptEngineeringLab() {
             </div>
             <NavButtons
               onBack={() => setCurrent(3)}
-              nextLabel="Finish Task"
-              onNext={() => {
-                markComplete(4);
-                setCurrent(5);
-              }}
+              nextLabel="Finish & Unlock Next"
+              onNext={finishLab}
             />
           </StageShell>
         )}
 
-        {/* CERTIFICATE */}
-        {current === 5 && (
-          <div className="pel-cert">
-            <div className="pel-cert-badge">
-              <Award size={36} color="#fff" />
-            </div>
-            <p className="pel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="pel-cert-title">You&apos;ve completed the Prompt Engineering Task</h2>
-            <p className="pel-cert-desc">
-              You tested a vague prompt against a specific, well-engineered one, and saw firsthand how much
-              a clear prompt changes the quality of an AI`s answer.
-            </p>
+        {labCompleted && (
+          <div className="completion-overlay">
+            <div className="completion-modal">
+              <div className="completion-icon">🎉</div>
 
-            <div className="pel-cert-score">
-              <span className="pel-cert-score-num">2</span>
-              <span className="pel-cert-score-label">prompts tested side-by-side</span>
-            </div>
+              <h2>Mission Completed!</h2>
 
-            <div className="pel-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="pel-cert-item">
-                  <CheckCircle2 size={14} color={colors.tealDeep} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
+              <p>
+                Congratulations! You have successfully completed
+                <strong> Your First Mission</strong>.
+              </p>
 
-            <button className="pel-reset-btn" onClick={resetAll}>
-              <RotateCcw size={14} /> Restart the Task
-            </button>
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
       </div>
