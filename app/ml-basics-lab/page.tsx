@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   Brain,
   Layers,
@@ -11,7 +13,6 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
-  Award,
   Compass,
   GitBranch,
   TrendingUp,
@@ -20,8 +21,6 @@ import {
   MapPin,
   Trophy,
   Star,
-  Ban,
-  Dices,
   Play,
   Pause,
   RefreshCw,
@@ -105,9 +104,6 @@ const STYLES = `
   .mldl-root button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; }
   .mldl-root button:focus-visible { outline: 3px solid ${colors.purple}; outline-offset: 2px; }
   .mldl-root input[type="range"] { accent-color: ${colors.purple}; }
-  @media (prefers-reduced-motion: reduce) {
-    .mldl-root * { transition: none !important; animation: none !important; }
-  }
 
   /* -------------------- Floating particles -------------------- */
   .mldl-particle-field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -456,20 +452,77 @@ const STYLES = `
     100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   }
 
-  /* -------------------- Finish screen -------------------- */
-  .mldl-finish { border-radius: 24px; padding: 40px 22px; text-align: center; background: rgba(255,255,255,0.72); border: 1px solid ${colors.border}; backdrop-filter: blur(16px); position: relative; overflow: hidden; }
-  .mldl-finish-badge {
-    margin: 0 auto 20px auto; width: 84px; height: 84px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-    background: ${GRADIENT_AMBER}; box-shadow: 0 14px 34px rgba(245,158,11,0.35); animation: mldl-badge-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  /* ---- Completion overlay (matches Computer Vision Lab / AI Foundations Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @keyframes mldl-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .mldl-finish-title { font-size: 27px; font-weight: 800; color: ${colors.ink}; margin: 0 0 10px 0; }
-  .mldl-finish-desc { font-size: 14.5px; color: ${colors.inkSoft}; max-width: 480px; margin: 0 auto 26px auto; line-height: 1.6; }
-  .mldl-finish-score { display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 26px; margin-bottom: 28px; background: ${colors.card}; border: 1px solid ${colors.borderSoft}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-  .mldl-finish-score-num { font-size: 32px; font-weight: 800; color: ${colors.amber}; }
-  .mldl-finish-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 150px; }
-  .mldl-reset-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; padding: 13px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft}; }
-  .mldl-reset-btn:hover { color: ${colors.purpleDeep}; border-color: ${colors.borderActive}; }
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
+  }
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
+  }
+
+  .completion-modal h2{
+      margin-bottom:10px;
+  }
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
+  }
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
+  }
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
+  }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mldl-root * { transition: none !important; animation: none !important; }
+  }
 `;
 
 /* ======================================================================
@@ -971,7 +1024,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
         <ChevronLeft size={16} /> Back
       </button>
       <button className="mldl-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -1397,7 +1450,7 @@ function DecisionTreePlayground() {
                 <div className={`mldl-tree-node ${isLeaf ? "mldl-tree-leaf" : "mldl-tree-node-active"}`}>
                   {isLeaf && LeafIcon ? (
                     <span style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-                      <LeafIcon size={18} /> Its`a {n.leaf!.label}!
+                      <LeafIcon size={18} /> It&apos;s a {n.leaf!.label}!
                     </span>
                   ) : (
                     n.question
@@ -1602,7 +1655,6 @@ function ComparisonStage() {
           return (
             <div key={algoId} className="mldl-compare-card" style={{ animationDelay: `${idx * 0.08}s` }}>
               <div className="mldl-compare-head">
-                {/* CSS custom properties typed via React.CSSProperties to avoid `any` */}
                 <div
                   className="mldl-compare-icon"
                   style={{ ['--accent-gradient']: info.gradient } as React.CSSProperties}
@@ -1969,6 +2021,19 @@ interface EcoNode {
   icon: LucideIcon;
 }
 
+/*
+  FIX: "training" and "prediction" are the ONLY nodes in columns 2 and 3
+  respectively. The positioning formula below centers each node using its
+  `row` value against the COUNT OF NODES IN ITS OWN COLUMN (rowsInCol).
+  Previously these two nodes were assigned row: 2 (to visually line up with
+  the "tree" node), but since they're alone in their column, rowsInCol = 1,
+  which made the formula compute y = (H / 2) * (2 + 1) = 480 — far outside
+  the 320px-tall canvas, pushing both nodes (and every line connected to
+  them) completely off-screen.
+  Correct fix: since row is meant to be the 0-indexed position *within that
+  column's own node list*, both solo nodes must use row: 0 so they land
+  centered inside the canvas instead of overflowing it.
+*/
 const ECO_NODES: EcoNode[] = [
   { id: "supervised", label: "Supervised", col: 0, row: 0, color: colors.blue, icon: Target },
   { id: "unsupervised", label: "Unsupervised", col: 0, row: 1, color: colors.cyan, icon: Layers },
@@ -1981,8 +2046,8 @@ const ECO_NODES: EcoNode[] = [
   { id: "clustering", label: "Clustering", col: 1, row: 4, color: colors.cyan, icon: Share2 },
   { id: "qlearning", label: "Q-Learning", col: 1, row: 5, color: colors.amber, icon: Bot },
 
-  { id: "training", label: "Training", col: 2, row: 2, color: colors.purple, icon: Brain },
-  { id: "prediction", label: "Prediction", col: 3, row: 2, color: colors.green, icon: Sparkles },
+  { id: "training", label: "Training", col: 2, row: 0, color: colors.purple, icon: Brain },
+  { id: "prediction", label: "Prediction", col: 3, row: 0, color: colors.green, icon: Sparkles },
 ];
 
 const ECO_LINKS: [EcoNodeId, EcoNodeId][] = [
@@ -2074,8 +2139,10 @@ function EcosystemStage() {
 ====================================================================== */
 
 export default function MachineLearningDecisionLab() {
+  const router = useRouter();
   const [stage, setStage] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean[]>(new Array(STAGE_META.length).fill(false));
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [learningTypeSelected, setLearningTypeSelected] = useState<LearningType | null>(null);
   const [problemAnswers, setProblemAnswers] = useState<Record<string, ProblemAnswer>>({});
@@ -2111,13 +2178,14 @@ export default function MachineLearningDecisionLab() {
 
   const problemsAllSolved = PROBLEMS.every((p) => problemAnswers[p.id]?.done);
 
-  const resetAll = () => {
-    setStage(0);
-    setCompleted(new Array(STAGE_META.length).fill(false));
-    setLearningTypeSelected(null);
-    setProblemAnswers({});
-    setChallengeScore(0);
-    setToast(null);
+  // Same pattern as Computer Vision Lab / AI Foundations Lab: when the final
+  // stage's "Finish & Unlock Next" button is pressed, mark this exact topic
+  // complete (slug MUST match the labPath registered in page.tsx) and show
+  // the completion overlay — no separate inline certificate/finish section.
+  const finishLab = () => {
+    markComplete(6);
+    markLabTopicComplete("ml-basics-lab");
+    setLabCompleted(true);
   };
 
   const stageBody = () => {
@@ -2224,37 +2292,41 @@ export default function MachineLearningDecisionLab() {
               <button className="mldl-nav-back" onClick={() => setStage((s) => Math.max(0, s - 1))}>
                 <ChevronLeft size={16} /> Back
               </button>
-              <button
-                className="mldl-nav-next"
-                onClick={() => {
-                  markComplete(6);
-                }}
-              >
-                <Rocket size={16} /> Finish Lab
+              <button className="mldl-nav-next" onClick={finishLab}>
+                <Rocket size={16} /> Finish & Unlock Next
               </button>
             </div>
           )}
         </div>
+      </div>
 
-        {completed.every(Boolean) && (
-          <div className="mldl-finish" style={{ marginTop: 24 }}>
-            <div className="mldl-finish-badge"><Award size={38} color="#fff" /></div>
-            <p className="mldl-finish-title">Lab Complete — You Think Like a Machine Learning Engineer!</p>
-            <p className="mldl-finish-desc">
-              You explored Supervised, Unsupervised, and Reinforcement Learning, played with Linear Regression, Logistic Regression,
-              Decision Trees, and KNN, trained a maze-solving agent, and tackled real-world challenges.
+      {labCompleted && (
+        <div className="completion-overlay">
+          <div className="completion-modal">
+            <div className="completion-icon">🎉</div>
+
+            <h2>Lab Completed!</h2>
+
+            <p>
+              Congratulations! You have successfully completed the
+              <strong> Machine Learning Decision Lab</strong>.
             </p>
-            <div className="mldl-finish-score">
-              <span className="mldl-finish-score-num">{challengeScore}</span>
-              <span className="mldl-finish-score-label">points earned in Challenge Mode</span>
-            </div>
-            <br />
-            <button className="mldl-reset-btn" onClick={resetAll}>
-              <RotateCcw size={14} /> Restart the Lab
+
+            <p style={{ fontSize: "13.5px", marginTop: "4px" }}>
+              You scored <strong>{challengeScore} points</strong> in Challenge Mode.
+            </p>
+
+            <button
+              onClick={() => {
+                setLabCompleted(false);
+                router.push("/");
+              }}
+            >
+              Continue
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

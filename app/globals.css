@@ -19,12 +19,6 @@
   --coral:         #FF6B6B;
   --teal:          #0D9488;
 
-  --bg:            #FFF8E7;
-  --card-bg:       #FFFFFF;
-  --text:          #2D3748;
-  --muted:         #6B7280;
-  --border:        #FFE08A;
-
   --font-body:     'Nunito', 'Comic Sans MS', 'Trebuchet MS', sans-serif;
   --font-mono:     'Space Mono', monospace;
 
@@ -40,32 +34,55 @@
    Reset
    ════════════════════════════════════════ */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    font-family: var(--font-nunito), 'Inter', system-ui, -apple-system, sans-serif;
+    color: inherit;
+    overflow-x: hidden;
+  }
 }
 
-html,
-body {
-  min-height: 100%;
-}
+/* ════════════════════════════════════════
+   NEURON LAB — Theme Scoped Container
+   ════════════════════════════════════════ */
 
-body {
-  font-family: var(--font-body);
+.nn-lab {
+  --bg:            #FFF8E7;
+  --card-bg:       #FFFFFF;
+  --text:          #2D3748;
+  --muted:         #6B7280;
+  --border:        #FFE08A;
+
   background:
     radial-gradient(circle at top left, #FFF4C2, #FFF8E7 35%),
     linear-gradient(180deg, #FFF8E7, #FFE8A3);
   color: var(--text);
-  overflow-x: hidden;
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+.nn-lab main {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
 }
 
 /* ════════════════════════════════════════
    NEURON LAB — Layout Shell
-   (classes prefixed nn- to avoid collisions
-   with other pages/components)
    ════════════════════════════════════════ */
 
 .lab-shell {
@@ -93,13 +110,6 @@ body {
 @keyframes rainbowSlide {
   from { background-position: 0% 50%; }
   to   { background-position: 300% 50%; }
-}
-
-main {
-  width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 2.5rem 1.5rem 5rem;
 }
 
 /* ════════════════════════════════════════
@@ -350,10 +360,11 @@ main {
   color: var(--muted);
 }
 
-input[type="number"],
-input[type="text"],
-input,
-select {
+.nn-lab input[type="number"],
+.nn-lab input[type="text"],
+.nn-lab input,
+.nn-lab select,
+.nn-input {
   width: 100%;
   padding: 14px 16px;
   font-family: var(--font-body);
@@ -367,10 +378,11 @@ select {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input[type="number"]:focus,
-input[type="text"]:focus,
-input:focus,
-select:focus {
+.nn-lab input[type="number"]:focus,
+.nn-lab input[type="text"]:focus,
+.nn-lab input:focus,
+.nn-lab select:focus,
+.nn-input:focus {
   border-color: var(--orange);
   box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.25);
 }
@@ -565,7 +577,8 @@ select:focus {
    Buttons
    ════════════════════════════════════════ */
 
-button {
+.nn-lab button,
+.nn-btn {
   font-family: var(--font-body);
   font-weight: 700;
   border: none;
@@ -574,7 +587,8 @@ button {
   transition: all 0.25s ease;
 }
 
-button:hover {
+.nn-lab button:hover,
+.nn-btn:hover {
   transform: scale(1.05);
 }
 

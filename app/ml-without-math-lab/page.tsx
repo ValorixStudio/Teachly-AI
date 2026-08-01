@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { markLabTopicComplete } from "../page";
 import Link from "next/link";
 import {
   Brain,
@@ -12,7 +14,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
-  Award,
   RotateCcw,
   LucideIcon,
   ArrowLeft,
@@ -29,8 +30,6 @@ import {
   Target,
   Play,
   Database,
-  Cpu,
-  Wand2,
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
@@ -528,6 +527,7 @@ const STYLES = `
     transition: all 0.2s ease;
   }
   .lab-nav-back:not([disabled]):hover { color: ${palette.indigo}; border-color: ${palette.borderActive}; transform: translateX(-2px); }
+  .lab-step-counter { font-size: 12px; font-weight: 700; color: ${palette.muted}; }
   .lab-nav-next {
     display: flex; align-items: center; gap: 6px; padding: 14px 24px;
     border-radius: 14px; font-size: 14px; font-weight: 700; color: #000;
@@ -542,10 +542,75 @@ const STYLES = `
   }
   .lab-nav-next[disabled] { background: ${palette.muted}; box-shadow: none; }
 
-  
-  
-  
   .lab-reset-btn:hover { color: ${palette.indigo}; border-color: ${palette.borderActive}; }
+
+  /* ---- Completion overlay (matches AI Foundations Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
+  }
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
+  }
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
+  }
+
+  .completion-modal h2{
+      margin-bottom:10px;
+  }
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
+  }
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
+  }
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
+  }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .lab-root * { transition: none !important; animation: none !important; }
@@ -657,7 +722,6 @@ const SPAM_ITEMS: SpamItem[] = [
 
 const POSITIVE_PHRASES = ["Nice! 🎉", "You got it!", "Sharp eye! ✨", "Exactly right!", "Great instinct!"];
 const GENTLE_PHRASES = ["Good try! 🤔", "Almost there!", "Nice guess — see why below", "Close one!"];
-
 
 /* ────────────────────────────── HELPERS ─────────────────────────────── */
 
@@ -992,14 +1056,17 @@ interface NavButtonsProps {
   backDisabled?: boolean;
   nextDisabled?: boolean;
   nextLabel?: string;
+  step?: number;
+  total?: number;
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
+function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel, step, total }: NavButtonsProps) {
   return (
     <div className="lab-nav">
       <button className="lab-nav-back" onClick={onBack} disabled={backDisabled}>
         <ChevronLeft size={16} /> Back
       </button>
+      {step && total ? <span className="lab-step-counter">{step} / {total}</span> : null}
       <button className="lab-nav-next" onClick={onNext} disabled={nextDisabled}>
         {nextLabel || "Continue"} <ChevronRight size={16} />
       </button>
@@ -1010,8 +1077,11 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
 /* ────────────────────────────── MAIN APP ────────────────────────────── */
 
 export default function MLWithoutMathLab() {
+  const router = useRouter();
   const [current, setCurrent] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
+  const [labCompleted, setLabCompleted] = useState(false);
+  const total = STAGE_META.length;
 
   const [spotAnswers, setSpotAnswers] = useState<SpotAnswerMap>({});
   const [visitedSteps, setVisitedSteps] = useState<VisitedMap>({});
@@ -1045,7 +1115,7 @@ export default function MLWithoutMathLab() {
     });
   };
 
-  const goTo = (idx: number) => setCurrent(idx);
+  const jumpTo = (idx: number) => setCurrent(idx);
 
   const spotDone = Object.keys(spotAnswers).length === SPOT_ITEMS.length;
   const pipelineDone = Object.keys(visitedSteps).length === PIPELINE_STEPS.length;
@@ -1082,7 +1152,22 @@ export default function MLWithoutMathLab() {
     setSplitAnswers({});
     setSpamAnswers({});
     setToast(null);
+    setLabCompleted(false);
   };
+
+  /* Unified back/next handlers -- mirrors the AI Foundations Lab pattern exactly */
+  const goPrev = () => jumpTo(clamp(current - 1, 0, total - 1));
+  const goNext = () => {
+    if (current === total - 1) {
+      markLabTopicComplete("ml-without-math-lab");
+      setLabCompleted(true);
+      return;
+    }
+
+    jumpTo(current + 1);
+  };
+
+  const currentMeta = STAGE_META[current];
 
   return (
     <div className="lab-root">
@@ -1120,7 +1205,7 @@ export default function MLWithoutMathLab() {
         </div>
 
         {current <= 3 && (
-          <Stepper current={current} completed={completed} onJump={goTo} />
+          <Stepper current={current} completed={completed} onJump={jumpTo} />
         )}
 
         {/* STAGE 0: What Is Learning? */}
@@ -1180,7 +1265,15 @@ export default function MLWithoutMathLab() {
                 );
               })}
             </div>
-            <NavButtons backDisabled onBack={() => {}} nextDisabled={!spotDone} onNext={() => { markComplete(0); setCurrent(1); }} />
+            <NavButtons
+              step={current + 1}
+              total={total}
+              backDisabled={current === 0}
+              onBack={goPrev}
+              nextDisabled={false}
+              nextLabel={current === total - 1 ? "Finish & Unlock Next" : "Next"}
+              onNext={goNext}
+            />
           </StageShell>
         )}
 
@@ -1225,7 +1318,15 @@ export default function MLWithoutMathLab() {
                 })}
               </div>
             </div>
-            <NavButtons onBack={() => setCurrent(0)} nextDisabled={!pipelineDone} onNext={() => { markComplete(1); setCurrent(2); }} />
+            <NavButtons
+              step={current + 1}
+              total={total}
+              backDisabled={current === 0}
+              onBack={goPrev}
+              nextDisabled={false}
+              nextLabel={current === total - 1 ? "Finish & Unlock Next" : "Next"}
+              onNext={goNext}
+            />
           </StageShell>
         )}
 
@@ -1293,7 +1394,15 @@ export default function MLWithoutMathLab() {
                 );
               })}
             </div>
-            <NavButtons onBack={() => setCurrent(1)} nextDisabled={!splitDone} onNext={() => { markComplete(2); setCurrent(3); }} />
+            <NavButtons
+              step={current + 1}
+              total={total}
+              backDisabled={current === 0}
+              onBack={goPrev}
+              nextDisabled={false}
+              nextLabel={current === total - 1 ? "Finish & Unlock Next" : "Next"}
+              onNext={goNext}
+            />
           </StageShell>
         )}
 
@@ -1353,13 +1462,43 @@ export default function MLWithoutMathLab() {
                 );
               })}
             </div>
-            <NavButtons onBack={() => setCurrent(2)} nextDisabled={!spamDone} nextLabel="Finished" onNext={() => { markComplete(3); setCurrent(4); }} />
+
+            <NavButtons
+              step={current + 1}
+              total={total}
+              backDisabled={current === 0}
+              onBack={goPrev}
+              nextDisabled={false}
+              nextLabel={current === total - 1 ? "Finish & Unlock Next" : "Next"}
+              onNext={goNext}
+            />
+
+            {labCompleted && (
+              <div className="completion-overlay">
+                <div className="completion-modal">
+                  <div className="completion-icon">🎉</div>
+
+                  <h2>Lab Completed!</h2>
+
+                  <p>
+                    Congratulations! You have successfully completed the
+                    <strong> Machine Learning Without Math Lab</strong>.
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      setLabCompleted(false);
+                      router.push("/");
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
           </StageShell>
         )}
-
-          </div>
-     
       </div>
-   
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { Check } from "lucide-react";
+
 import "./globals.css";
 interface Topic {
   title: string;
@@ -213,8 +213,7 @@ const curriculum: Level[] = [
           { title: "Virtual Environments" },
           { title: "Package Management" },
           { title: "Git & GitHub Basics" },
-          { title: "Python Mini Projects", isHandsOn: true },
-          { title: "CLI Applications", isHandsOn: true },
+          { title: "Python Playground", isHandsOn: true, labPath: "/python-playground" }
 
         ],
       },
@@ -232,7 +231,7 @@ const curriculum: Level[] = [
           { title: "Probability" },
           { title: "Statistics" },
           { title: "Bayes Theorem" },
-          { title: "NumPy Mathematical Operations", isHandsOn: true },
+           { title: "Maths for AI Lab", isHandsOn: true, labPath: "/math-ai" }
         ],
       },
       {
@@ -247,7 +246,7 @@ const curriculum: Level[] = [
           { title: "Exploratory Data Analysis" },
           { title: "Missing Values" },
           { title: "Outlier Detection" },
-          { title: "Analyze Real Datasets", isHandsOn: true },
+          { title: "Analyze Real Datasets", isHandsOn: true, labPath: "/data-science-lab" },
         ],
       },
       {
@@ -326,6 +325,11 @@ const curriculum: Level[] = [
           { title: "GloVe"},
             { title: "BERT"},
                 { title: "Transformers"},
+                 {
+            title: "Transformers Simulation Lab",
+            isHandsOn: true,
+            labPath: "/transformers-lab"
+          }
         ] },
       { title: "Module 9: Generative AI & LLMs", topics: [
  { title: "Introduction to LLMs" },
@@ -617,6 +621,34 @@ export function findTopicLocation(slug: string) {
     }
   }
   return null;
+}
+
+// Shared "mark this lab/topic as complete" function — every lab page
+// (the dynamic [slug] page, AI Foundations Lab, and any future lab) should
+// import this instead of re-implementing the localStorage read/write logic.
+// This MUST live at module scope (not inside the Home component) so it can
+// be exported and imported elsewhere.
+export function markLabTopicComplete(slug: string): void {
+  try {
+    const location = findTopicLocation(slug);
+    if (!location) return;
+
+    const key = topicKey(
+      location.levelIndex,
+      location.moduleIndex,
+      location.topicIndex,
+    );
+
+    const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+    const parsed: string[] = stored ? JSON.parse(stored) : [];
+
+    if (!parsed.includes(key)) {
+      parsed.push(key);
+      window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch {
+    // ignore storage errors — don't block navigation over a progress-save failure
+  }
 }
 
 // -----------------------------------------------------------------------

@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   Database,
   Table2,
@@ -14,9 +16,8 @@ import {
   XCircle,
   ChevronRight,
   ChevronLeft,
-  Award,
-  RotateCcw,
   LucideIcon,
+  TestTube2Icon,
 } from "lucide-react";
 
 const colors = {
@@ -308,7 +309,7 @@ const STYLES = `
   .aiel-nav-back:not([disabled]):hover { color: ${colors.gold}; border-color: ${colors.borderActive}; transform: translateX(-2px); }
   .aiel-nav-next {
     display: flex; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 14px;
-    font-size: 14px; font-weight: 700; color: #fff;
+    font-size: 14px; font-weight: 700; color: black;
     background: linear-gradient(135deg, ${colors.gold}, ${colors.purple});
     box-shadow: 0 4px 15px rgba(99,102,241,0.3);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -317,43 +318,73 @@ const STYLES = `
   .aiel-nav-next:not([disabled]):active { transform: translateY(1px); }
   .aiel-nav-next[disabled], .aiel-nav-back[disabled] { opacity: 0.4; cursor: default; background: ${colors.cardAlt}; color: ${colors.muted}; box-shadow: none; }
 
-  .aiel-cert {
-    border-radius: 24px; padding: 32px 20px; text-align: center;
-    background: rgba(255,255,255,0.72);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid ${colors.border};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    position: relative; overflow: hidden;
+  /* ---- Completion overlay (matches AI Foundations Lab / Computer Vision Lab / Python Basics Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @media (min-width: 640px) { .aiel-cert { padding: 40px; } }
-  .aiel-cert-badge {
-    margin: 0 auto 20px auto; width: 76px; height: 76px; border-radius: 999px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #F59E0B, #F97316);
-    box-shadow: 0 10px 28px rgba(245,158,11,0.35);
-    position: relative; z-index: 1;
-    animation: aiel-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
   }
-  @keyframes aiel-badge-pop { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
-  .aiel-cert-eyebrow { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${colors.gold}; margin: 0 0 8px 0; position: relative; z-index: 1; }
-  .aiel-cert-title { font-family: 'Inter', sans-serif; font-weight: 800; color: ${colors.ink}; font-size: 26px; margin: 0 0 12px 0; position: relative; z-index: 1; }
-  .aiel-cert-desc { font-size: 14px; color: ${colors.inkSoft}; margin: 0 0 24px 0; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; position: relative; z-index: 1; }
-  .aiel-cert-score {
-    display: inline-flex; align-items: center; gap: 12px; border-radius: 20px; padding: 16px 24px; margin-bottom: 32px;
-    background: ${colors.card}; border: 1px solid ${colors.border}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; z-index: 1;
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
   }
-  .aiel-cert-score-num { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 30px; color: ${colors.gold}; }
-  .aiel-cert-score-label { font-size: 12px; color: ${colors.muted}; text-align: left; max-width: 140px; }
-  .aiel-cert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; text-align: left; position: relative; z-index: 1; }
-  @media (min-width: 480px) { .aiel-cert-grid { grid-template-columns: repeat(5, 1fr); } }
-  .aiel-cert-item { border-radius: 14px; padding: 12px; background: ${colors.card}; border: 1px solid ${colors.border}; }
-  .aiel-cert-item p { font-size: 12px; color: ${colors.ink}; margin: 6px 0 0 0; font-weight: 600; }
-  .aiel-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-    padding: 14px 24px; border-radius: 14px; background: ${colors.card}; border: 1px solid ${colors.border}; color: ${colors.inkSoft};
-    position: relative; z-index: 1; transition: color 0.2s ease, border-color 0.2s ease;
+
+  .completion-modal h2{
+      margin-bottom:10px;
   }
-  .aiel-reset-btn:hover { color: ${colors.gold}; border-color: ${colors.borderActive}; }
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
+  }
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
+  }
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
+  }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 `;
 
 /* ---------------------------- TYPES ---------------------------- */
@@ -551,7 +582,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
         <ChevronLeft size={16} /> Back
       </button>
       <button className="aiel-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -822,8 +853,10 @@ function QuizList({ items, answers, onAnswer, onFeedback }: QuizListProps) {
 /* ------------------------------- MAIN APP ------------------------------- */
 
 export default function DataLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..4 stages, 5 = certificate
+  const router = useRouter();
+  const [current, setCurrent] = useState<number>(0); // 0..4 stages
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false, false]);
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [structureAnswers, setStructureAnswers] = useState<StructureAnswerMap>({});
   const [csvAnswers, setCsvAnswers] = useState<AnswerMap>({});
@@ -868,29 +901,15 @@ export default function DataLab() {
   const activeCsvItem = useMemo(() => CSV_ITEMS.find((it) => !csvAnswers[it.id]) || null, [csvAnswers]);
   const activeImageItem = useMemo(() => IMAGE_ITEMS.find((it) => !imageAnswers[it.id]) || null, [imageAnswers]);
 
-  const scores = useMemo(() => {
-    const structureCorrect = STRUCTURE_ITEMS.filter((it) => structureAnswers[it.id] === it.answer).length;
-    const csvCorrect = CSV_ITEMS.filter((it) => csvAnswers[it.id] === it.answer).length;
-    const imageCorrect = IMAGE_ITEMS.filter((it) => imageAnswers[it.id] === it.answer).length;
-    const audioCorrect = AUDIO_ITEMS.filter((it) => audioAnswers[it.id] === it.answer).length;
-    const textCorrect = TEXT_ITEMS.filter((it) => textAnswers[it.id] === it.answer).length;
-    return { structureCorrect, csvCorrect, imageCorrect, audioCorrect, textCorrect };
-  }, [structureAnswers, csvAnswers, imageAnswers, audioAnswers, textAnswers]);
-
-  const totalScore =
-    scores.structureCorrect + scores.csvCorrect + scores.imageCorrect + scores.audioCorrect + scores.textCorrect;
-  const totalPossible =
-    STRUCTURE_ITEMS.length + CSV_ITEMS.length + IMAGE_ITEMS.length + AUDIO_ITEMS.length + TEXT_ITEMS.length;
-
-  const resetAll = () => {
-    setCurrent(0);
-    setCompleted([false, false, false, false, false]);
-    setStructureAnswers({});
-    setCsvAnswers({});
-    setImageAnswers({});
-    setAudioAnswers({});
-    setTextAnswers({});
-    setToast(null);
+  // Same pattern as the AI Foundations Lab / Computer Vision Lab / Python Basics
+  // Lab: when the final stage's "Finish & Unlock Next" button is pressed, mark
+  // this exact topic complete (slug MUST match the labPath registered in
+  // page.tsx: "/data-lab") and show the completion overlay -- no separate
+  // certificate page/stage.
+  const finishLab = () => {
+    markComplete(4);
+    markLabTopicComplete("data-lab");
+    setLabCompleted(true);
   };
 
   return (
@@ -929,7 +948,7 @@ export default function DataLab() {
           </p>
         </div>
 
-        {current <= 4 && <StampBar current={current} completed={completed} onJump={goTo} />}
+        <StampBar current={current} completed={completed} onJump={goTo} />
 
         {/* STAGE 0: What is Data? */}
         {current === 0 && (
@@ -1054,45 +1073,33 @@ export default function DataLab() {
             <NavButtons
               onBack={() => setCurrent(3)}
               nextDisabled={!textDone}
-              nextLabel="Finish Lab"
-              onNext={() => {
-                markComplete(4);
-                setCurrent(5);
-              }}
+              nextLabel="Finish & Unlock Next"
+              onNext={finishLab}
             />
           </StageShell>
         )}
 
-        {/* CERTIFICATE */}
-        {current === 5 && (
-          <div className="aiel-cert">
-            <div className="aiel-cert-badge">
-              <Award size={36} color="#fff" />
-            </div>
-            <p className="aiel-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="aiel-cert-title">You`ve completed Module 2</h2>
-            <p className="aiel-cert-desc">
-              You sorted structured from unstructured data, read a real CSV table, decoded pixels,
-              turned sound into numbers, and tokenized text -- the raw material behind every AI system.
-            </p>
+        {labCompleted && (
+          <div className="completion-overlay">
+            <div className="completion-modal">
+              <div className="completion-icon">🎉</div>
 
-            <div className="aiel-cert-score">
-              <span className="aiel-cert-score-num">{totalScore}/{totalPossible}</span>
-              <span className="aiel-cert-score-label">correct across all five stages</span>
-            </div>
+              <h2>Lab Completed!</h2>
 
-            <div className="aiel-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="aiel-cert-item">
-                  <CheckCircle2 size={14} color={colors.tealDeep} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
+              <p>
+                Congratulations! You have successfully completed the
+                <strong> Data Lab</strong>.
+              </p>
 
-            <button className="aiel-reset-btn" onClick={resetAll}>
-              <RotateCcw size={14} /> Restart the Lab
-            </button>
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
       </div>

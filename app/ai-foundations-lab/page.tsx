@@ -55,9 +55,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/* ============================================================================
-   COLOR SYSTEM -- matches the ML Without Math Lab exactly
-============================================================================ */
+import { markLabTopicComplete } from "../page";
 
 const colors = {
   bg: "#F0F4F8",
@@ -1425,6 +1423,7 @@ export default function AIFoundationsLabPage() {
   const goPrev = () => jumpTo(clamp(stage - 1, 0, total - 1));
   const goNext = () => {
     if (stage === total - 1) {
+      markLabTopicComplete("ai-foundations-lab");
       setLabCompleted(true);
       return;
     }
@@ -1480,18 +1479,19 @@ export default function AIFoundationsLabPage() {
           {stage === 4 && <TypesStage />}
           {stage === 5 && <EcosystemStage />}
 
-          <NavButtons
-            step={stage + 1}
-            total={total}
-            backDisabled={stage === 0}
-            onBack={goPrev}
-            nextDisabled={false}
-            nextLabel={stage === total - 1 ? "Finished" : "Next"}
-            onNext={goNext}
-          />
+         <NavButtons
+  step={stage + 1}
+  total={total}
+  backDisabled={stage === 0}
+  onBack={goPrev}
+  nextDisabled={false}
+  nextLabel={stage === total - 1 ? "Finish & Unlock Next" : "Next"}
+  onNext={goNext}
+/>
           {labCompleted && (
   <div className="completion-overlay">
     <div className="completion-modal">
+      
       <div className="completion-icon">🎉</div>
 
       <h2>Lab Completed!</h2>

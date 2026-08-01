@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { markLabTopicComplete } from "../page";
 import {
   Image as ImageIcon,
   Workflow,
@@ -331,7 +332,7 @@ const STYLES = `
   .dlfl-nav-back:not([disabled]):hover { color: ${colors.indigo}; border-color: rgba(99,102,241,0.4); transform: translateX(-2px); }
   .dlfl-nav-next {
     display: flex; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 14px;
-    font-size: 14px; font-weight: 700; color: #fff;
+    font-size: 14px; font-weight: 700; color: black;
     background: linear-gradient(135deg, ${colors.indigo}, ${colors.purple});
     box-shadow: 0 4px 15px rgba(99,102,241,0.3);
     transition: all 0.2s ease;
@@ -467,7 +468,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel, ste
       </button>
       <span className="dlfl-step-counter">{step} / {total}</span>
       <button className="dlfl-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -582,12 +583,23 @@ export default function DeepLearningLab() {
     if (item) fireToast(value === item.answer);
   };
 
+  // Same pattern as AI Foundations Lab / ML Without Math Lab / Computer Vision
+  // Lab / Generative AI Lab / Mission 1 / Mission 2: when the final stage's
+  // "Finish Lab" button is pressed, mark this exact topic complete (slug MUST
+  // match the labPath registered in page.tsx: "/deep-learning-lab") and show
+  // the completion overlay.
+  const finishLab = () => {
+    markComplete(total - 1);
+    markLabTopicComplete("deep-learning-lab");
+    setLabCompleted(true);
+  };
+
   const goNext = () => {
-    markComplete(current);
     if (current === total - 1) {
-      setLabCompleted(true);
+      finishLab();
       return;
     }
+    markComplete(current);
     setCurrent(current + 1);
   };
 
@@ -646,7 +658,7 @@ export default function DeepLearningLab() {
             backDisabled={current === 0}
             onBack={goBack}
             nextDisabled={!currentDone}
-            nextLabel={current === total - 1 ? "Finish Lab" : "Continue"}
+            nextLabel={current === total - 1 ? "Finish & Unlock Next" : "Continue"}
             onNext={goNext}
           />
         </StageShell>
@@ -663,7 +675,12 @@ export default function DeepLearningLab() {
                 sequence, how LSTMs remember over much longer stretches, and how transformers use
                 attention to connect words across an entire sentence.
               </p>
-              <button onClick={() => router.push("/")}>
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
                 Finished <ChevronRight size={16} />
               </button>
             </div>

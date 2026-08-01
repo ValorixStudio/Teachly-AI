@@ -25,5 +25,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-  return(<div></div>);
 }

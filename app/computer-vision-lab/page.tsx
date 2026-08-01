@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { markLabTopicComplete } from "../page";
 import {
   ScanFace,
   Car,
@@ -12,8 +14,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
-  Award,
-  RotateCcw,
   LucideIcon,
   ArrowLeft,
   Target,
@@ -493,58 +493,73 @@ const STYLES = `
   }
   .cvl-nav-next[disabled] { background: ${palette.muted}; box-shadow: none; }
 
-  /* Certificate */
-  .cvl-cert {
-    border-radius: 28px; padding: 40px 24px; text-align: center;
-    background: ${palette.cardBg};
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid ${palette.border};
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    animation: fadeSlideUp 0.6s ease both;
+  /* ---- Completion overlay (matches AI Foundations Lab / ML Without Math Lab) ---- */
+  .completion-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(5,10,25,.75);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      animation:fadeIn .35s ease;
   }
-  @media (min-width: 640px) { .cvl-cert { padding: 52px 40px; } }
-  .cvl-cert-badge {
-    margin: 0 auto 24px auto; width: 88px; height: 88px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, ${palette.amber}, #F97316);
-    box-shadow: 0 8px 30px rgba(245,158,11,0.35);
-    animation: bounceIn 0.6s ease both 0.2s;
+
+  .completion-modal{
+      width:520px;
+      max-width:90%;
+      background:rgba(20,28,45,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:40px;
+      text-align:center;
+      color:white;
+      box-shadow:0 20px 60px rgba(0,0,0,.4);
+      animation:pop .4s ease;
   }
-  .cvl-cert-eyebrow {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: ${palette.indigo}; margin: 0 0 8px 0;
+
+  .completion-icon{
+      font-size:64px;
+      margin-bottom:18px;
   }
-  .cvl-cert-title { font-size: 28px; font-weight: 800; color: ${palette.ink}; margin: 0 0 14px 0; }
-  .cvl-cert-desc { font-size: 15px; color: ${palette.inkSoft}; margin: 0 0 28px 0; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.65; }
-  .cvl-cert-score-wrap {
-    display: inline-flex; flex-direction: column; align-items: stretch; gap: 14px; border-radius: 20px;
-    padding: 20px 28px; margin-bottom: 32px; width: 100%; max-width: 360px;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border};
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+  .completion-modal h2{
+      margin-bottom:10px;
   }
-  .cvl-cert-score-top { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
-  .cvl-cert-score-num { font-size: 36px; font-weight: 800; color: ${palette.indigo}; }
-  .cvl-cert-score-label { font-size: 13px; color: ${palette.muted}; }
-  .cvl-cert-scorebar-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(148,163,184,0.2); overflow: hidden; }
-  .cvl-cert-scorebar-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, ${palette.emerald}, ${palette.cyan});
-    animation: growBar 1s ease both 0.3s;
+
+  .completion-modal p{
+      color:#b8c5e1;
+      line-height:1.6;
   }
-  .cvl-cert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 32px; }
-  .cvl-cert-item {
-    border-radius: 16px; padding: 14px; text-align: left;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border};
-    display: flex; align-items: center; gap: 10px;
+
+  .completion-modal button{
+      margin-top:28px;
+      padding:12px 28px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      background:linear-gradient(135deg,#6d5efc,#37b7ff);
+      color:white;
+      font-weight:600;
+      font-size:16px;
   }
-  .cvl-cert-item p { font-size: 13px; color: ${palette.ink}; margin: 0; font-weight: 600; }
-  .cvl-reset-btn {
-    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
-    padding: 14px 24px; border-radius: 14px;
-    background: ${palette.cardBgSolid}; border: 1px solid ${palette.border}; color: ${palette.inkSoft};
-    transition: all 0.2s ease;
+
+  @keyframes fadeIn{
+      from{opacity:0;}
+      to{opacity:1;}
   }
-  .cvl-reset-btn:hover { color: ${palette.indigo}; border-color: ${palette.borderActive}; }
+
+  @keyframes pop{
+      from{
+          transform:scale(.8);
+          opacity:0;
+      }
+      to{
+          transform:scale(1);
+          opacity:1;
+      }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .cvl-root * { transition: none !important; animation: none !important; }
@@ -847,7 +862,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
         <ChevronLeft size={16} /> Back
       </button>
       <button className="cvl-nav-next" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel || "Continue"} <ChevronRight size={16} />
+        {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
   );
@@ -856,8 +871,10 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: N
 /* ────────────────────────────── MAIN APP ────────────────────────────── */
 
 export default function ComputerVisionLab() {
-  const [current, setCurrent] = useState<number>(0); // 0..3 stages, 4 = certificate
+  const router = useRouter();
+  const [current, setCurrent] = useState<number>(0); // 0..3 stages
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
+  const [labCompleted, setLabCompleted] = useState(false);
 
   const [faceAnswers, setFaceAnswers] = useState<FaceAnswerMap>({});
   const [driveAnswers, setDriveAnswers] = useState<DriveAnswerMap>({});
@@ -914,25 +931,14 @@ export default function ComputerVisionLab() {
     [ocrClassified]
   );
 
-  const scores = useMemo(() => {
-    const faceCorrect = FACE_ITEMS.filter((it) => faceAnswers[it.id] === it.answer).length;
-    const driveCorrect = DRIVE_ITEMS.filter((it) => driveAnswers[it.id] === it.answer).length;
-    const ocrCorrect = OCR_ITEMS.filter((it) => ocrClassified[it.id] === it.answer).length;
-    return { faceCorrect, driveCorrect, ocrCorrect };
-  }, [faceAnswers, driveAnswers, ocrClassified]);
-
-  const totalScore = scores.faceCorrect + scores.driveCorrect + scores.ocrCorrect;
-  const totalPossible = FACE_ITEMS.length + DRIVE_ITEMS.length + OCR_ITEMS.length;
-  const scorePct = Math.round((totalScore / totalPossible) * 100);
-
-  const resetAll = () => {
-    setCurrent(0);
-    setCompleted([false, false, false, false]);
-    setFaceAnswers({});
-    setDriveAnswers({});
-    setFound({});
-    setOcrClassified({});
-    setToast(null);
+  // Same pattern as AI Foundations Lab / ML Without Math Lab: when the final
+  // stage's "Finish Lab" button is pressed, mark this exact topic complete
+  // (slug MUST match the labPath registered in page.tsx: "/computer-vision-lab")
+  // and show the completion overlay — no separate certificate page.
+  const finishLab = () => {
+    markComplete(3);
+    markLabTopicComplete("computer-vision-lab");
+    setLabCompleted(true);
   };
 
   return (
@@ -970,9 +976,7 @@ export default function ComputerVisionLab() {
           </p>
         </div>
 
-        {current <= 3 && (
-          <Stepper current={current} completed={completed} onJump={goTo} />
-        )}
+        <Stepper current={current} completed={completed} onJump={goTo} />
 
         {/* STAGE 0: Face Recognition */}
         {current === 0 && (
@@ -1195,46 +1199,31 @@ export default function ComputerVisionLab() {
                 );
               })}
             </div>
-            <NavButtons onBack={() => setCurrent(2)} nextDisabled={!ocrDone} nextLabel="Finish Lab" onNext={() => { markComplete(3); setCurrent(4); }} />
+            <NavButtons onBack={() => setCurrent(2)} nextDisabled={!ocrDone} nextLabel="Finish & Unlock Next" onNext={finishLab} />
           </StageShell>
         )}
 
-        {/* CERTIFICATE */}
-        {current === 4 && (
-          <div className="cvl-cert">
-            <div className="cvl-cert-badge">
-              <Award size={40} color="white" />
-            </div>
-            <p className="cvl-cert-eyebrow">Certificate of Completion</p>
-            <h2 className="cvl-cert-title">You&apos;ve completed Module 3</h2>
-            <p className="cvl-cert-desc">
-              You separated fact from myth in face recognition, judged real driving hazards,
-              uncovered how image classifiers really see, and sorted what OCR can and can&apos;t
-              reliably read.
-            </p>
+        {labCompleted && (
+          <div className="completion-overlay">
+            <div className="completion-modal">
+              <div className="completion-icon">🎉</div>
 
-            <div className="cvl-cert-score-wrap">
-              <div className="cvl-cert-score-top">
-                <span className="cvl-cert-score-num">{totalScore}/{totalPossible}</span>
-                <span className="cvl-cert-score-label">correct ({scorePct}%)</span>
-              </div>
-              <div className="cvl-cert-scorebar-track">
-                <div className="cvl-cert-scorebar-fill" style={{ width: `${scorePct}%` }} />
-              </div>
-            </div>
+              <h2>Lab Completed!</h2>
 
-            <div className="cvl-cert-grid">
-              {STAGE_META.map((s) => (
-                <div key={s.key} className="cvl-cert-item">
-                  <CheckCircle2 size={16} color={palette.emerald} />
-                  <p>{s.title}</p>
-                </div>
-              ))}
-            </div>
+              <p>
+                Congratulations! You have successfully completed the
+                <strong> Computer Vision Lab</strong>.
+              </p>
 
-            <button className="cvl-reset-btn" onClick={resetAll}>
-              <RotateCcw size={15} /> Restart the Lab
-            </button>
+              <button
+                onClick={() => {
+                  setLabCompleted(false);
+                  router.push("/");
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
       </div>

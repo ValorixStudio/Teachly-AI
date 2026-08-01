@@ -54,7 +54,7 @@ type NetConfig = {
   hiddenUnits: number[]; // one entry per hidden layer
   outputUnits: number;
   inputActivation: ActName;
-  hiddenActivation: ActName;
+  hiddenActivations: ActName[]; // one entry per hidden layer, applied independently during the forward pass
   outputActivation: ActName;
 };
 
@@ -111,7 +111,7 @@ function forwardPass(x: number[], net: NetWeights, config: NetConfig): ForwardCa
   for (let l = 0; l < net.length; l++) {
     const z = matVec(as[l], net[l].W, net[l].b);
     const isOutput = l === net.length - 1;
-    const name = isOutput ? config.outputActivation : config.hiddenActivation;
+    const name = isOutput ? config.outputActivation : config.hiddenActivations[l];
     const a = name === "Softmax" ? softmax(z) : z.map((zi) => actApply(name, zi));
     zs.push(z);
     as.push(a);
@@ -200,7 +200,7 @@ function backwardPass(cache: ForwardCache, net: NetWeights, config: NetConfig, t
     grads[l] = { dW, db };
     if (l > 0) {
       const raw = propagateDeltaRaw(delta, net[l].W);
-      delta = raw.map((v, i) => v * actDeriv(config.hiddenActivation, cache.zs[l - 1][i], cache.as[l][i]));
+      delta = raw.map((v, i) => v * actDeriv(config.hiddenActivations[l - 1], cache.zs[l - 1][i], cache.as[l][i]));
     }
   }
   return { loss, grads };
@@ -349,7 +349,7 @@ function jacobianRow(cache: ForwardCache, net: NetWeights, config: NetConfig, k:
     grads[l] = { dW, db };
     if (l > 0) {
       const raw = propagateDeltaRaw(delta, net[l].W);
-      delta = raw.map((v, i) => v * actDeriv(config.hiddenActivation, cache.zs[l - 1][i], cache.as[l][i]));
+      delta = raw.map((v, i) => v * actDeriv(config.hiddenActivations[l - 1], cache.zs[l - 1][i], cache.as[l][i]));
     }
   }
   const row: number[] = [];
@@ -705,7 +705,7 @@ function layerDisplayList(config: NetConfig): LayerDisplay[] {
     { name: "Input Layer", units: config.inputUnits, type: "Input", activation: config.inputActivation, color: "#22c55e" },
   ];
   config.hiddenUnits.forEach((u, i) => {
-    list.push({ name: `Hidden Layer ${i + 1}`, units: u, type: "Dense", activation: config.hiddenActivation, color: HIDDEN_COLORS[i % HIDDEN_COLORS.length] });
+    list.push({ name: `Hidden Layer ${i + 1}`, units: u, type: "Dense", activation: config.hiddenActivations[i] ?? "ReLU", color: HIDDEN_COLORS[i % HIDDEN_COLORS.length] });
   });
   list.push({ name: "Output Layer", units: config.outputUnits, type: "Dense", activation: config.outputActivation, color: "#f43f5e" });
   return list;
@@ -993,6 +993,11 @@ const STYLES = `
 .nns-add-hidden-btn svg { width:13px; height:13px; }
 .nns-add-hidden-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
+.nns-hidden-layer-card { display:flex; flex-direction:column; gap:7px; border:1px solid var(--panel-border); background:var(--input-bg); border-radius:9px; padding:8px; }
+.nns-hidden-layer-card .nns-select-wrap { background: var(--panel-bg); }
+.nns-hidden-layer-card .nns-select { padding:6px 28px 6px 10px; font-size:11.5px; }
+.nns-hidden-layer-card .nns-select-chevron { width:13px; height:13px; }
+
 .nns-modal-overlay { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; background:rgba(6,9,15,0.65); backdrop-filter: blur(4px); padding:16px; }
 .nns-modal { width:100%; max-width:560px; border:1px solid var(--panel-border); background:var(--panel-bg); backdrop-filter: blur(16px); border-radius:14px; padding:18px; box-shadow: var(--card-shadow); animation: nns-fadeIn 0.2s ease both; border-top: 2px solid var(--amber); }
 .nns-modal-header { margin-bottom:13px; display:flex; align-items:center; justify-content:space-between; }
@@ -1111,7 +1116,7 @@ export default function Page() {
   // ---- Architecture config ----
   const [config, setConfig] = useState<NetConfig>({
     inputUnits: 4, hiddenUnits: [6, 5], outputUnits: 2,
-    inputActivation: "Linear", hiddenActivation: "ReLU", outputActivation: "Softmax",
+    inputActivation: "Linear", hiddenActivations: ["ReLU", "ReLU"], outputActivation: "Softmax",
   });
 
   // ---- Training state ----
@@ -1310,7 +1315,7 @@ useEffect(() => {
     const snapshot: SavedModel = {
       id: Date.now(), epoch, accuracy: accuracy === null ? null : accuracy.toFixed(1),
       trainLoss: trainLoss.toFixed(4), optimizer, algorithm, learningRate, datasetName,
-      config: { ...config, hiddenUnits: [...config.hiddenUnits] },
+      config: { ...config, hiddenUnits: [...config.hiddenUnits], hiddenActivations: [...config.hiddenActivations] },
       classLabels: classLabels ? [...classLabels] : null, outputNames: [...outputNames],
       isClassification, network: cloneNet(net),
     };
@@ -1328,7 +1333,7 @@ useEffect(() => {
 
     networkRef.current = cloneNet(snapshot.network);
     optStateRef.current = createOptState(networkRef.current);
-    setConfig({ ...snapshot.config, hiddenUnits: [...snapshot.config.hiddenUnits] });
+    setConfig({ ...snapshot.config, hiddenUnits: [...snapshot.config.hiddenUnits], hiddenActivations: [...snapshot.config.hiddenActivations] });
     setClassLabels(snapshot.classLabels ? [...snapshot.classLabels] : null);
     setOutputNames([...snapshot.outputNames]);
     setIsClassification(snapshot.isClassification);
@@ -1460,16 +1465,23 @@ useEffect(() => {
 
   function addHiddenLayer() {
     if (config.hiddenUnits.length >= 6) { showToast("Maximum of 6 hidden layers in this lab"); return; }
-    updateConfig({ hiddenUnits: [...config.hiddenUnits, 4] });
+    updateConfig({ hiddenUnits: [...config.hiddenUnits, 4], hiddenActivations: [...config.hiddenActivations, "ReLU"] });
   }
   function removeHiddenLayer(idx: number) {
     if (config.hiddenUnits.length <= 1) { showToast("At least one hidden layer is required"); return; }
-    updateConfig({ hiddenUnits: config.hiddenUnits.filter((_, i) => i !== idx) });
+    updateConfig({
+      hiddenUnits: config.hiddenUnits.filter((_, i) => i !== idx),
+      hiddenActivations: config.hiddenActivations.filter((_, i) => i !== idx),
+    });
   }
   function setHiddenLayerUnits(idx: number, units: number) {
     const clamped = Math.max(1, Math.min(64, Math.round(units) || 1));
     const next = config.hiddenUnits.map((u, i) => (i === idx ? clamped : u));
     updateConfig({ hiddenUnits: next });
+  }
+  function setHiddenLayerActivation(idx: number, activation: ActName) {
+    const next = config.hiddenActivations.map((a, i) => (i === idx ? activation : a));
+    updateConfig({ hiddenActivations: next });
   }
 
  
@@ -1480,7 +1492,7 @@ useEffect(() => {
 
     // Activations: sane, standard defaults for the task type.
     const inputActivation: ActName = "Linear";
-    const hiddenActivation: ActName = "ReLU";
+    const hiddenActivations: ActName[] = newConfig.hiddenUnits.map((_, i) => newConfig.hiddenActivations[i] ?? "ReLU");
     const outputActivation: ActName = isClf ? "Softmax" : "Linear";
 
     // Loss: Cross Entropy pairs with Softmax classification, MSE for regression.
@@ -1489,7 +1501,7 @@ useEffect(() => {
     // MLFF Algorithm: Levenberg-Marquardt only when the problem is small enough
     // for a real Jacobian/Gauss-Newton solve in-browser (same feasibility check
     // used by the Run/Train button). Otherwise fall back to Backpropagation.
-    const probeConfig: NetConfig = { ...newConfig, inputActivation, hiddenActivation, outputActivation };
+    const probeConfig: NetConfig = { ...newConfig, inputActivation, hiddenActivations, outputActivation };
     const probeNet = initNetwork(probeConfig);
     const lmCheck = canUseLM(probeNet, newSamples, probeConfig.outputUnits);
     const algorithm = lmCheck.ok ? "Levenberg-Marquardt" : "Backpropagation";
@@ -1505,7 +1517,7 @@ useEffect(() => {
       else optimizer = "Adam";
     }
 
-    return { inputActivation, hiddenActivation, outputActivation, lossFn, algorithm, optimizer };
+    return { inputActivation, hiddenActivations, outputActivation, lossFn, algorithm, optimizer };
   }
 
   function finalizeDatasetIfReady() {
@@ -1527,7 +1539,7 @@ useEffect(() => {
     const newConfig: NetConfig = {
       ...baseConfig,
       inputActivation: auto.inputActivation,
-      hiddenActivation: auto.hiddenActivation,
+      hiddenActivations: auto.hiddenActivations,
       outputActivation: auto.outputActivation,
     };
 
@@ -1545,7 +1557,7 @@ useEffect(() => {
       `Dataset ready — ${newSamples.length} samples, ${newConfig.inputUnits} input feature${newConfig.inputUnits === 1 ? "" : "s"}, ` +
       `${newConfig.outputUnits} output${newConfig.outputUnits === 1 ? "" : "s"} (${out.isClassification ? "classification" : "regression"}). ` +
       `Auto-configured: ${auto.algorithm === "Levenberg-Marquardt" ? "Levenberg-Marquardt" : `Backprop + ${auto.optimizer}`}, ${auto.lossFn} loss, ` +
-      `${auto.hiddenActivation} hidden / ${auto.outputActivation} output activation.`
+      `${auto.hiddenActivations.join("/")} hidden / ${auto.outputActivation} output activation.`
     );
   }
   async function handleInputFile(file: File) {
@@ -1732,7 +1744,7 @@ useEffect(() => {
         <div className="nns-builder">
           {/* -------------------------------------------------- Left sidebar */}
           <aside className="nns-sidebar">
-            <SectionTitle badge="1" label="ARCHITECTURE" tip="Input and output neuron counts are set automatically from your Input/Output sheets. Configure hidden layers and activation functions here." />
+            <SectionTitle badge="1" label="ARCHITECTURE" tip="Input and output neuron counts are set automatically from your Input/Output sheets. Configure hidden layers — including a separate activation function per hidden layer — here." />
 
             <div>
               <p className="nns-block-label">Add Components</p>
@@ -1750,14 +1762,27 @@ useEffect(() => {
             <div>
               <p className="nns-block-label" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 Hidden Layers
-                <Tip text="How many hidden layers the network has, and how many neurons are in each. Changing this reinitializes the network with fresh random weights." width={230} />
+                <Tip text="How many hidden layers the network has, how many neurons are in each, and each layer's own activation function. Changing any of this reinitializes the network with fresh random weights." width={240} />
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {config.hiddenUnits.map((u, i) => (
-                  <div key={i} className="nns-hidden-row">
-                    <span className="nns-hidden-row-label">Layer {i + 1}</span>
-                    <input type="number" min={1} max={64} value={u} onChange={(e) => setHiddenLayerUnits(i, parseInt(e.target.value || "1", 10))} />
-                    <button type="button" onClick={() => removeHiddenLayer(i)} title="Remove layer"><Minus /></button>
+                  <div key={i} className="nns-hidden-layer-card">
+                    <div className="nns-hidden-row">
+                      <span className="nns-hidden-row-label">Layer {i + 1}</span>
+                      <input type="number" min={1} max={64} value={u} onChange={(e) => setHiddenLayerUnits(i, parseInt(e.target.value || "1", 10))} />
+                      <button type="button" onClick={() => removeHiddenLayer(i)} title="Remove layer"><Minus /></button>
+                    </div>
+                    <div className="nns-select-wrap">
+                      <select
+                        value={config.hiddenActivations[i] ?? "ReLU"}
+                        onChange={(e) => setHiddenLayerActivation(i, e.target.value as ActName)}
+                        className="nns-select"
+                        aria-label={`Hidden Layer ${i + 1} activation`}
+                      >
+                        {HIDDEN_ACTIVATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                      <ChevronDown className="nns-select-chevron" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1769,7 +1794,7 @@ useEffect(() => {
             <div className="nns-settings">
               <p className="nns-block-label">Activation Functions</p>
               <SelectField label="Input Layer" value={config.inputActivation} onChange={(v) => updateConfig({ inputActivation: v as ActName })} options={INPUT_ACTIVATIONS} tip="Transform applied to raw input features before the first hidden layer." />
-              <SelectField label="Hidden Layers" value={config.hiddenActivation} onChange={(v) => updateConfig({ hiddenActivation: v as ActName })} options={HIDDEN_ACTIVATIONS} tip="Applied uniformly to every hidden layer's output." />
+              <p className="nns-hint" style={{ marginTop: -8 }}>Each hidden layer now has its own activation — set it directly on that layer's card above.</p>
               <SelectField label="Output Layer" value={config.outputActivation} onChange={(v) => updateConfig({ outputActivation: v as ActName })} options={OUTPUT_ACTIVATIONS} tip="Softmax for classification (probabilities summing to 1); Linear for regression." />
             </div>
 
@@ -1863,7 +1888,7 @@ useEffect(() => {
             <div>
               <p className="nns-chart-col-label" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 Activation Preview (Hidden Layer 1)
-                <Tip text="Real ReLU-family activations of Hidden Layer 1 for a sample batch. Dim = low activation, bright = high." width={230} />
+                <Tip text="Real activations of Hidden Layer 1 for a sample batch, using that layer's own activation function. Dim = low activation, bright = high." width={230} />
               </p>
               <ActivationHeatmap net={renderNetwork} config={config} samples={samples} />
             </div>
@@ -1979,9 +2004,10 @@ useEffect(() => {
             <div className="nns-explain-text">
               <p>
                 Data enters through the <span className="nns-c-green">input layer</span> ({config.inputUnits} units,
-                matching your Input sheet`s columns), passes through {config.hiddenUnits.length}{" "}
-                <span className="nns-c-blue">hidden layer{config.hiddenUnits.length === 1 ? "" : "s"}</span> ({config.hiddenUnits.join(", ")}{" "}
-                neurons) using {config.hiddenActivation} activation, and produces a {config.outputUnits}-way{" "}
+                matching your Input sheet`s columns), then passes through {config.hiddenUnits.length}{" "}
+                <span className="nns-c-blue">hidden layer{config.hiddenUnits.length === 1 ? "" : "s"}</span>:{" "}
+                {config.hiddenUnits.map((u, i) => `Layer ${i + 1} (${u} neurons, ${config.hiddenActivations[i] ?? "ReLU"})`).join(", ")}
+                {" "}— each layer can use its own activation function — before producing a {config.outputUnits}-way{" "}
                 <span className="nns-c-rose">output</span> via {config.outputActivation}.
               </p>
               <p>
@@ -1989,7 +2015,7 @@ useEffect(() => {
                   ? `Training uses the Levenberg-Marquardt algorithm: each iteration builds the real Jacobian of the network's outputs with respect to all ${paramCount(networkRef.current)} parameters, then solves a damped Gauss-Newton update (JᵀJ + μI)⁻¹Jᵀe.`
                   : `The ${optimizer} optimizer adjusts all ${paramCount(networkRef.current)} weights and biases via backpropagation to minimize ${lossFn}, at a learning rate of ${learningRate.toFixed(3)}.`}
               </p>
-              <p>Switch to the Builder tab to change the architecture, activations, loss, algorithm or optimizer and watch the loss curve respond.</p>
+              <p>Switch to the Builder tab to change the architecture, per-layer activations, loss, algorithm or optimizer and watch the loss curve respond.</p>
               <p>Curious about the bigger picture? Click the <HelpCircle style={{ width: 13, height: 13, display: "inline", verticalAlign: -2 }} /> icon in the top nav any time.</p>
             </div>
           </section>
@@ -2065,7 +2091,8 @@ useEffect(() => {
               </p>
               <p>
                 <strong>Architecture:</strong> choose how many hidden layers and how many neurons each has, plus
-                separate activation functions for the input, hidden, and output layers.
+                a separate activation function per hidden layer (e.g. Layer 1 = ReLU, Layer 2 = Tanh), and separate
+                activations for the input and output layers.
               </p>
               <p>
                 <strong>Training:</strong> pick a loss function (SSE / MSE / MAE / Cross Entropy), an MLFF algorithm
