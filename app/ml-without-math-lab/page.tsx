@@ -1078,7 +1078,7 @@ function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel, ste
 
 export default function MLWithoutMathLab() {
   const router = useRouter();
-  const [current, setCurrent] = useState<number>(0);
+  const [current, setCurrent] = useState<any>(0);
   const [completed, setCompleted] = useState<boolean[]>([false, false, false, false]);
   const [labCompleted, setLabCompleted] = useState(false);
   const total = STAGE_META.length;

@@ -20,7 +20,6 @@ import {
   Zap,
   Package,
   GitBranch,
-  Github,
   Cpu,
   Layers,
   ChevronRight,
