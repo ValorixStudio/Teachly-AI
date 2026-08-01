@@ -213,8 +213,7 @@ const curriculum: Level[] = [
           { title: "Virtual Environments" },
           { title: "Package Management" },
           { title: "Git & GitHub Basics" },
-          { title: "Python Mini Projects", isHandsOn: true },
-          { title: "CLI Applications", isHandsOn: true },
+          { title: "Python Playground", isHandsOn: true, labPath: "/python-playground" }
 
         ],
       },
@@ -232,7 +231,7 @@ const curriculum: Level[] = [
           { title: "Probability" },
           { title: "Statistics" },
           { title: "Bayes Theorem" },
-          { title: "NumPy Mathematical Operations", isHandsOn: true },
+           { title: "Maths for AI Lab", isHandsOn: true, labPath: "/math-ai" }
         ],
       },
       {
@@ -247,7 +246,7 @@ const curriculum: Level[] = [
           { title: "Exploratory Data Analysis" },
           { title: "Missing Values" },
           { title: "Outlier Detection" },
-          { title: "Analyze Real Datasets", isHandsOn: true },
+          { title: "Analyze Real Datasets", isHandsOn: true, labPath: "/data-science-lab" },
         ],
       },
       {
