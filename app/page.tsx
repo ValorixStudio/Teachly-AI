@@ -540,7 +540,7 @@ interface VerifyTokenResponse {
 }
 
 function getVerifyTokenUrl() {
-  return "/api/verify-token";
+  return "/auth/verify-token";
 }
 
 function getApiErrorMessage(value: unknown, fallback: string) {
@@ -764,7 +764,8 @@ export default function Home() {
 
     async function verifyUrlToken(urlToken: string) {
       try {
-        const response = await fetch(getVerifyTokenUrl(), {
+         
+        const response = await fetch(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/${getVerifyTokenUrl()}`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${urlToken}`,
