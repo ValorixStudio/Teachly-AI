@@ -12,6 +12,9 @@ const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
 
+
+
+
 export default function LoginPage() {
   const router = useRouter();
   const { callSetter, loading, error } = useSetter();

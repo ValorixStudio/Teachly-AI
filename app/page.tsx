@@ -31,13 +31,7 @@ function titleToSlug(title: string): string {
     .trim();
 }
 
-// Every topic navigates somewhere. If a labPath was set explicitly, use it;
-// otherwise derive a URL from the topic title (e.g. "AI Around Us" -> /ai-around-us).
-// labPath is normalized to always start with "/" since some entries in the
-// curriculum below were authored without a leading slash (e.g.
-// "what-is-intelligence") while others include it (e.g. "/ai-foundations-lab").
-// Without normalizing, next/link would treat those as relative paths instead
-// of absolute routes.
+
 function resolveTopicPath(topic: Topic): string {
   if (topic.labPath) {
     return topic.labPath.startsWith("/") ? topic.labPath : `/${topic.labPath}`;
@@ -514,11 +508,12 @@ const levelThemes = [
 // -----------------------------------------------------------------------
 
 export const PROGRESS_STORAGE_KEY = "ai-labs-completed-topics-v2";
-// NEW — remembers which level/module the user was last viewing so that
-// finishing a module, refreshing the page, or navigating back from a lab
-// restores that exact context instead of defaulting to Level 1.
+
 export const ACTIVE_LEVEL_STORAGE_KEY = "ai-labs-active-level-v1";
 export const ACTIVE_MODULE_STORAGE_KEY = "ai-labs-active-module-v1";
+
+export const PENDING_SYNC_STORAGE_KEY = "ai-labs-pending-sync-v1";
+export const RESET_AT_STORAGE_KEY = "ai-labs-reset-at-v1";
 const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
@@ -540,8 +535,232 @@ interface VerifyTokenResponse {
   error?: unknown;
 }
 
+
+
+interface ProgressApiResponse {
+  completedTopics?: unknown;
+  resetAt?: unknown;
+  updatedAt?: unknown;
+  applied?: unknown;
+}
+
+function getProgressUrl() {
+  return "/api/progress";
+}
+
+function getProgressCompleteUrl() {
+  return "/api/progress/complete";
+}
+
+function getProgressResetUrl() {
+  return "/api/progress/reset";
+}
+
+function getAuthToken(): string | null {
+  try {
+    return window.localStorage.getItem(LOGIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+async function progressApiRequest<T = ProgressApiResponse>(
+  url: string,
+  method: "GET" | "POST",
+  bodyData?: unknown,
+): Promise<T | null> {
+  const token = getAuthToken();
+  if (!token) return null;
+try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(method === "POST" ? { body: JSON.stringify(bodyData ?? {}) } : {}),
+    });
+    if (!response.ok) return null;
+    const data = (await response.json().catch(() => null)) as T | null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+
+
+function parseProgressResponse(data: ProgressApiResponse | null) {
+  if (!data) return null;
+  const completedTopics = Array.isArray(data.completedTopics)
+    ? data.completedTopics.filter((k): k is string => typeof k === "string")
+    : [];
+  const resetAt = typeof data.resetAt === "string" ? data.resetAt : null;
+  const applied = data.applied !== false;
+  return { completedTopics, resetAt, applied };
+}
+
+// Pulls the authoritative, account-based progress from the server. This is
+// what makes progress follow the LOGGED-IN USER rather than the device —
+// every device that authenticates as the same account resolves to the
+// same server-side record.
+async function fetchServerProgress() {
+  const data = await progressApiRequest<ProgressApiResponse>(
+    getProgressUrl(),
+    "GET",
+  );
+  return parseProgressResponse(data);
+}
+
+
+async function pushCompletedTopicsToServer(topicKeys: string[]) {
+  const token = getAuthToken();
+  if (!token || topicKeys.length === 0) return null;
+
+  const data = await progressApiRequest<ProgressApiResponse>(
+    getProgressCompleteUrl(),
+    "POST",
+    {
+      topicKeys,
+      clientResetAt: readLocalResetAt(),
+    },
+  );
+  return parseProgressResponse(data);
+}
+
+export async function resetServerProgress(): Promise<boolean> {
+  const token = getAuthToken();
+  if (!token) return false;
+
+  const data = await progressApiRequest<ProgressApiResponse>(
+    getProgressResetUrl(),
+    "POST",
+    { confirm: true },
+  );
+  if (!data) return false;
+
+  const parsed = parseProgressResponse(data);
+  clearLocalProgressState();
+  writeLocalResetAt(parsed?.resetAt ?? new Date().toISOString());
+  return true;
+}
+
+
+
+function readLocalProgressCache(): Set<string> {
+  try {
+    const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? new Set(parsed) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeLocalProgressCache(topics: Set<string>): void {
+  try {
+    window.localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify(Array.from(topics)),
+    );
+  } catch {
+    // ignore write failures (e.g. storage disabled)
+  }
+}
+
+interface PendingSyncItem {
+  topicKey: string;
+  queuedAt: string;
+}
+
+function readPendingQueue(): PendingSyncItem[] {
+  try {
+    const stored = window.localStorage.getItem(PENDING_SYNC_STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePendingQueue(queue: PendingSyncItem[]): void {
+  try {
+    window.localStorage.setItem(PENDING_SYNC_STORAGE_KEY, JSON.stringify(queue));
+  } catch {
+    // ignore
+  }
+}
+
+function queueTopicForSync(key: string): void {
+  const queue = readPendingQueue();
+  if (!queue.some((item) => item.topicKey === key)) {
+    queue.push({ topicKey: key, queuedAt: new Date().toISOString() });
+    writePendingQueue(queue);
+  }
+}
+
+function readLocalResetAt(): string | null {
+  try {
+    return window.localStorage.getItem(RESET_AT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalResetAt(resetAt: string | null): void {
+  try {
+    if (resetAt) {
+      window.localStorage.setItem(RESET_AT_STORAGE_KEY, resetAt);
+    } else {
+      window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function clearLocalProgressState(): void {
+  try {
+    window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
+    window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
+    window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+// Sends every queued completion to the server (union-merge — see contract
+// above), then updates the local cache with whatever the server considers
+// authoritative. Safe to call opportunistically (on mount, on an interval,
+// on window focus, on 'online') since it's a no-op when the queue is empty
+// or there's no auth token.
+export async function flushPendingProgress(): Promise<Set<string> | null> {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  const queueSnapshot = readPendingQueue();
+  if (queueSnapshot.length === 0) return null;
+
+  const keysToSend = queueSnapshot.map((item) => item.topicKey);
+  const result = await pushCompletedTopicsToServer(keysToSend);
+  if (!result) return null; // still offline/unreachable — retry later
+
+  // Only drop the items we actually just sent — anything queued by a
+  // concurrent completion while this request was in flight stays queued
+  // for the next flush, so nothing gets silently dropped.
+  const remaining = readPendingQueue().filter(
+    (item) => !keysToSend.includes(item.topicKey),
+  );
+  writePendingQueue(remaining);
+
+  if (result.resetAt) writeLocalResetAt(result.resetAt);
+  const merged = new Set(result.completedTopics);
+  writeLocalProgressCache(merged);
+  return merged;
+}
+
 function getVerifyTokenUrl() {
-  return "/auth/verify-token";
+  return "/api/verify-token";
 }
 
 function getApiErrorMessage(value: unknown, fallback: string) {
@@ -572,6 +791,11 @@ function clearSavedLogin() {
     window.localStorage.removeItem(LOGIN_STORAGE_KEY);
     window.localStorage.removeItem(LOGIN_TOKEN_KEY);
     window.localStorage.removeItem(LOGIN_USER_KEY);
+    // Progress now belongs to the account, not the device. Wipe the local
+    // cache/queue on logout so a different account logging in on this same
+    // browser never sees a stale/foreign progress state before its own
+    // server data has loaded.
+    clearLocalProgressState();
   } catch {
     // ignore storage failures
   }
@@ -668,6 +892,12 @@ function setActiveLocation(
 // import this instead of re-implementing the localStorage read/write logic.
 // This MUST live at module scope (not inside the Home component) so it can
 // be exported and imported elsewhere.
+//
+// Progress is now ACCOUNT-based, not device-based: this function updates
+// the local cache immediately for a snappy UI, then queues + pushes the
+// completion to the server (keyed off the authenticated user's token) so
+// it's visible on every other device signed into the same account. See the
+// "Server progress API contract" comment near PROGRESS_STORAGE_KEY above.
 export function markLabTopicComplete(slug: string): void {
   try {
     const location = findTopicLocation(slug);
@@ -679,12 +909,12 @@ export function markLabTopicComplete(slug: string): void {
       location.topicIndex,
     );
 
-    const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
-    const parsed: string[] = stored ? JSON.parse(stored) : [];
-
-    if (!parsed.includes(key)) {
-      parsed.push(key);
-      window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(parsed));
+    // Optimistic local update — instant feedback even before the server
+    // round-trip completes (or if the device is briefly offline).
+    const localTopics = readLocalProgressCache();
+    if (!localTopics.has(key)) {
+      localTopics.add(key);
+      writeLocalProgressCache(localTopics);
     }
 
     // Remember the level/module context so returning to the Home page
@@ -695,6 +925,12 @@ export function markLabTopicComplete(slug: string): void {
       location.moduleIndex,
       location.topicIndex,
     );
+
+    // Queue + push to the server. This is the actual "account-based, not
+    // device-based" persistence — the local write above is just a fast,
+    // resilient front for it.
+    queueTopicForSync(key);
+    void flushPendingProgress();
   } catch {
     // ignore storage errors — don't block navigation over a progress-save failure
   }
@@ -1116,6 +1352,11 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [authToast, setAuthToast] = useState<string | null>(null);
+  // Small, honest signal about whether what's on screen is confirmed synced
+  // with the server yet — surfaced in the progress tracker widget.
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "offline">(
+    "syncing",
+  );
 
   // Lets the progress tracker widget scroll a level's section into view
   // when the user clicks on it.
@@ -1130,15 +1371,19 @@ export default function Home() {
       new URLSearchParams(window.location.search).get("token")?.trim() ?? "";
 
     function loadSavedProgress() {
-      const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          // Avoid setting state synchronously inside an effect to prevent
-          // cascading renders / linter warnings. Schedule the update.
-          setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
-        }
-      }
+      // 1) Paint instantly from whatever's cached locally — fast, and
+      //    avoids a blank/empty flash. This is NOT the source of truth
+      //    anymore; it's just what makes the UI feel instant while step 2
+      //    talks to the server.
+      const cachedTopics = readLocalProgressCache();
+      setTimeout(() => setCompletedTopics(cachedTopics), 0);
+
+      // 2) Reconcile with the server: push anything completed offline,
+      //    then pull the authoritative, account-based progress and merge
+      //    it in. This is what makes progress follow the ACCOUNT instead
+      //    of the device — every device signed into the same account
+      //    converges on the same server-side record.
+      void syncProgressFromServer();
 
       // Restore the level/module the user was last viewing. This is what
       // makes "finish Module 3 in Level 2" or "refresh mid-Level-3" keep
@@ -1167,10 +1412,40 @@ export default function Home() {
       setAuthChecked(true);
     }
 
+    // Reconciles this device's progress with the server: flushes any
+    // queued offline completions first (so they aren't lost), falling back
+    // to a plain GET when there's nothing queued. Either way, the result
+    // becomes the new completedTopics state AND the new local cache, so
+    // the two devices in the bug report ("finished 5 modules on laptop,
+    // phone still shows nothing") end up looking at the same data.
+    async function syncProgressFromServer() {
+      setSyncStatus("syncing");
+
+      const flushed = await flushPendingProgress();
+      if (flushed) {
+        setCompletedTopics(flushed);
+        setSyncStatus("idle");
+        return;
+      }
+
+      const fetched = await fetchServerProgress();
+      if (fetched) {
+        if (fetched.resetAt) writeLocalResetAt(fetched.resetAt);
+        const merged = new Set(fetched.completedTopics);
+        setCompletedTopics(merged);
+        writeLocalProgressCache(merged);
+        setSyncStatus("idle");
+        return;
+      }
+
+      // Couldn't reach the server (offline, etc.) — keep showing the local
+      // cache and try again on the next poll/focus/online event.
+      setSyncStatus("offline");
+    }
+
     async function verifyUrlToken(urlToken: string) {
       try {
-         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/${getVerifyTokenUrl()}`, {
+        const response = await fetch(getVerifyTokenUrl(), {
           method: "POST",
           headers: {
             Authorization: `Bearer ${urlToken}`,
@@ -1258,7 +1533,11 @@ export default function Home() {
     }
   }, [router]);
 
-  // Persist progress whenever it changes.
+  // Keep the local cache mirroring completedTopics whenever it changes.
+  // NOTE: this is a CACHE, not the source of truth anymore — actual
+  // persistence happens server-side via markLabTopicComplete /
+  // markTopicComplete pushing to /api/progress/complete. This just keeps
+  // the fast-paint-on-load cache warm and correct.
   useEffect(() => {
     if (!hydrated) return;
     try {
