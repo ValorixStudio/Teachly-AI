@@ -719,7 +719,7 @@ export default function PythonEngineeringPlayground() {
               <h1 className="font-bold text-lg leading-tight flex items-center gap-2">
                 Python Engineering Playground
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  Level 4 • Engineer
+                  Level 3 • Engineer
                 </span>
               </h1>
               <p className="text-xs text-slate-400">Interactive Interactive Hands-On Lab</p>
@@ -824,7 +824,7 @@ export default function PythonEngineeringPlayground() {
                         <div className="font-semibold text-xs flex items-center gap-1.5">
                           {m.title}
                         </div>
-                        <p className="text-[11px] text-slate-400 line-clamp-1">{m.subtitle}</p>
+                        <p className="text-[11px] text-amber-400 line-clamp-1">{m.subtitle}</p>
                       </div>
                     </div>
 

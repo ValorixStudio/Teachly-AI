@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -283,6 +283,7 @@ const curriculum: Level[] = [
           { title: "ROC Curve" },
           { title: "Confusion Matrix" },
           { title: "Bias-Variance Tradeoff" },
+          
         ],
       },
       {
@@ -484,16 +485,7 @@ const curriculum: Level[] = [
           { title: "Bias Detection"},
            { title: "Privacy"},
            { title: "Governance"},
-      ] },
-      { title: "Module 11: AI Research Methods", topics: [
 
-          { title: "Reading Research Papers" },
-          { title: "Literature Surveys" },
-          { title: "Parallel Processing"},
-          { title: "Experiment Design"},
-           { title: "Benchmarking"},
-           { title: "Reproducibility"},
-           { title: "Scientific Writing"},
       ] },
         {title: "Advanced AI : Your Last Mission!! ", topics: [{
            title: "Try It Yourself (Major Project) ",
@@ -522,6 +514,11 @@ const levelThemes = [
 // -----------------------------------------------------------------------
 
 export const PROGRESS_STORAGE_KEY = "ai-labs-completed-topics-v2";
+// NEW — remembers which level/module the user was last viewing so that
+// finishing a module, refreshing the page, or navigating back from a lab
+// restores that exact context instead of defaulting to Level 1.
+export const ACTIVE_LEVEL_STORAGE_KEY = "ai-labs-active-level-v1";
+export const ACTIVE_MODULE_STORAGE_KEY = "ai-labs-active-module-v1";
 const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
@@ -623,6 +620,49 @@ export function findTopicLocation(slug: string) {
   return null;
 }
 
+// Builds the same "openModule" key format the Home page uses
+// (`${level.title}/${module.title}`) for a given level/module index pair.
+function buildModuleKey(levelIndex: number, moduleIndex: number): string | null {
+  const level = curriculum[levelIndex];
+  const mod = level?.modules[moduleIndex];
+  if (!level || !mod) return null;
+  return `${level.title}/${mod.title}`;
+}
+
+// Persists which level/module should be considered "active" so the Home
+// page can restore it later. If the topic just completed was the LAST
+// topic in its module, we proactively point "active module" at the NEXT
+// module in the SAME level — this is what makes "finish a module" land
+// the user on the next module of that same level instead of resetting
+// them back to Level 1.
+function setActiveLocation(
+  levelIndex: number,
+  moduleIndex: number,
+  topicIndex: number,
+): void {
+  try {
+    const level = curriculum[levelIndex];
+    const mod = level?.modules[moduleIndex];
+    if (!level || !mod) return;
+
+    window.localStorage.setItem(ACTIVE_LEVEL_STORAGE_KEY, level.title);
+
+    const isLastTopicInModule = topicIndex === mod.topics.length - 1;
+    const nextModuleExists = moduleIndex + 1 < level.modules.length;
+
+    const targetModuleKey =
+      isLastTopicInModule && nextModuleExists
+        ? buildModuleKey(levelIndex, moduleIndex + 1)
+        : buildModuleKey(levelIndex, moduleIndex);
+
+    if (targetModuleKey) {
+      window.localStorage.setItem(ACTIVE_MODULE_STORAGE_KEY, targetModuleKey);
+    }
+  } catch {
+    // ignore storage errors — active-location tracking is best-effort
+  }
+}
+
 // Shared "mark this lab/topic as complete" function — every lab page
 // (the dynamic [slug] page, AI Foundations Lab, and any future lab) should
 // import this instead of re-implementing the localStorage read/write logic.
@@ -646,6 +686,15 @@ export function markLabTopicComplete(slug: string): void {
       parsed.push(key);
       window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(parsed));
     }
+
+    // Remember the level/module context so returning to the Home page
+    // (e.g. after finishing this lab) keeps the user right where they
+    // left off instead of collapsing back to Level 1.
+    setActiveLocation(
+      location.levelIndex,
+      location.moduleIndex,
+      location.topicIndex,
+    );
   } catch {
     // ignore storage errors — don't block navigation over a progress-save failure
   }
@@ -749,14 +798,309 @@ function CheckIcon() {
 }
 
 // -----------------------------------------------------------------------
+// Progress tracker widget — a compact, at-a-glance summary of overall
+// completion plus a per-level breakdown. Purely presentational; all the
+// actual progress math is computed in Home and passed in as props.
+// -----------------------------------------------------------------------
+
+interface LevelProgressInfo {
+  title: string;
+  shortLabel: string;
+  accent: string;
+  themeName: string;
+  completed: number;
+  total: number;
+  locked: boolean;
+  isCurrent: boolean;
+  completedBadge: boolean;
+}
+
+function ProgressTrackerWidget({
+  overallCompleted,
+  overallTotal,
+  levels,
+  onLevelClick,
+  nextTopic,
+  onContinueClick,
+}: {
+  overallCompleted: number;
+  overallTotal: number;
+  levels: LevelProgressInfo[];
+  onLevelClick: (levelIndex: number) => void;
+  nextTopic: {
+    levelShortLabel: string;
+    levelTitle: string;
+    moduleTitle: string;
+    topicTitle: string;
+    accent: string;
+  } | null;
+  onContinueClick: () => void;
+}) {
+  const overallPercent =
+    overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
+
+  return (
+    <div
+      style={{
+        background: "#ffffff",
+        border: "1px solid rgba(15, 23, 42, 0.08)",
+        borderRadius: "16px",
+        padding: "1.25rem 1.5rem 1.5rem",
+        marginBottom: "1.75rem",
+        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: "0.75rem",
+          flexWrap: "wrap",
+          marginBottom: "0.6rem",
+        }}
+      >
+        <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "#0f172a" }}>
+          Your Progress
+        </span>
+        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#475569" }}>
+          {overallCompleted} / {overallTotal} topics
+          <span style={{ color: "#0f172a", marginLeft: "0.4rem" }}>
+            · {overallPercent}%
+          </span>
+        </span>
+      </div>
+
+      {/* Overall bar */}
+      <div
+        style={{
+          width: "100%",
+          height: "10px",
+          borderRadius: "999px",
+          background: "rgba(15, 23, 42, 0.08)",
+          overflow: "hidden",
+          marginBottom: "1.1rem",
+        }}
+      >
+        <div
+          style={{
+            width: `${overallPercent}%`,
+            height: "100%",
+            borderRadius: "999px",
+            background:
+              "linear-gradient(90deg, #2D7DD2, #12A594, #7C5CFC, #E8590C)",
+            transition: "width 0.4s ease",
+          }}
+        />
+      </div>
+
+      {/* Continue-where-you-left-off banner: this is the single clearest
+          signal of "what's next" — the exact topic the user is unlocked
+          into but hasn't finished. Per-level cards below back this up
+          with an "IN PROGRESS" tag on the relevant level. */}
+      {nextTopic ? (
+        <button
+          onClick={onContinueClick}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.75rem",
+            textAlign: "left",
+            cursor: "pointer",
+            background: `${nextTopic.accent}14`,
+            border: `1px solid ${nextTopic.accent}55`,
+            borderRadius: "12px",
+            padding: "0.75rem 1rem",
+            marginBottom: "1.1rem",
+            font: "inherit",
+          }}
+        >
+          <span style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+            <span
+              style={{
+                fontSize: "0.68rem",
+                fontWeight: 800,
+                letterSpacing: "0.04em",
+                color: nextTopic.accent,
+              }}
+            >
+              CONTINUE · {nextTopic.levelShortLabel} · {nextTopic.moduleTitle}
+            </span>
+            <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a" }}>
+              {nextTopic.topicTitle}
+            </span>
+          </span>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "30px",
+              height: "30px",
+              borderRadius: "999px",
+              background: nextTopic.accent,
+              color: "#ffffff",
+              flexShrink: 0,
+            }}
+          >
+            <ArrowIcon />
+          </span>
+        </button>
+      ) : (
+        <div
+          style={{
+            background: "rgba(34, 197, 94, 0.08)",
+            border: "1px solid rgba(34, 197, 94, 0.3)",
+            borderRadius: "12px",
+            padding: "0.75rem 1rem",
+            marginBottom: "1.1rem",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: "#15803d",
+          }}
+        >
+          🎉 All topics completed — nice work!
+        </div>
+      )}
+
+      {/* Per-level breakdown */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: "0.75rem",
+        }}
+      >
+        {levels.map((level, levelIndex) => {
+          const percent =
+            level.total > 0
+              ? Math.round((level.completed / level.total) * 100)
+              : 0;
+
+          return (
+            <button
+              key={level.title}
+              onClick={() => onLevelClick(levelIndex)}
+              disabled={level.locked}
+              style={{
+                textAlign: "left",
+                cursor: level.locked ? "not-allowed" : "pointer",
+                background: level.isCurrent
+                  ? "rgba(15, 23, 42, 0.035)"
+                  : "transparent",
+                border: level.isCurrent
+                  ? `1px solid ${level.accent}55`
+                  : "1px solid rgba(15, 23, 42, 0.08)",
+                borderRadius: "12px",
+                padding: "0.65rem 0.75rem",
+                opacity: level.locked ? 0.55 : 1,
+                font: "inherit",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "0.35rem",
+                }}
+              >
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    fontSize: "0.78rem",
+                    fontWeight: 800,
+                    color: "#0f172a",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "999px",
+                      background: level.accent,
+                      display: "inline-block",
+                      flexShrink: 0,
+                    }}
+                  />
+                  {level.shortLabel}
+                </span>
+                {level.locked && (
+                  <LockIcon />
+                )}
+                {!level.locked && level.completedBadge && (
+                  <span style={{ color: level.accent, display: "flex" }}>
+                    <CheckIcon />
+                  </span>
+                )}
+                {!level.locked && level.isCurrent && !level.completedBadge && (
+                  <span
+                    style={{
+                      fontSize: "0.65rem",
+                      fontWeight: 800,
+                      color: level.accent,
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    IN PROGRESS
+                  </span>
+                )}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  fontWeight: 600,
+                  color: "#64748b",
+                  marginBottom: "0.35rem",
+                }}
+              >
+                {level.themeName} · {level.completed}/{level.total}
+              </div>
+
+              <div
+                style={{
+                  width: "100%",
+                  height: "6px",
+                  borderRadius: "999px",
+                  background: "rgba(15, 23, 42, 0.08)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${percent}%`,
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: level.accent,
+                    transition: "width 0.4s ease",
+                  }}
+                />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------
 // Page
 // -----------------------------------------------------------------------
 
 export default function Home() {
   const router = useRouter();
-  const [openLevel, setOpenLevel] = useState<string | null>(
-    curriculum[0]?.title ?? null,
-  );
+  // NOTE: these used to default to `curriculum[0]?.title ?? null` / `null`,
+  // which is exactly why the app always bounced back to Level 1 on every
+  // remount (refresh, or navigating back from a lab page). They now start
+  // as `null` and get restored from localStorage (or fall back to Level 1
+  // only when there's truly nothing saved yet) inside the effect below.
+  const [openLevel, setOpenLevel] = useState<string | null>(null);
   const [openModule, setOpenModule] = useState<string | null>(null);
 
   // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
@@ -772,6 +1116,12 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [authToast, setAuthToast] = useState<string | null>(null);
+
+  // Lets the progress tracker widget scroll a level's section into view
+  // when the user clicks on it.
+  const levelRefs = useRef<Record<string, HTMLElement | null>>({});
+  // Lets the "Continue" action scroll straight to the specific next topic.
+  const topicRefs = useRef<Record<string, HTMLElement | null>>({});
 
   // Verify URL tokens first, then load saved progress for authenticated users.
   useEffect(() => {
@@ -789,6 +1139,29 @@ export default function Home() {
           setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
         }
       }
+
+      // Restore the level/module the user was last viewing. This is what
+      // makes "finish Module 3 in Level 2" or "refresh mid-Level-3" keep
+      // the user in place instead of resetting to Level 1 - AI Explorer.
+      const savedLevel = window.localStorage.getItem(ACTIVE_LEVEL_STORAGE_KEY);
+      const savedModule = window.localStorage.getItem(
+        ACTIVE_MODULE_STORAGE_KEY,
+      );
+      const savedLevelIsValid =
+        !!savedLevel && curriculum.some((l) => l.title === savedLevel);
+
+      setTimeout(() => {
+        if (savedLevelIsValid) {
+          setOpenLevel(savedLevel);
+          if (savedModule && savedModule.startsWith(`${savedLevel}/`)) {
+            setOpenModule(savedModule);
+          }
+        } else {
+          // First-ever visit: nothing saved yet, so Level 1 is a sensible
+          // default — but only here, never as a reset on every remount.
+          setOpenLevel(curriculum[0]?.title ?? null);
+        }
+      }, 0);
 
       setHydrated(true);
       setAuthChecked(true);
@@ -898,6 +1271,36 @@ export default function Home() {
     }
   }, [completedTopics, hydrated]);
 
+  // NEW — persist the active level any time it changes (manual clicks,
+  // restoration, or auto-advance after finishing a module), so a refresh
+  // or a trip out to a lab page and back always returns here.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      if (openLevel) {
+        window.localStorage.setItem(ACTIVE_LEVEL_STORAGE_KEY, openLevel);
+      } else {
+        window.localStorage.removeItem(ACTIVE_LEVEL_STORAGE_KEY);
+      }
+    } catch {
+      // ignore write failures (e.g. storage disabled)
+    }
+  }, [openLevel, hydrated]);
+
+  // NEW — persist the active module the same way.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      if (openModule) {
+        window.localStorage.setItem(ACTIVE_MODULE_STORAGE_KEY, openModule);
+      } else {
+        window.localStorage.removeItem(ACTIVE_MODULE_STORAGE_KEY);
+      }
+    } catch {
+      // ignore write failures (e.g. storage disabled)
+    }
+  }, [openModule, hydrated]);
+
   useEffect(() => {
     if (!authChecked || authToast) return;
 
@@ -931,6 +1334,123 @@ export default function Home() {
       const next = new Set(prev);
       next.add(topicKey(levelIndex, moduleIndex, topicIndex));
       return next;
+    });
+
+    // Keep the user anchored on the level they were working in, and if
+    // that was the module's last topic, hop straight to the next module
+    // in that SAME level instead of leaving them stranded (or worse,
+    // letting a later remount fall back to Level 1).
+    const level = curriculum[levelIndex];
+    const mod = level?.modules[moduleIndex];
+    if (!level || !mod) return;
+
+    setOpenLevel(level.title);
+
+    const isLastTopicInModule = topicIndex === mod.topics.length - 1;
+    const nextModule = level.modules[moduleIndex + 1];
+
+    if (isLastTopicInModule && nextModule) {
+      setOpenModule(`${level.title}/${nextModule.title}`);
+    } else {
+      setOpenModule(`${level.title}/${mod.title}`);
+    }
+  }
+
+  // Counts actual topics completed vs. total topics that exist in a level
+  // (used by the progress tracker widget — separate from the pass/fail
+  // helpers below, which only care about "is everything done or not").
+  function getLevelProgress(levelIndex: number): {
+    completed: number;
+    total: number;
+  } {
+    let total = 0;
+    let completed = 0;
+    curriculum[levelIndex].modules.forEach((mod, moduleIndex) => {
+      mod.topics.forEach((_, topicIndex) => {
+        total += 1;
+        if (completedTopics.has(topicKey(levelIndex, moduleIndex, topicIndex))) {
+          completed += 1;
+        }
+      });
+    });
+    return { completed, total };
+  }
+
+  function getOverallProgress(): { completed: number; total: number } {
+    return curriculum.reduce(
+      (acc, _, levelIndex) => {
+        const { completed, total } = getLevelProgress(levelIndex);
+        return { completed: acc.completed + completed, total: acc.total + total };
+      },
+      { completed: 0, total: 0 },
+    );
+  }
+
+  // Walks the curriculum in order and returns the very first topic that's
+  // unlocked but not yet completed — i.e. exactly where the user should
+  // pick back up. Since unlocking is strictly sequential (a topic unlocks
+  // only once the one before it is done, a module only once the previous
+  // module is done, a level only once the previous level is done), the
+  // first unlocked + incomplete topic found top-to-bottom IS the frontier
+  // of the user's progress. Returns null once everything is completed.
+  function getNextTopicLocation(): {
+    levelIndex: number;
+    moduleIndex: number;
+    topicIndex: number;
+    levelTitle: string;
+    moduleTitle: string;
+    topicTitle: string;
+  } | null {
+    for (let levelIndex = 0; levelIndex < curriculum.length; levelIndex++) {
+      const level = curriculum[levelIndex];
+      for (let moduleIndex = 0; moduleIndex < level.modules.length; moduleIndex++) {
+        const mod = level.modules[moduleIndex];
+        for (let topicIndex = 0; topicIndex < mod.topics.length; topicIndex++) {
+          const isDone = completedTopics.has(
+            topicKey(levelIndex, moduleIndex, topicIndex),
+          );
+          if (isDone) continue;
+          if (!isTopicUnlocked(levelIndex, moduleIndex, topicIndex)) return null;
+          return {
+            levelIndex,
+            moduleIndex,
+            topicIndex,
+            levelTitle: level.title,
+            moduleTitle: mod.title,
+            topicTitle: mod.topics[topicIndex].title,
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  // Jumps the accordion to a given level from the progress tracker widget:
+  // opens the level, opens the first module the user hasn't finished yet
+  // (falling back to the first module), and scrolls it into view.
+  function goToLevel(levelIndex: number) {
+    if (!isLevelUnlocked(levelIndex)) return;
+    const level = curriculum[levelIndex];
+    setOpenLevel(level.title);
+
+    const firstIncompleteModuleIndex = level.modules.findIndex(
+      (_, mi) => !isModuleCompleted(levelIndex, mi),
+    );
+    const moduleIndexToOpen =
+      firstIncompleteModuleIndex === -1 ? 0 : firstIncompleteModuleIndex;
+
+    if (isModuleUnlocked(levelIndex, moduleIndexToOpen)) {
+      const targetModule = level.modules[moduleIndexToOpen];
+      if (targetModule) {
+        setOpenModule(`${level.title}/${targetModule.title}`);
+      }
+    }
+
+    requestAnimationFrame(() => {
+      levelRefs.current[level.title]?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
   }
 
@@ -1023,6 +1543,47 @@ export default function Home() {
     );
   }
 
+  const overallProgress = getOverallProgress();
+  const nextTopicLocation = getNextTopicLocation();
+  const levelsProgressInfo: LevelProgressInfo[] = curriculum.map(
+    (level, levelIndex) => {
+      const theme = levelThemes[levelIndex] ?? levelThemes[0];
+      const { completed, total } = getLevelProgress(levelIndex);
+      return {
+        title: level.title,
+        shortLabel: `L${levelIndex + 1}`,
+        accent: theme.accent,
+        themeName: theme.name,
+        completed,
+        total,
+        locked: !isLevelUnlocked(levelIndex),
+        isCurrent: openLevel === level.title,
+        completedBadge: levelEarnsCompleteBadge(levelIndex),
+      };
+    },
+  );
+
+  function goToNextTopic() {
+    if (!nextTopicLocation) return;
+    const level = curriculum[nextTopicLocation.levelIndex];
+    const mod = level.modules[nextTopicLocation.moduleIndex];
+    setOpenLevel(level.title);
+    setOpenModule(`${level.title}/${mod.title}`);
+
+    requestAnimationFrame(() => {
+      const topicKeyStr = `${level.title}/${mod.title}/${nextTopicLocation.topicTitle}/${nextTopicLocation.topicIndex}`;
+      const topicEl = topicRefs.current[topicKeyStr];
+      if (topicEl) {
+        topicEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        levelRefs.current[level.title]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    });
+  }
+
   return (
     <div className="al-page">
       <div className="al-wrap">
@@ -1048,6 +1609,27 @@ export default function Home() {
           </ul>
         </header>
 
+        <ProgressTrackerWidget
+          overallCompleted={overallProgress.completed}
+          overallTotal={overallProgress.total}
+          levels={levelsProgressInfo}
+          onLevelClick={goToLevel}
+          nextTopic={
+            nextTopicLocation
+              ? {
+                  levelShortLabel: `L${nextTopicLocation.levelIndex + 1}`,
+                  levelTitle: nextTopicLocation.levelTitle,
+                  moduleTitle: nextTopicLocation.moduleTitle,
+                  topicTitle: nextTopicLocation.topicTitle,
+                  accent:
+                    (levelThemes[nextTopicLocation.levelIndex] ?? levelThemes[0])
+                      .accent,
+                }
+              : null
+          }
+          onContinueClick={goToNextTopic}
+        />
+
         <div className="al-levels">
           {curriculum.map((level, levelIndex) => {
             const levelLocked = !isLevelUnlocked(levelIndex);
@@ -1059,6 +1641,9 @@ export default function Home() {
             return (
               <section
                 key={level.title}
+                ref={(el) => {
+                  levelRefs.current[level.title] = el;
+                }}
                 className="al-level"
                 style={accentStyle}
                 data-open={levelOpen}
@@ -1173,6 +1758,11 @@ export default function Home() {
                                     const tCompleted = completedTopics.has(
                                       topicKey(levelIndex, modIndex, i),
                                     );
+                                    const isNextTopic =
+                                      nextTopicLocation !== null &&
+                                      nextTopicLocation.levelIndex === levelIndex &&
+                                      nextTopicLocation.moduleIndex === modIndex &&
+                                      nextTopicLocation.topicIndex === i;
                                     const href = resolveTopicPath(t);
 
                                     if (tLocked) {
@@ -1201,8 +1791,22 @@ export default function Home() {
                                       <li
                                         key={topicKeyStr}
                                         className="al-topic"
+                                        ref={(el) => {
+                                          topicRefs.current[topicKeyStr] = el;
+                                        }}
                                       >
-    <Link href={href} className="al-topic-row al-topic-link"
+    <Link
+      href={href}
+      className="al-topic-row al-topic-link"
+      style={
+        isNextTopic
+          ? {
+              background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
+              border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
+              borderRadius: "10px",
+            }
+          : undefined
+      }
         >
                                           <span className="al-topic-text">
                                             {t.title}
@@ -1216,6 +1820,17 @@ export default function Home() {
                                               <span className="al-status-badge al-status-complete">
                                                 <CheckIcon />
                                                 Done
+                                              </span>
+                                            )}
+                                            {isNextTopic && !tCompleted && (
+                                              <span
+                                                className="al-status-badge"
+                                                style={{
+                                                  background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}22`,
+                                                  color: (levelThemes[levelIndex] ?? levelThemes[0]).accent,
+                                                }}
+                                              >
+                                                Continue here
                                               </span>
                                             )}
                                           </span>
