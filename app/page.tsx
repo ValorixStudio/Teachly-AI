@@ -526,48 +526,24 @@ const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
+const TOKEN_COOKIE = "teachly_ai_token";
 
-interface LoggedInUser {
-  email: string;
-  name?: string;
-}
+function getCookieValue(name: string) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie
+    .split(";")
+    .map((value) => value.trim())
+    .find((value) => value.startsWith(prefix));
 
-interface VerifyTokenResponse {
-  token?: unknown;
-  user?: unknown;
-  data?: unknown;
-  email?: unknown;
-  name?: unknown;
-  msg?: unknown;
-  message?: unknown;
-  error?: unknown;
-}
-
-function getVerifyTokenUrl() {
-  return "/auth/verify-token";
-}
-
-function getApiErrorMessage(value: unknown, fallback: string) {
-  if (!value || typeof value !== "object") return fallback;
-
-  const data = value as VerifyTokenResponse;
-  const nestedData =
-    data.data && typeof data.data === "object"
-      ? (data.data as VerifyTokenResponse)
-      : null;
-  const message =
-    data.msg ?? data.message ?? data.error ?? nestedData?.msg ??
-    nestedData?.message ?? nestedData?.error;
-
-  return typeof message === "string" && message.trim()
-    ? message.trim()
-    : fallback;
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
 }
 
 function hasLoginCookie() {
-  return document.cookie
-    .split(";")
-    .some((cookie) => cookie.trim() === `${LOGIN_COOKIE}=true`);
+  return getCookieValue(LOGIN_COOKIE) === "true";
+}
+
+function hasStoredAuth() {
+  return hasLoginCookie() && Boolean(getCookieValue(TOKEN_COOKIE));
 }
 
 function clearSavedLogin() {
@@ -578,29 +554,6 @@ function clearSavedLogin() {
   } catch {
     // ignore storage failures
   }
-}
-
-function pickVerifiedUser(data: VerifyTokenResponse): LoggedInUser {
-  const nestedData =
-    data.data && typeof data.data === "object"
-      ? (data.data as VerifyTokenResponse)
-      : null;
-  const userSource =
-    data.user && typeof data.user === "object"
-      ? (data.user as VerifyTokenResponse)
-      : nestedData?.user && typeof nestedData.user === "object"
-        ? (nestedData.user as VerifyTokenResponse)
-        : nestedData ?? data;
-  const email =
-    typeof userSource.email === "string" && userSource.email.trim()
-      ? userSource.email.trim()
-      : "verified@student";
-  const name =
-    typeof userSource.name === "string" && userSource.name.trim()
-      ? userSource.name.trim()
-      : email.split("@")[0];
-
-  return { email, name };
 }
 
 export function topicKey(levelIndex: number, moduleIndex: number, topicIndex: number) {
@@ -771,15 +724,24 @@ export default function Home() {
   );
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [authToast, setAuthToast] = useState<string | null>(null);
 
-  // Verify URL tokens first, then load saved progress for authenticated users.
+  // Proxy verifies URL tokens once, stores cookies, and strips the token from
+  // the URL. The client only restores local state for already-authenticated users.
   useEffect(() => {
-    let cancelled = false;
-    const token =
-      new URLSearchParams(window.location.search).get("token")?.trim() ?? "";
+    try {
+      if (!hasStoredAuth()) {
+        clearSavedLogin();
+        router.replace("/login");
+        return;
+      }
 
-    function loadSavedProgress() {
+      window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
+
+      const cookieToken = getCookieValue(TOKEN_COOKIE);
+      if (cookieToken) {
+        window.localStorage.setItem(LOGIN_TOKEN_KEY, cookieToken);
+      }
+
       const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -789,99 +751,13 @@ export default function Home() {
           setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
         }
       }
-
-      setHydrated(true);
-      setAuthChecked(true);
-    }
-
-    async function verifyUrlToken(urlToken: string) {
-      try {
-         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_LOGIN_API_URL}/${getVerifyTokenUrl()}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${urlToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token: urlToken }),
-        });
-
-        const data = (await response.json().catch(() => ({}))) as
-          | VerifyTokenResponse
-          | null;
-
-        if (!response.ok || !data) {
-          throw new Error(
-            getApiErrorMessage(
-              data,
-              `Token verification failed with status ${response.status}`,
-            ),
-          );
-        }
-
-        const verifiedToken = typeof data.token === "string" ? data.token : urlToken;
-        const verifiedUser = pickVerifiedUser(data);
-
-        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
-        window.localStorage.setItem(LOGIN_TOKEN_KEY, verifiedToken);
-        window.localStorage.setItem(LOGIN_USER_KEY, JSON.stringify(verifiedUser));
-        document.cookie = `${LOGIN_COOKIE}=true; path=/; max-age=2592000; SameSite=Lax`;
-
-        if (!cancelled) {
-          loadSavedProgress();
-          router.replace("/");
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "Token verification failed";
-
-          setAuthToast(message);
-          setAuthChecked(true);
-          window.setTimeout(() => {
-            if (!cancelled) {
-              router.replace(`/login?error=${encodeURIComponent(message)}`);
-            }
-          }, 2200);
-        }
-      }
-    }
-
-    try {
-      if (token) {
-        void verifyUrlToken(token);
-        return () => {
-          cancelled = true;
-        };
-      }
-
-      const isCookieLoggedIn = hasLoginCookie();
-      const hasLoginStorage =
-        window.localStorage.getItem(LOGIN_STORAGE_KEY) === "true";
-
-      if (!isCookieLoggedIn) {
-        clearSavedLogin();
-        router.replace("/login");
-        return;
-      }
-
-      if (!hasLoginStorage) {
-        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
-      }
-
-      if (!cancelled) {
-        loadSavedProgress();
-      }
     } catch {
+      clearSavedLogin();
       router.replace("/login");
       return;
     } finally {
-      if (!token && !cancelled) {
-        setHydrated(true);
-        setAuthChecked(true);
-      }
+      setHydrated(true);
+      setAuthChecked(true);
     }
   }, [router]);
 
@@ -899,7 +775,7 @@ export default function Home() {
   }, [completedTopics, hydrated]);
 
   useEffect(() => {
-    if (!authChecked || authToast) return;
+    if (!authChecked) return;
 
     function syncLogoutAcrossLocalhostApps() {
       if (hasLoginCookie()) return;
@@ -920,7 +796,7 @@ export default function Home() {
         syncLogoutAcrossLocalhostApps,
       );
     };
-  }, [authChecked, authToast, router]);
+  }, [authChecked, router]);
 
   function markTopicComplete(
     levelIndex: number,
@@ -985,7 +861,7 @@ export default function Home() {
     );
   }
 
-  if (!authChecked || authToast) {
+  if (!authChecked) {
     return (
       <main
         style={{
@@ -996,29 +872,7 @@ export default function Home() {
           fontWeight: 800,
         }}
       >
-        {authToast ? "Sending you to login..." : "Loading your lab..."}
-        {authToast && (
-          <div
-            role="alert"
-            style={{
-              position: "fixed",
-              top: "1rem",
-              right: "1rem",
-              maxWidth: "min(92vw, 26rem)",
-              padding: "0.9rem 1rem",
-              border: "1px solid rgba(220, 38, 38, 0.24)",
-              borderRadius: "10px",
-              background: "#ffffff",
-              boxShadow: "0 18px 42px rgba(15, 23, 42, 0.16)",
-              color: "#991b1b",
-              fontSize: "0.9rem",
-              fontWeight: 700,
-              lineHeight: 1.45,
-            }}
-          >
-            {authToast}
-          </div>
-        )}
+        Loading your lab...
       </main>
     );
   }

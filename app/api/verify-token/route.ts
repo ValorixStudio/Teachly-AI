@@ -4,7 +4,7 @@ interface VerifyTokenRequestBody {
   token?: unknown;
 }
 
-const VERIFY_TOKEN_URL = "http://localhost:4010/auth/verify-token";
+const VERIFY_TOKEN_URL = "https://cadapi.theteachly.com//auth/verify-token";
 
 export async function POST(request: Request) {
   let body: VerifyTokenRequestBody;
