@@ -2,13 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-// ---------------------------------------------------------------------
-// Shared helpers (used by both useProgressApi and useSetter below).
-// NOTE: these were previously declared twice in this file (once above
-// useProgressApi, once above useSetter) with identical bodies — that's
-// a duplicate-declaration compile error in TS/JS, so they're merged
-// into one shared copy here. Nothing about their behavior changed.
-// ---------------------------------------------------------------------
+
 
 interface ApiErrorResponse {
   msg?: string;

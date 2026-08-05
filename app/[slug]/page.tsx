@@ -93,9 +93,7 @@ Wrench,
 } 
 from "lucide-react";
 import {
-  findTopicLocation,
-  topicKey,
-  PROGRESS_STORAGE_KEY,
+  markLabTopicComplete,
 } from "../page";
 
 const colors = {
@@ -221,27 +219,7 @@ const isLastSlide = currentSlide === totalSlides - 1;
  const prevSlide = () => setCurrentSlide(p => Math.max(p - 1, 0));
  
   const finishTopic = () => {
-    try {
-      const location = findTopicLocation(slug);
-      if (location) {
-        const key = topicKey(
-          location.levelIndex,
-          location.moduleIndex,
-          location.topicIndex,
-        );
-        const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
-        const parsed: string[] = stored ? JSON.parse(stored) : [];
-        if (!parsed.includes(key)) {
-          parsed.push(key);
-          window.localStorage.setItem(
-            PROGRESS_STORAGE_KEY,
-            JSON.stringify(parsed),
-          );
-        }
-      }
-    } catch {
-      // ignore storage errors, still let the user navigate back
-    }
+    markLabTopicComplete(slug);
     router.push("/");
   };
 
