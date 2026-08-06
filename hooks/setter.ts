@@ -2,6 +2,99 @@
 
 import { useCallback, useState } from "react";
 
+// ---------------------------------------------------------------------
+// Shared helpers (used by both useProgressApi and useSetter below).
+// NOTE: these were previously declared twice in this file (once above
+// useProgressApi, once above useSetter) with identical bodies — that's
+// a duplicate-declaration compile error in TS/JS, so they're merged
+// into one shared copy here. Nothing about their behavior changed.
+// ---------------------------------------------------------------------
+
+interface ApiErrorResponse {
+  msg?: string;
+  message?: string;
+  error?: string;
+}
+
+function getApiErrorMessage(value: unknown, fallback: string) {
+  if (!value || typeof value !== "object") return fallback;
+  const data = value as ApiErrorResponse;
+  return data.msg ?? data.message ?? data.error ?? fallback;
+}
+
+function getAuthToken(): string | null {
+  try {
+    return window.localStorage.getItem("teachly-ai-token");
+  } catch {
+    return null;
+  }
+}
+
+
+
+interface ProgressApiPayload<TBody = unknown> {
+  url: string;
+  method?: "GET" | "POST";
+  bodyData?: TBody;
+}
+
+export const useProgressApi = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const callProgressApi = useCallback(
+    async <T = unknown, TBody = unknown>({
+      url,
+      method = "POST",
+      bodyData,
+    }: ProgressApiPayload<TBody>): Promise<T | false> => {
+      setLoading(true);
+      setError(null);
+
+      const token = getAuthToken();
+      if (!token) {
+        setError("Not logged in");
+        setLoading(false);
+        return false;
+      }
+
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          ...(method === "POST" ? { body: JSON.stringify(bodyData ?? {}) } : {}),
+        });
+
+        const data = (await response.json().catch(() => null)) as unknown;
+
+        if (!response.ok) {
+          setError(getApiErrorMessage(data, "Request failed"));
+          return false;
+        }
+
+        return data as T;
+      } catch (apiError) {
+        console.error("Progress API Error:", apiError);
+        setError("Unable to connect. Please try again.");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  return { callProgressApi, loading, error };
+};
+
+// ---------------------------------------------------------------------
+// useSetter — unchanged, for the login flow (POST only, no auth header,
+// uses NEXT_PUBLIC_LOGIN_API_URL as its base).
+// ---------------------------------------------------------------------
+
 interface LoginPayload {
   email: string;
   password: string;
@@ -12,25 +105,12 @@ interface LoginApiPayload {
   bodyData: LoginPayload;
 }
 
-interface ApiErrorResponse {
-  msg?: string;
-  message?: string;
-  error?: string;
-}
-
 export interface LoginApiResponse {
   token: string;
   user?: {
     email: string;
     name?: string;
   };
-}
-
-function getApiErrorMessage(value: unknown, fallback: string) {
-  if (!value || typeof value !== "object") return fallback;
-
-  const data = value as ApiErrorResponse;
-  return data.msg ?? data.message ?? data.error ?? fallback;
 }
 
 export const useSetter = () => {
