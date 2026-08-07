@@ -3,10 +3,17 @@ import type { NextRequest } from "next/server";
 
 const LOGIN_COOKIE = "teachly_ai_logged_in";
 const TOKEN_COOKIE = "teachly_ai_token";
-const VERIFY_TOKEN_URL = "https://cadapi.theteachly.com//auth/verify-token";
+const LOGIN_API_BASE_URL = process.env.NEXT_PUBLIC_LOGIN_API_URL ?? "https://cadapi.theteachly.com";
+const VERIFY_TOKEN_URL =
+  process.env.NEXT_PUBLIC_VERIFY_TOKEN_URL ??
+  `${LOGIN_API_BASE_URL.replace(/\/+$/, "")}/auth/verify-token`;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
-async function verifyToken(token: string) {
+type VerifyTokenResponse = {
+  token?: unknown;
+};
+
+async function verifyToken(token: string): Promise<string | null> {
   const response = await fetch(VERIFY_TOKEN_URL, {
     method: "POST",
     headers: {
@@ -17,7 +24,12 @@ async function verifyToken(token: string) {
     cache: "no-store",
   });
 
-  return response.ok;
+  const data = (await response.json().catch(() => null)) as VerifyTokenResponse | null;
+  if (!response.ok || typeof data?.token !== "string" || !data.token.trim()) {
+    return null;
+  }
+
+  return data.token.trim();
 }
 
 function clearAuthCookies(response: NextResponse) {
@@ -45,22 +57,16 @@ export async function proxy(request: NextRequest) {
   const isLoggedIn =
     request.cookies.get(LOGIN_COOKIE)?.value === "true" && Boolean(storedToken);
 
-  if (token && isLoggedIn && storedToken === token) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.searchParams.delete("token");
-    return NextResponse.redirect(redirectUrl);
-  }
-
   if (token) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.searchParams.delete("token");
 
     try {
-      const isValidToken = await verifyToken(token);
+      const verifiedToken = await verifyToken(token);
 
-      if (isValidToken) {
+      if (verifiedToken) {
         const response = NextResponse.redirect(redirectUrl);
-        setAuthCookies(response, token);
+        setAuthCookies(response, verifiedToken);
         return response;
       }
     } catch {

@@ -520,6 +520,40 @@ const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
 const TOKEN_COOKIE = "teachly_ai_token";
 
+function getBackendUrl(path: string): string {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_PROGRESS_API_URL ??
+    process.env.NEXT_PUBLIC_LOGIN_API_URL ??
+    "";
+
+  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+
+interface ServerProgressResponse {
+  completedTopics?: unknown;
+  updatedAt?: unknown;
+}
+
+function readTopicKeysFromApi(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(
+    (key): key is string => typeof key === "string" && key.trim().length > 0,
+  );
+}
+
+function formatLastSubmittedAt(value: string | null): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 function getCookieValue(name: string) {
   const prefix = `${name}=`;
   const cookie = document.cookie
@@ -607,13 +641,13 @@ async function flushPendingProgress(): Promise<void> {
     const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
     if (!token) return;
 
-    const response = await fetch("/api/progress/complete", {
+    const response = await fetch(getBackendUrl("/progress/complete"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ completedTopics: pending }),
+      body: JSON.stringify({ topicKeys: pending }),
     });
 
     if (response.ok) {
@@ -621,6 +655,37 @@ async function flushPendingProgress(): Promise<void> {
     }
   } catch {
     // keep pending topics queued for a later attempt
+  }
+}
+
+async function fetchServerProgress(): Promise<{
+  completedTopics: string[];
+  updatedAt: string | null;
+} | null> {
+  try {
+    const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
+    if (!token) return null;
+
+    const response = await fetch(getBackendUrl("/progress"), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = (await response.json().catch(() => null)) as ServerProgressResponse | null;
+    if (!response.ok || !data) return null;
+
+    const completedTopics = readTopicKeysFromApi(data.completedTopics);
+    return {
+      completedTopics,
+      updatedAt:
+        completedTopics.length > 0 && typeof data.updatedAt === "string"
+          ? data.updatedAt
+          : null,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -858,6 +923,7 @@ function ProgressTrackerWidget({
   onLevelClick,
   nextTopic,
   onContinueClick,
+  lastSubmittedAt,
 }: {
   overallCompleted: number;
   overallTotal: number;
@@ -871,6 +937,7 @@ function ProgressTrackerWidget({
     accent: string;
   } | null;
   onContinueClick: () => void;
+  lastSubmittedAt: string | null;
 }) {
   const overallPercent =
     overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
@@ -906,6 +973,19 @@ function ProgressTrackerWidget({
           </span>
         </span>
       </div>
+
+      {lastSubmittedAt && (
+        <div
+          style={{
+            fontSize: "0.78rem",
+            fontWeight: 700,
+            color: "#64748b",
+            marginBottom: "0.75rem",
+          }}
+        >
+          Last submitted: {lastSubmittedAt}
+        </div>
+      )}
 
       {/* Overall bar */}
       <div
@@ -1151,6 +1231,7 @@ export default function Home() {
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(
     () => new Set(),
   );
+  const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -1190,11 +1271,30 @@ export default function Home() {
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!authChecked) return;
+
+    let cancelled = false;
+
+    async function loadServerProgress() {
+      await flushPendingProgress();
+      const serverProgress = await fetchServerProgress();
+      if (cancelled || !serverProgress) return;
+
+      setCompletedTopics(new Set(serverProgress.completedTopics));
+      setLastSubmittedAt(serverProgress.updatedAt);
+    }
+
+    void loadServerProgress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authChecked]);
+
   // Keep the local cache mirroring completedTopics whenever it changes.
-  // NOTE: this is a CACHE, not the source of truth anymore — actual
-  // persistence happens server-side via markLabTopicComplete /
-  // markTopicComplete pushing to /api/progress/complete. This just keeps
-  // the fast-paint-on-load cache warm and correct.
+  // Actual persistence happens in the backend via markLabTopicComplete; this
+  // just keeps the fast-paint-on-load cache warm and correct.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -1542,6 +1642,7 @@ export default function Home() {
               : null
           }
           onContinueClick={goToNextTopic}
+          lastSubmittedAt={formatLastSubmittedAt(lastSubmittedAt)}
         />
 
         <div className="al-levels">
