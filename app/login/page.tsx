@@ -11,6 +11,7 @@ const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
+const TOKEN_COOKIE = "teachly_ai_token";
 
 
 
@@ -59,6 +60,7 @@ export default function LoginPage() {
     }
 
     document.cookie = `${LOGIN_COOKIE}=true; path=/; max-age=2592000; SameSite=Lax`;
+    document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(loginResponse.token)}; path=/; max-age=2592000; SameSite=Lax`;
     router.replace("/");
   }
 

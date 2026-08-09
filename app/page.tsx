@@ -525,272 +525,58 @@ const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
 const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
+const TOKEN_COOKIE = "teachly_ai_token";
 
-interface LoggedInUser {
-  email: string;
-  name?: string;
+function getBackendUrl(path: string): string {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_PROGRESS_API_URL ??
+    process.env.NEXT_PUBLIC_LOGIN_API_URL ??
+    "";
+
+  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
 }
 
-interface VerifyTokenResponse {
-  token?: unknown;
-  user?: unknown;
-  data?: unknown;
-  email?: unknown;
-  name?: unknown;
-  msg?: unknown;
-  message?: unknown;
-  error?: unknown;
-}
-
-
-
-interface ProgressApiResponse {
+interface ServerProgressResponse {
   completedTopics?: unknown;
-  resetAt?: unknown;
   updatedAt?: unknown;
-  applied?: unknown;
 }
 
-function getProgressUrl() {
-  return "/api/progress";
-}
+function readTopicKeysFromApi(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
 
-function getProgressCompleteUrl() {
-  return "/api/progress/complete";
-}
-
-function getProgressResetUrl() {
-  return "/api/progress/reset";
-}
-
-function getAuthToken(): string | null {
-  try {
-    return window.localStorage.getItem(LOGIN_TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-async function progressApiRequest<T = ProgressApiResponse>(
-  url: string,
-  method: "GET" | "POST",
-  bodyData?: unknown,
-): Promise<T | null> {
-  const token = getAuthToken();
-  if (!token) return null;
-try {
-    const response = await fetch(url, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
-      },
-      ...(method === "POST" ? { body: JSON.stringify(bodyData ?? {}) } : {}),
-    });
-    if (!response.ok) return null;
-    const data = (await response.json().catch(() => null)) as T | null;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
-
-
-function parseProgressResponse(data: ProgressApiResponse | null) {
-  if (!data) return null;
-  const completedTopics = Array.isArray(data.completedTopics)
-    ? data.completedTopics.filter((k): k is string => typeof k === "string")
-    : [];
-  const resetAt = typeof data.resetAt === "string" ? data.resetAt : null;
-  const applied = data.applied !== false;
-  return { completedTopics, resetAt, applied };
-}
-
-// Pulls the authoritative, account-based progress from the server. This is
-// what makes progress follow the LOGGED-IN USER rather than the device —
-// every device that authenticates as the same account resolves to the
-// same server-side record.
-async function fetchServerProgress() {
-  const data = await progressApiRequest<ProgressApiResponse>(
-    getProgressUrl(),
-    "GET",
+  return value.filter(
+    (key): key is string => typeof key === "string" && key.trim().length > 0,
   );
-  return parseProgressResponse(data);
 }
 
+function formatLastSubmittedAt(value: string | null): string | null {
+  if (!value) return null;
 
-async function pushCompletedTopicsToServer(topicKeys: string[]) {
-  const token = getAuthToken();
-  if (!token || topicKeys.length === 0) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
 
-  const data = await progressApiRequest<ProgressApiResponse>(
-    getProgressCompleteUrl(),
-    "POST",
-    {
-      topicKeys,
-      clientResetAt: readLocalResetAt(),
-    },
-  );
-  return parseProgressResponse(data);
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
-export async function resetServerProgress(): Promise<boolean> {
-  const token = getAuthToken();
-  if (!token) return false;
+function getCookieValue(name: string) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie
+    .split(";")
+    .map((value) => value.trim())
+    .find((value) => value.startsWith(prefix));
 
-  const data = await progressApiRequest<ProgressApiResponse>(
-    getProgressResetUrl(),
-    "POST",
-    { confirm: true },
-  );
-  if (!data) return false;
-
-  const parsed = parseProgressResponse(data);
-  clearLocalProgressState();
-  writeLocalResetAt(parsed?.resetAt ?? new Date().toISOString());
-  return true;
-}
-
-
-
-function readLocalProgressCache(): Set<string> {
-  try {
-    const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : [];
-    return Array.isArray(parsed) ? new Set(parsed) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function writeLocalProgressCache(topics: Set<string>): void {
-  try {
-    window.localStorage.setItem(
-      PROGRESS_STORAGE_KEY,
-      JSON.stringify(Array.from(topics)),
-    );
-  } catch {
-    // ignore write failures (e.g. storage disabled)
-  }
-}
-
-interface PendingSyncItem {
-  topicKey: string;
-  queuedAt: string;
-}
-
-function readPendingQueue(): PendingSyncItem[] {
-  try {
-    const stored = window.localStorage.getItem(PENDING_SYNC_STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writePendingQueue(queue: PendingSyncItem[]): void {
-  try {
-    window.localStorage.setItem(PENDING_SYNC_STORAGE_KEY, JSON.stringify(queue));
-  } catch {
-    // ignore
-  }
-}
-
-function queueTopicForSync(key: string): void {
-  const queue = readPendingQueue();
-  if (!queue.some((item) => item.topicKey === key)) {
-    queue.push({ topicKey: key, queuedAt: new Date().toISOString() });
-    writePendingQueue(queue);
-  }
-}
-
-function readLocalResetAt(): string | null {
-  try {
-    return window.localStorage.getItem(RESET_AT_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeLocalResetAt(resetAt: string | null): void {
-  try {
-    if (resetAt) {
-      window.localStorage.setItem(RESET_AT_STORAGE_KEY, resetAt);
-    } else {
-      window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
-    }
-  } catch {
-    // ignore
-  }
-}
-
-function clearLocalProgressState(): void {
-  try {
-    window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
-    window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
-    window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
-  } catch {
-    // ignore
-  }
-}
-
-// Sends every queued completion to the server (union-merge — see contract
-// above), then updates the local cache with whatever the server considers
-// authoritative. Safe to call opportunistically (on mount, on an interval,
-// on window focus, on 'online') since it's a no-op when the queue is empty
-// or there's no auth token.
-export async function flushPendingProgress(): Promise<Set<string> | null> {
-  const token = getAuthToken();
-  if (!token) return null;
-
-  const queueSnapshot = readPendingQueue();
-  if (queueSnapshot.length === 0) return null;
-
-  const keysToSend = queueSnapshot.map((item) => item.topicKey);
-  const result = await pushCompletedTopicsToServer(keysToSend);
-  if (!result) return null; // still offline/unreachable — retry later
-
-  // Only drop the items we actually just sent — anything queued by a
-  // concurrent completion while this request was in flight stays queued
-  // for the next flush, so nothing gets silently dropped.
-  const remaining = readPendingQueue().filter(
-    (item) => !keysToSend.includes(item.topicKey),
-  );
-  writePendingQueue(remaining);
-
-  if (result.resetAt) writeLocalResetAt(result.resetAt);
-  const merged = new Set(result.completedTopics);
-  writeLocalProgressCache(merged);
-  return merged;
-}
-
-function getVerifyTokenUrl() {
-  return "/api/verify-token";
-}
-
-function getApiErrorMessage(value: unknown, fallback: string) {
-  if (!value || typeof value !== "object") return fallback;
-
-  const data = value as VerifyTokenResponse;
-  const nestedData =
-    data.data && typeof data.data === "object"
-      ? (data.data as VerifyTokenResponse)
-      : null;
-  const message =
-    data.msg ?? data.message ?? data.error ?? nestedData?.msg ??
-    nestedData?.message ?? nestedData?.error;
-
-  return typeof message === "string" && message.trim()
-    ? message.trim()
-    : fallback;
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
 }
 
 function hasLoginCookie() {
-  return document.cookie
-    .split(";")
-    .some((cookie) => cookie.trim() === `${LOGIN_COOKIE}=true`);
+  return getCookieValue(LOGIN_COOKIE) === "true";
+}
+
+function hasStoredAuth() {
+  return hasLoginCookie() && Boolean(getCookieValue(TOKEN_COOKIE));
 }
 
 function clearSavedLogin() {
@@ -808,27 +594,106 @@ function clearSavedLogin() {
   }
 }
 
-function pickVerifiedUser(data: VerifyTokenResponse): LoggedInUser {
-  const nestedData =
-    data.data && typeof data.data === "object"
-      ? (data.data as VerifyTokenResponse)
-      : null;
-  const userSource =
-    data.user && typeof data.user === "object"
-      ? (data.user as VerifyTokenResponse)
-      : nestedData?.user && typeof nestedData.user === "object"
-        ? (nestedData.user as VerifyTokenResponse)
-        : nestedData ?? data;
-  const email =
-    typeof userSource.email === "string" && userSource.email.trim()
-      ? userSource.email.trim()
-      : "verified@student";
-  const name =
-    typeof userSource.name === "string" && userSource.name.trim()
-      ? userSource.name.trim()
-      : email.split("@")[0];
+function readStringArrayFromStorage(key: string): string[] {
+  const stored = window.localStorage.getItem(key);
+  if (!stored) return [];
 
-  return { email, name };
+  const parsed = JSON.parse(stored);
+  return Array.isArray(parsed)
+    ? parsed.filter((value): value is string => typeof value === "string")
+    : [];
+}
+
+function readLocalProgressCache(): Set<string> {
+  try {
+    return new Set(readStringArrayFromStorage(PROGRESS_STORAGE_KEY));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeLocalProgressCache(topics: Set<string>): void {
+  window.localStorage.setItem(
+    PROGRESS_STORAGE_KEY,
+    JSON.stringify(Array.from(topics)),
+  );
+}
+
+function clearLocalProgressState(): void {
+  window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
+  window.localStorage.removeItem(ACTIVE_LEVEL_STORAGE_KEY);
+  window.localStorage.removeItem(ACTIVE_MODULE_STORAGE_KEY);
+  window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
+  window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
+}
+
+function queueTopicForSync(key: string): void {
+  try {
+    const pending = new Set(readStringArrayFromStorage(PENDING_SYNC_STORAGE_KEY));
+    pending.add(key);
+    window.localStorage.setItem(
+      PENDING_SYNC_STORAGE_KEY,
+      JSON.stringify(Array.from(pending)),
+    );
+  } catch {
+    // ignore queue failures; local completion still succeeds
+  }
+}
+
+async function flushPendingProgress(): Promise<void> {
+  try {
+    const pending = readStringArrayFromStorage(PENDING_SYNC_STORAGE_KEY);
+    if (pending.length === 0) return;
+
+    const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
+    if (!token) return;
+
+    const response = await fetch(getBackendUrl("/progress/complete"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ topicKeys: pending }),
+    });
+
+    if (response.ok) {
+      window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
+    }
+  } catch {
+    // keep pending topics queued for a later attempt
+  }
+}
+
+async function fetchServerProgress(): Promise<{
+  completedTopics: string[];
+  updatedAt: string | null;
+} | null> {
+  try {
+    const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
+    if (!token) return null;
+
+    const response = await fetch(getBackendUrl("/progress"), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = (await response.json().catch(() => null)) as ServerProgressResponse | null;
+    if (!response.ok || !data) return null;
+
+    const completedTopics = readTopicKeysFromApi(data.completedTopics);
+    return {
+      completedTopics,
+      updatedAt:
+        completedTopics.length > 0 && typeof data.updatedAt === "string"
+          ? data.updatedAt
+          : null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function topicKey(levelIndex: number, moduleIndex: number, topicIndex: number) {
@@ -1065,6 +930,7 @@ function ProgressTrackerWidget({
   onLevelClick,
   nextTopic,
   onContinueClick,
+  lastSubmittedAt,
 }: {
   overallCompleted: number;
   overallTotal: number;
@@ -1078,6 +944,7 @@ function ProgressTrackerWidget({
     accent: string;
   } | null;
   onContinueClick: () => void;
+  lastSubmittedAt: string | null;
 }) {
   const overallPercent =
     overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
@@ -1113,6 +980,19 @@ function ProgressTrackerWidget({
           </span>
         </span>
       </div>
+
+      {lastSubmittedAt && (
+        <div
+          style={{
+            fontSize: "0.78rem",
+            fontWeight: 700,
+            color: "#64748b",
+            marginBottom: "0.75rem",
+          }}
+        >
+          Last submitted: {lastSubmittedAt}
+        </div>
+      )}
 
       {/* Overall bar */}
       <div
@@ -1345,6 +1225,8 @@ export default function Home() {
   // only when there's truly nothing saved yet) inside the effect below.
   const [openLevel, setOpenLevel] = useState<string | null>(null);
   const [openModule, setOpenModule] = useState<string | null>(null);
+  const levelRefs = useRef<Record<string, HTMLElement | null>>({});
+  const topicRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
   // IMPORTANT: this must start identical on server and client (an empty Set).
@@ -1356,195 +1238,70 @@ export default function Home() {
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(
     () => new Set(),
   );
+  const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [authToast, setAuthToast] = useState<string | null>(null);
-  // Small, honest signal about whether what's on screen is confirmed synced
-  // with the server yet — surfaced in the progress tracker widget.
-  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "offline">(
-    "syncing",
-  );
 
-  // Lets the progress tracker widget scroll a level's section into view
-  // when the user clicks on it.
-  const levelRefs = useRef<Record<string, HTMLElement | null>>({});
-  // Lets the "Continue" action scroll straight to the specific next topic.
-  const topicRefs = useRef<Record<string, HTMLElement | null>>({});
-
-  // Verify URL tokens first, then load saved progress for authenticated users.
+  // Proxy verifies URL tokens once, stores cookies, and strips the token from
+  // the URL. The client only restores local state for already-authenticated users.
   useEffect(() => {
-    let cancelled = false;
-    const token =
-      new URLSearchParams(window.location.search).get("token")?.trim() ?? "";
-
-    function loadSavedProgress() {
-      // 1) Paint instantly from whatever's cached locally — fast, and
-      //    avoids a blank/empty flash. This is NOT the source of truth
-      //    anymore; it's just what makes the UI feel instant while step 2
-      //    talks to the server.
-      const cachedTopics = readLocalProgressCache();
-      setTimeout(() => setCompletedTopics(cachedTopics), 0);
-
-      // 2) Reconcile with the server: push anything completed offline,
-      //    then pull the authoritative, account-based progress and merge
-      //    it in. This is what makes progress follow the ACCOUNT instead
-      //    of the device — every device signed into the same account
-      //    converges on the same server-side record.
-      void syncProgressFromServer();
-
-      // Restore the level/module the user was last viewing. This is what
-      // makes "finish Module 3 in Level 2" or "refresh mid-Level-3" keep
-      // the user in place instead of resetting to Level 1 - AI Explorer.
-      const savedLevel = window.localStorage.getItem(ACTIVE_LEVEL_STORAGE_KEY);
-      const savedModule = window.localStorage.getItem(
-        ACTIVE_MODULE_STORAGE_KEY,
-      );
-      const savedLevelIsValid =
-        !!savedLevel && curriculum.some((l) => l.title === savedLevel);
-
-      setTimeout(() => {
-        if (savedLevelIsValid) {
-          setOpenLevel(savedLevel);
-          if (savedModule && savedModule.startsWith(`${savedLevel}/`)) {
-            setOpenModule(savedModule);
-          }
-        } else {
-          // First-ever visit: nothing saved yet, so Level 1 is a sensible
-          // default — but only here, never as a reset on every remount.
-          setOpenLevel(curriculum[0]?.title ?? null);
-        }
-      }, 0);
-
-      setHydrated(true);
-      setAuthChecked(true);
-    }
-
-    // Reconciles this device's progress with the server: flushes any
-    // queued offline completions first (so they aren't lost), falling back
-    // to a plain GET when there's nothing queued. Either way, the result
-    // becomes the new completedTopics state AND the new local cache, so
-    // the two devices in the bug report ("finished 5 modules on laptop,
-    // phone still shows nothing") end up looking at the same data.
-    async function syncProgressFromServer() {
-      setSyncStatus("syncing");
-
-      const flushed = await flushPendingProgress();
-      if (flushed) {
-        setCompletedTopics(flushed);
-        setSyncStatus("idle");
-        return;
-      }
-
-      const fetched = await fetchServerProgress();
-      if (fetched) {
-        if (fetched.resetAt) writeLocalResetAt(fetched.resetAt);
-        const merged = new Set(fetched.completedTopics);
-        setCompletedTopics(merged);
-        writeLocalProgressCache(merged);
-        setSyncStatus("idle");
-        return;
-      }
-
-      // Couldn't reach the server (offline, etc.) — keep showing the local
-      // cache and try again on the next poll/focus/online event.
-      setSyncStatus("offline");
-    }
-
-    async function verifyUrlToken(urlToken: string) {
-      try {
-        const response = await fetch(getVerifyTokenUrl(), {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${urlToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token: urlToken }),
-        });
-
-        const data = (await response.json().catch(() => ({}))) as
-          | VerifyTokenResponse
-          | null;
-
-        if (!response.ok || !data) {
-          throw new Error(
-            getApiErrorMessage(
-              data,
-              `Token verification failed with status ${response.status}`,
-            ),
-          );
-        }
-
-        const verifiedToken = typeof data.token === "string" ? data.token : urlToken;
-        const verifiedUser = pickVerifiedUser(data);
-
-        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
-        window.localStorage.setItem(LOGIN_TOKEN_KEY, verifiedToken);
-        window.localStorage.setItem(LOGIN_USER_KEY, JSON.stringify(verifiedUser));
-        document.cookie = `${LOGIN_COOKIE}=true; path=/; max-age=2592000; SameSite=Lax`;
-
-        if (!cancelled) {
-          loadSavedProgress();
-          router.replace("/");
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "Token verification failed";
-
-          setAuthToast(message);
-          setAuthChecked(true);
-          window.setTimeout(() => {
-            if (!cancelled) {
-              router.replace(`/login?error=${encodeURIComponent(message)}`);
-            }
-          }, 2200);
-        }
-      }
-    }
-
     try {
-      if (token) {
-        void verifyUrlToken(token);
-        return () => {
-          cancelled = true;
-        };
-      }
-
-      const isCookieLoggedIn = hasLoginCookie();
-      const hasLoginStorage =
-        window.localStorage.getItem(LOGIN_STORAGE_KEY) === "true";
-
-      if (!isCookieLoggedIn) {
+      if (!hasStoredAuth()) {
         clearSavedLogin();
         router.replace("/login");
         return;
       }
 
-      if (!hasLoginStorage) {
-        window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
+      window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
+
+      const cookieToken = getCookieValue(TOKEN_COOKIE);
+      if (cookieToken) {
+        window.localStorage.setItem(LOGIN_TOKEN_KEY, cookieToken);
       }
 
-      if (!cancelled) {
-        loadSavedProgress();
+      const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          // Avoid setting state synchronously inside an effect to prevent
+          // cascading renders / linter warnings. Schedule the update.
+          setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
+        }
       }
     } catch {
+      clearSavedLogin();
       router.replace("/login");
       return;
     } finally {
-      if (!token && !cancelled) {
-        setHydrated(true);
-        setAuthChecked(true);
-      }
+      setHydrated(true);
+      setAuthChecked(true);
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!authChecked) return;
+
+    let cancelled = false;
+
+    async function loadServerProgress() {
+      await flushPendingProgress();
+      const serverProgress = await fetchServerProgress();
+      if (cancelled || !serverProgress) return;
+
+      setCompletedTopics(new Set(serverProgress.completedTopics));
+      setLastSubmittedAt(serverProgress.updatedAt);
+    }
+
+    void loadServerProgress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authChecked]);
+
   // Keep the local cache mirroring completedTopics whenever it changes.
-  // NOTE: this is a CACHE, not the source of truth anymore — actual
-  // persistence happens server-side via markLabTopicComplete /
-  // markTopicComplete pushing to /api/progress/complete. This just keeps
-  // the fast-paint-on-load cache warm and correct.
+  // Actual persistence happens in the backend via markLabTopicComplete; this
+  // just keeps the fast-paint-on-load cache warm and correct.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -1588,7 +1345,7 @@ export default function Home() {
   }, [openModule, hydrated]);
 
   useEffect(() => {
-    if (!authChecked || authToast) return;
+    if (!authChecked) return;
 
     function syncLogoutAcrossLocalhostApps() {
       if (hasLoginCookie()) return;
@@ -1609,7 +1366,7 @@ export default function Home() {
         syncLogoutAcrossLocalhostApps,
       );
     };
-  }, [authChecked, authToast, router]);
+  }, [authChecked, router]);
 
   function markTopicComplete(
     levelIndex: number,
@@ -1791,7 +1548,7 @@ export default function Home() {
     );
   }
 
-  if (!authChecked || authToast) {
+  if (!authChecked) {
     return (
       <main
         style={{
@@ -1802,29 +1559,7 @@ export default function Home() {
           fontWeight: 800,
         }}
       >
-        {authToast ? "Sending you to login..." : "Loading your lab..."}
-        {authToast && (
-          <div
-            role="alert"
-            style={{
-              position: "fixed",
-              top: "1rem",
-              right: "1rem",
-              maxWidth: "min(92vw, 26rem)",
-              padding: "0.9rem 1rem",
-              border: "1px solid rgba(220, 38, 38, 0.24)",
-              borderRadius: "10px",
-              background: "#ffffff",
-              boxShadow: "0 18px 42px rgba(15, 23, 42, 0.16)",
-              color: "#991b1b",
-              fontSize: "0.9rem",
-              fontWeight: 700,
-              lineHeight: 1.45,
-            }}
-          >
-            {authToast}
-          </div>
-        )}
+        Loading your lab...
       </main>
     );
   }
@@ -1914,6 +1649,7 @@ export default function Home() {
               : null
           }
           onContinueClick={goToNextTopic}
+          lastSubmittedAt={formatLastSubmittedAt(lastSubmittedAt)}
         />
 
         <div className="al-levels">
