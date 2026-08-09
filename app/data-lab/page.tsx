@@ -741,35 +741,37 @@ interface StructureListProps {
   onFeedback: (correct: boolean) => void;
 }
 
+function shuffledOptions<T extends string>(options: T[], answer: T, id: string): T[] {
+  const answerIndex = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % options.length;
+  const distractors = options.filter((option) => option !== answer);
+  distractors.splice(answerIndex, 0, answer);
+  return distractors;
+}
+
 function StructureList({ items, answers, onAnswer, onFeedback }: StructureListProps) {
   return (
     <div className="aiel-item-list">
       {items.map((item, i) => {
         const chosen = answers[item.id];
         const isCorrect = chosen === item.answer;
+        const options = shuffledOptions<StructureAnswer>(["structured", "unstructured"], item.answer, item.id);
         return (
           <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${i * 0.06}s` }}>
             <p className="aiel-item-text">{item.text}</p>
             {!chosen ? (
               <div className="aiel-choice-row">
-                <button
-                  className="aiel-choice-btn aiel-choice-teal"
-                  onClick={() => {
-                    onAnswer(item.id, "structured");
-                    onFeedback("structured" === item.answer);
-                  }}
-                >
-                  Structured
-                </button>
-                <button
-                  className="aiel-choice-btn aiel-choice-coral"
-                  onClick={() => {
-                    onAnswer(item.id, "unstructured");
-                    onFeedback("unstructured" === item.answer);
-                  }}
-                >
-                  Unstructured
-                </button>
+                {options.map((option, index) => (
+                  <button
+                    key={option}
+                    className={`aiel-choice-btn ${index === 0 ? "aiel-choice-teal" : "aiel-choice-coral"}`}
+                    onClick={() => {
+                      onAnswer(item.id, option);
+                      onFeedback(option === item.answer);
+                    }}
+                  >
+                    {option === "structured" ? "Structured" : "Unstructured"}
+                  </button>
+                ))}
               </div>
             ) : (
               <div
@@ -808,13 +810,14 @@ function QuizList({ items, answers, onAnswer, onFeedback }: QuizListProps) {
       {items.map((item, idx) => {
         const chosen = answers[item.id];
         const isCorrect = chosen === item.answer;
+        const options = shuffledOptions(item.options, item.answer, item.id);
         return (
           <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
             {item.code && <pre className="aiel-code-block">{item.code}</pre>}
             <p className="aiel-item-question">{item.question}</p>
             {!chosen ? (
               <div className="aiel-choice-row">
-                {item.options.map((opt, i) => (
+                {options.map((opt, i) => (
                   <button
                     key={opt}
                     className={`aiel-choice-btn ${palette[i % palette.length]}`}

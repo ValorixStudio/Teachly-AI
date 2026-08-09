@@ -207,6 +207,7 @@ const curriculum: Level[] = [
           { title: "Virtual Environments" },
           { title: "Package Management" },
           { title: "Git & GitHub Basics" },
+          
           { title: "Python Playground", isHandsOn: true, labPath: "/python-playground" }
 
         ],
@@ -263,6 +264,8 @@ const curriculum: Level[] = [
           { title: "K-Means" },
           { title: "PCA" },
           { title: "Build Multiple ML Models", isHandsOn: true },
+          { title: "Unsupervised Learning Simulator", isHandsOn: true, labPath: "/unsupervised-simulator" },
+            { title: "Reinforcement Learning Lab", isHandsOn: true, labPath: "/rnn-lab" },
         ],
       },
       {
@@ -297,7 +300,9 @@ const curriculum: Level[] = [
             title: "Feedforward Neural Network Simulation Lab",
             isHandsOn: true,
             labPath: "/deep-neural-network-lab"
-          }
+          },
+           { title: "DNN Lab", isHandsOn: true, labPath: "/dnn-lab" },
+          
         ],
       },
       { title: "Module 7: Computer Vision", topics: [
@@ -309,6 +314,8 @@ const curriculum: Level[] = [
           { title: "Image Segmentation" },
           { title: "More on OCR" },
           { title: "YOLO"}, 
+          { title: "CNN Lab", isHandsOn: true, labPath: "/cnn-lab" },
+          
       ] },
       { title: "Module 8: Natural Language Processing", topics: [ { title: "More on OpenCV" },
           { title: "Text Processing" },

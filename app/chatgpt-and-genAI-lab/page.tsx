@@ -630,6 +630,25 @@ const WORD_ITEMS: WordItem[] = [
   { id: "w6", prompt: "Once upon a time, in a land far ___", options: ["away", "Tuesday", "calculator"], answer: "away", explain: "This is one of the most repeated story openings in existence, so the model has an extremely strong prediction for what comes next.", icon: BookOpen },
 ];
 
+// Keep the correct continuation in a different position for each question so
+// learners need to read every option instead of always selecting the first.
+const WORD_ANSWER_POSITIONS: Record<string, number> = {
+  w1: 1,
+  w2: 2,
+  w3: 0,
+  w4: 1,
+  w5: 2,
+  w6: 0,
+};
+
+function orderedWordOptions(item: WordItem): string[] {
+  const distractors = item.options.filter((option) => option !== item.answer);
+  const answerPosition = WORD_ANSWER_POSITIONS[item.id] ?? 0;
+  const options = [...distractors];
+  options.splice(answerPosition, 0, item.answer);
+  return options;
+}
+
 const PROMPT_ITEMS: PromptItem[] = [
   {
     id: "p1",
@@ -713,6 +732,31 @@ const POSITIVE_PHRASES = ["Nice! 🎉", "You got it!", "Sharp eye! ✨", "Exactl
 const GENTLE_PHRASES = ["Good try! 🤔", "Almost there!", "Nice guess — see why below", "Close one!"];
 
 /* ────────────────────────────── HELPERS ─────────────────────────────── */
+
+const PROMPT_STRONG_FIRST: Record<string, boolean> = {
+  p1: false, p2: true, p3: false, p4: true, p5: false,
+};
+
+const TOOL_ANSWER_POSITIONS: Record<string, number> = {
+  t1: 1, t2: 3, t3: 0, t4: 2, t5: 1, t6: 3, t7: 0, t8: 2,
+};
+
+const ETHICS_ANSWER_POSITIONS: Record<string, number> = {
+  e1: 2, e2: 0, e3: 3, e4: 1, e5: 0, e6: 2, e7: 1, e8: 3,
+};
+
+function placeAnswerAtPosition<T extends { id: string }>(
+  options: T[],
+  answer: string,
+  position: number,
+): T[] {
+  const answerOption = options.find((option) => option.id === answer);
+  if (!answerOption) return options;
+
+  const ordered = options.filter((option) => option.id !== answer);
+  ordered.splice(position, 0, answerOption);
+  return ordered;
+}
 
 interface StepperProps {
   current: number;
@@ -1018,6 +1062,7 @@ export default function GenerativeAILab() {
               {WORD_ITEMS.map((item) => {
                 const chosen = wordAnswers[item.id];
                 const isCorrect = chosen === item.answer;
+                const options = orderedWordOptions(item);
                 return (
                   <div key={item.id} className="gal-item">
                     <div className="gal-item-head">
@@ -1026,7 +1071,7 @@ export default function GenerativeAILab() {
                     </div>
                     {!chosen ? (
                       <div className="gal-choices">
-                        {item.options.map((opt, i) => (
+                        {options.map((opt, i) => (
                           <button
                             key={opt}
                             className={`gal-choice ${i === 0 ? "gal-choice-indigo" : i === 1 ? "gal-choice-cyan" : "gal-choice-amber"}`}
@@ -1072,6 +1117,10 @@ export default function GenerativeAILab() {
             <div className="gal-items">
               {PROMPT_ITEMS.map((item) => {
                 const chosen = promptAnswers[item.id];
+                const promptOptions: Array<"weak" | "strong"> = PROMPT_STRONG_FIRST[item.id]
+                  ? ["strong", "weak"]
+                  : ["weak", "strong"];
+                const correctPromptLabel = promptOptions.indexOf("strong") === 0 ? "Prompt A" : "Prompt B";
                 return (
                   <div key={item.id} className="gal-item">
                     <div className="gal-item-head">
@@ -1079,30 +1128,21 @@ export default function GenerativeAILab() {
                       <p className="gal-item-goal">Goal: {item.goal}</p>
                     </div>
                     <div className="gal-prompt-pair">
-                      <button
-                        className={`gal-prompt-option ${chosen ? (chosen === "weak" ? "is-wrong" : "") : ""}`}
-                        onClick={() => {
-                          if (chosen) return;
-                          setPromptAnswers((p) => ({ ...p, [item.id]: "weak" }));
-                          fireToast(false);
-                        }}
-                        disabled={!!chosen}
-                      >
-                        <p className="gal-prompt-option-label">Prompt A</p>
-                        <p className="gal-prompt-option-text">&quot;{item.weak}&quot;</p>
-                      </button>
-                      <button
-                        className={`gal-prompt-option ${chosen ? (chosen === "strong" ? "is-correct" : "") : ""}`}
-                        onClick={() => {
-                          if (chosen) return;
-                          setPromptAnswers((p) => ({ ...p, [item.id]: "strong" }));
-                          fireToast(true);
-                        }}
-                        disabled={!!chosen}
-                      >
-                        <p className="gal-prompt-option-label">Prompt B</p>
-                        <p className="gal-prompt-option-text">&quot;{item.strong}&quot;</p>
-                      </button>
+                      {promptOptions.map((option, index) => (
+                        <button
+                          key={option}
+                          className={`gal-prompt-option ${chosen ? (chosen === option ? (option === "strong" ? "is-correct" : "is-wrong") : "") : ""}`}
+                          onClick={() => {
+                            if (chosen) return;
+                            setPromptAnswers((p) => ({ ...p, [item.id]: option }));
+                            fireToast(option === "strong");
+                          }}
+                          disabled={!!chosen}
+                        >
+                          <p className="gal-prompt-option-label">Prompt {index === 0 ? "A" : "B"}</p>
+                          <p className="gal-prompt-option-text">&quot;{item[option]}&quot;</p>
+                        </button>
+                      ))}
                     </div>
                     {chosen && (
                       <div className={`gal-feedback ${chosen === "strong" ? "gal-feedback-correct" : "gal-feedback-wrong"}`}>
@@ -1112,7 +1152,7 @@ export default function GenerativeAILab() {
                           <XCircle size={18} color={palette.rose} className="gal-feedback-icon" />
                         )}
                         <p className="gal-feedback-text">
-                          {chosen === "strong" ? "Correct — Prompt B wins. " : "Prompt B actually wins here. "}
+                          {chosen === "strong" ? `Correct — ${correctPromptLabel} wins. ` : `${correctPromptLabel} actually wins here. `}
                           {item.explain}
                         </p>
                       </div>
@@ -1138,6 +1178,11 @@ export default function GenerativeAILab() {
               {TOOL_ITEMS.map((item) => {
                 const chosen = toolAnswers[item.id];
                 const isCorrect = chosen === item.answer;
+                const categories = placeAnswerAtPosition(
+                  TOOL_CATEGORIES,
+                  item.answer,
+                  TOOL_ANSWER_POSITIONS[item.id] ?? 0,
+                );
                 return (
                   <div key={item.id} className="gal-item">
                     <div className="gal-item-head">
@@ -1146,7 +1191,7 @@ export default function GenerativeAILab() {
                     </div>
                     {!chosen ? (
                       <div className="gal-tag-row">
-                        {TOOL_CATEGORIES.map((cat, i) => (
+                        {categories.map((cat, i) => (
                           <button
                             key={cat.id}
                             className={`gal-tag-btn gal-tag-btn-${TAG_COLOR_CYCLE[i % TAG_COLOR_CYCLE.length]}`}
@@ -1192,6 +1237,11 @@ export default function GenerativeAILab() {
               {ETHICS_ITEMS.map((item) => {
                 const chosen = ethicsAnswers[item.id];
                 const isCorrect = chosen === item.answer;
+                const categories = placeAnswerAtPosition(
+                  ETHICS_CATEGORIES,
+                  item.answer,
+                  ETHICS_ANSWER_POSITIONS[item.id] ?? 0,
+                );
                 return (
                   <div key={item.id} className="gal-item">
                     <div className="gal-item-head">
@@ -1200,7 +1250,7 @@ export default function GenerativeAILab() {
                     </div>
                     {!chosen ? (
                       <div className="gal-tag-row">
-                        {ETHICS_CATEGORIES.map((cat, i) => (
+                        {categories.map((cat, i) => (
                           <button
                             key={cat.id}
                             className={`gal-tag-btn gal-tag-btn-${TAG_COLOR_CYCLE[i % TAG_COLOR_CYCLE.length]}`}

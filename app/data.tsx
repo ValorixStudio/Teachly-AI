@@ -1,6 +1,5 @@
 import {
-  ChevronLeft,
-  ChevronRight,
+ 
   RefreshCw,
   Lightbulb,
   FunctionSquare,

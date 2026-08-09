@@ -2061,8 +2061,11 @@ const ECO_LINKS: [EcoNodeId, EcoNodeId][] = [
 
 function EcosystemStage() {
   const [selected, setSelected] = useState<EcoNodeId | null>(null);
-  const W = 620;
-  const H = 320;
+  // The algorithm column has six nodes. A taller viewBox gives each node's
+  // label enough room before the next node begins, avoiding label/circle
+  // collisions while keeping the rendered card at its current size.
+  const W = 760;
+  const H = 440;
   const colGap = W / 4;
   const posOf = (n: EcoNode) => {
     const rowsInCol = ECO_NODES.filter((x) => x.col === n.col).length;

@@ -823,6 +823,13 @@ interface CodeChallengeListProps {
   onFeedback: (correct: boolean) => void;
 }
 
+function shuffledOptions(options: string[], answer: string, id: string): string[] {
+  const answerIndex = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % options.length;
+  const distractors = options.filter((option) => option !== answer);
+  distractors.splice(answerIndex, 0, answer);
+  return distractors;
+}
+
 function CodeChallengeList({ items, answers, onAnswer, onFeedback }: CodeChallengeListProps) {
   const palette = ["aiel-choice-teal", "aiel-choice-coral", "aiel-choice-gold"];
   const [runningId, setRunningId] = useState<string | null>(null);
@@ -842,6 +849,7 @@ function CodeChallengeList({ items, answers, onAnswer, onFeedback }: CodeChallen
         const isCorrect = chosen === item.answer;
         const isRunning = runningId === item.id;
         const result = runResults[item.id];
+        const options = shuffledOptions(item.options, item.answer, item.id);
         return (
           <div key={item.id} className="aiel-item-card" style={{ animationDelay: `${idx * 0.06}s` }}>
             <pre className="aiel-code-block">{item.code}</pre>
@@ -863,7 +871,7 @@ function CodeChallengeList({ items, answers, onAnswer, onFeedback }: CodeChallen
             <p className="aiel-item-question">{item.question}</p>
             {!chosen ? (
               <div className="aiel-choice-row">
-                {item.options.map((opt, i) => (
+                {options.map((opt, i) => (
                   <button
                     key={opt}
                     className={`aiel-choice-btn ${palette[i % palette.length]}`}

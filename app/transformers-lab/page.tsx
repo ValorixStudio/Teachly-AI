@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import * as tf from "@tensorflow/tfjs";
 
 /* ============================================================================
    BUILD YOUR OWN TRANSFORMER — an interactive architecture lab
@@ -448,6 +449,187 @@ const optimizerOptions: { value: Optimizer; label: string }[] = [
   { value: "adafactor", label: "Adafactor" },
 ];
 
+/* ----------------------- Executable Transformer ---------------------------
+   The visual configuration can describe a production-scale model that would
+   not fit in a browser. The runnable model keeps the same architecture but
+   caps its dimensions so that it can execute locally and safely. */
+
+interface RuntimeConfig {
+  vocabSize: number;
+  dModel: number;
+  numHeads: number;
+  numEncoderLayers: number;
+  numDecoderLayers: number;
+  dFF: number;
+  sequenceLength: number;
+  activation: Activation;
+  posEncoding: PosEncoding;
+}
+
+interface AttentionWeights {
+  q: tf.Variable;
+  k: tf.Variable;
+  v: tf.Variable;
+  o: tf.Variable;
+}
+
+interface EncoderLayerWeights {
+  attention: AttentionWeights;
+  ff1: tf.Variable;
+  ff2: tf.Variable;
+}
+
+interface DecoderLayerWeights extends EncoderLayerWeights {
+  crossAttention: AttentionWeights;
+}
+
+function runtimeConfig(config: TransformerConfig): RuntimeConfig {
+  const dModel = Math.max(16, Math.min(config.dModel, 64));
+  const numHeads = [8, 4, 2, 1].find((heads) => heads <= config.numHeads && dModel % heads === 0) ?? 1;
+  return {
+    vocabSize: Math.max(16, Math.min(config.vocabSize, 128)),
+    dModel,
+    numHeads,
+    numEncoderLayers: Math.max(1, Math.min(config.numEncoderLayers, 2)),
+    numDecoderLayers: Math.max(1, Math.min(config.numDecoderLayers, 2)),
+    dFF: Math.max(dModel * 2, Math.min(config.dFF, 128)),
+    sequenceLength: Math.max(4, Math.min(config.maxSeqLen, 8)),
+    activation: config.activation,
+    posEncoding: config.posEncoding,
+  };
+}
+
+function createOptimizer(kind: Optimizer, learningRate: number): tf.Optimizer {
+  const rate = Math.max(0.0001, Math.min(learningRate, 0.01));
+  if (kind === "sgd") return tf.train.momentum(rate, 0.9);
+  // TF.js does not provide Adafactor; Adam is the closest browser-safe fallback.
+  return tf.train.adam(kind === "adamw" ? rate * 0.98 : rate);
+}
+
+class BrowserTransformer {
+  private readonly variables: tf.Variable[] = [];
+  private readonly encoder: EncoderLayerWeights[] = [];
+  private readonly decoder: DecoderLayerWeights[] = [];
+  private readonly embedding: tf.Variable;
+  private readonly output: tf.Variable;
+  private readonly positionEmbedding: tf.Variable | null;
+  private readonly optimizer: tf.Optimizer;
+
+  constructor(private readonly cfg: RuntimeConfig, optimizer: Optimizer, learningRate: number) {
+    const weight = (shape: number[]) => {
+      const variable = tf.variable(tf.randomNormal(shape, 0, 0.02));
+      this.variables.push(variable);
+      return variable;
+    };
+    const attention = (): AttentionWeights => ({
+      q: weight([cfg.dModel, cfg.dModel]), k: weight([cfg.dModel, cfg.dModel]),
+      v: weight([cfg.dModel, cfg.dModel]), o: weight([cfg.dModel, cfg.dModel]),
+    });
+
+    this.embedding = weight([cfg.vocabSize, cfg.dModel]);
+    this.output = weight([cfg.dModel, cfg.vocabSize]);
+    this.positionEmbedding = cfg.posEncoding === "learned" ? weight([cfg.sequenceLength, cfg.dModel]) : null;
+    for (let index = 0; index < cfg.numEncoderLayers; index += 1) {
+      this.encoder.push({ attention: attention(), ff1: weight([cfg.dModel, cfg.dFF]), ff2: weight([cfg.dFF, cfg.dModel]) });
+    }
+    for (let index = 0; index < cfg.numDecoderLayers; index += 1) {
+      this.decoder.push({ attention: attention(), crossAttention: attention(), ff1: weight([cfg.dModel, cfg.dFF]), ff2: weight([cfg.dFF, cfg.dModel]) });
+    }
+    this.optimizer = createOptimizer(optimizer, learningRate);
+  }
+
+  private multiHeadAttention(query: tf.Tensor3D, source: tf.Tensor3D, weights: AttentionWeights, causal = false): tf.Tensor3D {
+    const { dModel, numHeads, sequenceLength } = this.cfg;
+    const batch = query.shape[0];
+    const headSize = dModel / numHeads;
+    const project = (input: tf.Tensor3D, weight: tf.Variable) =>
+      tf.transpose(tf.reshape(tf.matMul(input, weight), [batch, sequenceLength, numHeads, headSize]), [0, 2, 1, 3]);
+
+    const q = project(query, weights.q);
+    const k = project(source, weights.k);
+    const v = project(source, weights.v);
+    let scores = tf.matMul(q, k, false, true).mul(1 / Math.sqrt(headSize));
+    if (causal) {
+      const mask = tf.tensor2d(
+        Array.from({ length: sequenceLength * sequenceLength }, (_, index) => {
+          const row = Math.floor(index / sequenceLength);
+          const column = index % sequenceLength;
+          return column > row ? -1e9 : 0;
+        }),
+        [sequenceLength, sequenceLength],
+      );
+      scores = scores.add(mask.reshape([1, 1, sequenceLength, sequenceLength]));
+    }
+    const attended = tf.matMul(tf.softmax(scores), v);
+    const merged = tf.reshape(tf.transpose(attended, [0, 2, 1, 3]), [batch, sequenceLength, dModel]);
+    return tf.matMul(merged, weights.o) as tf.Tensor3D;
+  }
+
+  private block(input: tf.Tensor3D, source: tf.Tensor3D, layer: EncoderLayerWeights, causal = false): tf.Tensor3D {
+    return tf.tidy(() => {
+      const attended = input.add(this.multiHeadAttention(input, source, layer.attention, causal));
+      const hidden = tf.matMul(attended, layer.ff1);
+      const activated = this.cfg.activation === "gelu"
+        ? hidden.mul(0.5).mul(tf.tanh(hidden.pow(3).mul(0.044715).add(hidden).mul(Math.sqrt(2 / Math.PI))).add(1))
+        : this.cfg.activation === "swiglu"
+          ? hidden.mul(tf.sigmoid(hidden))
+          : tf.relu(hidden);
+      const fedForward = tf.matMul(activated, layer.ff2) as tf.Tensor3D;
+      return attended.add(fedForward) as tf.Tensor3D;
+    });
+  }
+
+  private positionalEncoding(): tf.Tensor2D {
+    if (this.positionEmbedding) return this.positionEmbedding as tf.Tensor2D;
+    const { sequenceLength, dModel } = this.cfg;
+    const values = Array.from({ length: sequenceLength * dModel }, (_, index) => {
+      const position = Math.floor(index / dModel);
+      const dimension = index % dModel;
+      const scale = position / 10000 ** (Math.floor(dimension / 2) * 2 / dModel);
+      return dimension % 2 === 0 ? Math.sin(scale) : Math.cos(scale);
+    });
+    return tf.tensor2d(values, [sequenceLength, dModel]);
+  }
+
+  forward(sourceIds: tf.Tensor2D, targetIds: tf.Tensor2D): tf.Tensor3D {
+    return tf.tidy(() => {
+      const positions = this.positionalEncoding().expandDims(0);
+      let encoded = tf.gather(this.embedding, sourceIds).add(positions) as tf.Tensor3D;
+      for (const layer of this.encoder) encoded = this.block(encoded, encoded, layer);
+
+      let decoded = tf.gather(this.embedding, targetIds).add(positions) as tf.Tensor3D;
+      for (const layer of this.decoder) {
+        decoded = this.block(decoded, decoded, layer, true);
+        decoded = this.block(decoded, encoded, { attention: layer.crossAttention, ff1: layer.ff1, ff2: layer.ff2 });
+      }
+      return tf.matMul(decoded, this.output) as tf.Tensor3D;
+    });
+  }
+
+  async trainDemoBatch(): Promise<number> {
+    const { sequenceLength, vocabSize } = this.cfg;
+    const sourceValues = Array.from({ length: sequenceLength }, (_, index) => index + 1);
+    const targetValues = [...sourceValues].reverse();
+    const decoderValues = [0, ...targetValues.slice(0, -1)];
+    const source = tf.tensor2d(sourceValues, [1, sequenceLength], "int32");
+    const decoder = tf.tensor2d(decoderValues, [1, sequenceLength], "int32");
+    const target = tf.tensor1d(targetValues, "int32");
+    const loss = this.optimizer.minimize(() => tf.tidy(() => {
+      const logits = this.forward(source, decoder).reshape([sequenceLength, vocabSize]);
+      return tf.losses.softmaxCrossEntropy(tf.oneHot(target, vocabSize), logits).mean();
+    }), true) as tf.Scalar;
+    const value = (await loss.data())[0];
+    loss.dispose();
+    source.dispose(); decoder.dispose(); target.dispose();
+    return value;
+  }
+
+  dispose() {
+    this.variables.forEach((variable) => variable.dispose());
+    this.optimizer.dispose();
+  }
+}
+
 /* ------------------------------- Page --------------------------------------*/
 
 export default function Page() {
@@ -460,6 +642,7 @@ export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [journeyStep, setJourneyStep] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
+  const runtimeRef = useRef<BrowserTransformer | null>(null);
 
   /* ---- initial load: theme + saved model ---- */
   useEffect(() => {
@@ -528,6 +711,8 @@ export default function Page() {
   }, [config]);
 
   const performReset = useCallback((clearSaved: boolean) => {
+    runtimeRef.current?.dispose();
+    runtimeRef.current = null;
     setConfig(DEFAULT_CONFIG);
     setSelected(null);
     setJourneyStep(0);
@@ -543,6 +728,25 @@ export default function Page() {
     setConfirmingReset(false);
     setToast("Lab reset to defaults.");
   }, []);
+
+  const buildAndRunTransformer = useCallback(async () => {
+    try {
+      setToast("Building and training a browser-safe Transformer…");
+      await tf.ready();
+      runtimeRef.current?.dispose();
+      const model = new BrowserTransformer(runtimeConfig(config), config.optimizer, config.learningRate);
+      runtimeRef.current = model;
+      const loss = await model.trainDemoBatch();
+      setShowSummary(true);
+      setJourneyStep((step) => Math.max(step, 6));
+      setToast(`Transformer is running — demo training loss: ${loss.toFixed(3)}`);
+    } catch (error) {
+      console.error("Unable to run Transformer", error);
+      setToast("Unable to run the Transformer in this browser.");
+    }
+  }, [config]);
+
+  useEffect(() => () => runtimeRef.current?.dispose(), []);
 
   const selectedInfo = selected ? COMPONENT_LIBRARY[selected] : null;
 
@@ -656,7 +860,7 @@ export default function Page() {
             paramInfo={paramInfo}
             t={t}
             dark={dark}
-            onReady={() => setShowSummary(true)}
+            onReady={buildAndRunTransformer}
           />
 
           {showSummary && <ReadySummary config={config} paramInfo={paramInfo} t={t} onClose={() => setShowSummary(false)} />}
