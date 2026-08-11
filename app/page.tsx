@@ -14,6 +14,7 @@ interface Topic {
 interface Module {
   title: string;
   topics: Topic[];
+  videoUrl?: string; // NEW: video for the module
 }
 
 interface Level {
@@ -45,6 +46,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: What is AI?",
+        videoUrl: "/videos/l1m1.mp4", 
         topics: [
           { title: "What is Intelligence?", labPath: "what-is-intelligence" },
           {
@@ -59,6 +61,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 2: Machine Learning Without Math",
+        videoUrl: "/videos/l1m2.mp4", 
         topics: [
           { title: "What is Learning?" },
           { title: "How Machines Learn" },
@@ -73,6 +76,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Computer Vision",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Face Recognition" },
           { title: "Self-driving Cars" },
@@ -87,6 +91,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: ChatGPT and Generative AI",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "LLMs" },
           { title: "Prompt Engineering" },
@@ -98,10 +103,14 @@ const curriculum: Level[] = [
             labPath: "/chatgpt-and-genAI-lab"},
         ],
       },
-  {title: "AI Explorer: Your First Mission!! ", topics: [{
+  {
+    title: "AI Explorer: Your First Mission!! ",
+    videoUrl: "", // Add your video URL here
+    topics: [{
            title: "Try It Yourself ",
             isHandsOn: true,
-            labPath: "/mission-1"}, ] }
+            labPath: "/mission-1"}, ]
+  }
     ],
   },
   {
@@ -109,6 +118,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: Python Basics",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Variables" },
           { title: "Loops" },
@@ -124,6 +134,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 2: Data",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "What is Data?" },
           { title: "CSV" },
@@ -135,6 +146,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Machine Learning Basics",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Machine Learning Basics" },
           { title: "Supervised Learning" },
@@ -153,6 +165,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: Neural Networks",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Neural Networks" },
           { title: "Biological Neuron" },
@@ -172,6 +185,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 5: Deep Learning",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "CNN" },
           { title: "RNN" },
@@ -184,10 +198,14 @@ const curriculum: Level[] = [
           },
         ],
       },
-      {title: "AI Foundations: Your Second Mission!! ", topics: [{
+      {
+        title: "AI Foundations: Your Second Mission!! ",
+        videoUrl: "", // Add your video URL here
+        topics: [{
            title: "Try It Yourself (Mini Project1) ",
             isHandsOn: true,
-            labPath: "/mission-2"}, ] }
+            labPath: "/mission-2"}, ]
+      }
     ],
   },
   {
@@ -195,6 +213,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: Python Programming for AI",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Python Basics Revision" },
           { title: "Advanced Data Structures" },
@@ -215,6 +234,7 @@ const curriculum: Level[] = [
       
       {
         title: "Module 2: Mathematics for AI",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Linear Algebra" },
           { title: "Matrices" },
@@ -231,6 +251,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Data Science Essentials",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Data Collection" },
           { title: "Data Cleaning" },
@@ -246,6 +267,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: Machine Learning Fundamentals",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "ML Pipeline" },
           { title: "More on Supervised Learning" },
@@ -270,6 +292,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 5: Model Evaluation & Optimization",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Train/Test Split" },
           { title: "Cross Validation" },
@@ -285,6 +308,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 6: Deep Learning Fundamentals",
+        videoUrl: "", // Add your video URL here
         topics: [
           { title: "Deep Neural Networks" },
            { title: "Feedforward Neural Networks" },
@@ -305,7 +329,10 @@ const curriculum: Level[] = [
           
         ],
       },
-      { title: "Module 7: Computer Vision", topics: [
+      { 
+        title: "Module 7: Computer Vision",
+        videoUrl: "", // Add your video URL here
+        topics: [
          { title: "OpenCV" },
           { title: "Image Processing" },
           { title: "CNN-2" },
@@ -317,7 +344,11 @@ const curriculum: Level[] = [
           { title: "CNN Lab", isHandsOn: true, labPath: "/cnn-lab" },
           
       ] },
-      { title: "Module 8: Natural Language Processing", topics: [ { title: "More on OpenCV" },
+      { 
+        title: "Module 8: Natural Language Processing",
+        videoUrl: "", // Add your video URL here
+        topics: [ 
+          { title: "More on OpenCV" },
           { title: "Text Processing" },
           { title: "Tokenization" },
           { title: "Stemming" },
@@ -332,9 +363,13 @@ const curriculum: Level[] = [
             isHandsOn: true,
             labPath: "/transformers-lab"
           }
-        ] },
-      { title: "Module 9: Generative AI & LLMs", topics: [
- { title: "Introduction to LLMs" },
+        ] 
+      },
+      { 
+        title: "Module 9: Generative AI & LLMs",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Introduction to LLMs" },
           { title: "GPT Architecture" },
           { title: "More on Prompt Engineering" },
           { title: "LLM Embeddings" },
@@ -343,9 +378,13 @@ const curriculum: Level[] = [
           { title: "Function Calling"},
             { title: "Context Windows"},
 
-      ] },
-      { title: "Module 10: AI Agents & Automation", topics: [
-{ title: "AI Agents" },
+      ] 
+      },
+      { 
+        title: "Module 10: AI Agents & Automation",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "AI Agents" },
           { title: "Tool Calling" },
           { title: "Memory Systems" },
           { title: "Multi-Agent Systems" },
@@ -356,9 +395,13 @@ const curriculum: Level[] = [
           
 
 
-      ] },
-      { title: "Module 11: Model Deployment & MLOps", topics: [
-{ title: "AI Agents" },
+      ] 
+      },
+      { 
+        title: "Module 11: Model Deployment & MLOps",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "AI Agents" },
           { title: "FastAPI" },
           { title: "Docker" },
           { title: "Kubernetes" },
@@ -368,11 +411,16 @@ const curriculum: Level[] = [
             { title: "Logging"},
              { title: "Model Serving"},
 
-      ] },
-         {title: "AI Engineer: Your Next Mission!! ", topics: [{
+      ] 
+      },
+         {
+           title: "AI Engineer: Your Next Mission!! ",
+           videoUrl: "", // Add your video URL here
+           topics: [{
            title: "Try It Yourself (Mini Project 2) ",
             isHandsOn: true,
-            labPath: "/mission-3"}, ], },
+            labPath: "/mission-3"}, ], 
+         },
     ],
     
   },
@@ -380,7 +428,10 @@ const curriculum: Level[] = [
   {
     title: "Level 4 - Advanced AI",
     modules: [
-      { title: "Module 1: Advanced Mathematics for AI", topics: [
+      { 
+        title: "Module 1: Advanced Mathematics for AI",
+        videoUrl: "", // Add your video URL here
+        topics: [
           { title: "Advanced Linear Algebra" },
           { title: "Matrix Decomposition" },
           { title: "Multivariable Calculus" },
@@ -388,9 +439,13 @@ const curriculum: Level[] = [
           { title: "Information Theory"},
           { title: "Numerical Optimization"},
            
-      ] },
-      { title: "Module 2: Deep Learning Theory", topics: [
-{ title: "Computational Graphs" },
+      ] 
+      },
+      { 
+        title: "Module 2: Deep Learning Theory",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Computational Graphs" },
           { title: "Automatic Differentiation" },
           { title: "Gradient Flow" },
           { title: "Vanishing/Exploding Gradients" },
@@ -399,9 +454,13 @@ const curriculum: Level[] = [
            { title: "Learning Rate Scheduling"},
            
         
-      ] },
-      { title: "Module 3: Transformer Architecture", topics: [
-{ title: "Self-Attention" },
+      ] 
+      },
+      { 
+        title: "Module 3: Transformer Architecture",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Self-Attention" },
           { title: "Multi-Head Attention" },
           { title: "Positional Encoding" },
           { title: "Encoder" },
@@ -410,9 +469,13 @@ const curriculum: Level[] = [
            { title: "Feed Forward Networks"},
            { title: "Layer Normalization"},
 
-      ] },
-      { title: "Module 4: Large Language Models", topics: [
-{ title: "GPT" },
+      ] 
+      },
+      { 
+        title: "Module 4: Large Language Models",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "GPT" },
           { title: "BERT" },
           { title: "LLaMA" },
           { title: "Mistral" },
@@ -421,8 +484,12 @@ const curriculum: Level[] = [
            { title: "Scaling Laws"},
            { title: "Inference Optimization"},
 
-      ] },
-      { title: "Module 5: LLM Fine-Tuning", topics: [
+      ] 
+      },
+      { 
+        title: "Module 5: LLM Fine-Tuning",
+        videoUrl: "", // Add your video URL here
+        topics: [
         { title: "Fine-Tuning" },
           { title: "LoRA" },
           { title: "QLoRA" },
@@ -431,9 +498,13 @@ const curriculum: Level[] = [
           { title: "DPO"},
            { title: "Model Distillation"},
            { title: "Quantization"},
-      ] },
-      { title: "Module 6: Retrieval-Augmented Generation (RAG)", topics: [
- { title: "Fine-Tuning" },
+      ] 
+      },
+      { 
+        title: "Module 6: Retrieval-Augmented Generation (RAG)",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Fine-Tuning" },
           { title: "Embeddings" },
           { title: "Chunking" },
           { title: "Retrieval Strategies" },
@@ -443,9 +514,13 @@ const curriculum: Level[] = [
            { title: "Reranking"},
            { title: "Evaluation"},
 
-      ] },
-      { title: "Module 7: AI Agents & Autonomous Systems", topics: [
-{ title: "Planning" },
+      ] 
+      },
+      { 
+        title: "Module 7: AI Agents & Autonomous Systems",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Planning" },
           { title: "Reasoning" },
           { title: "Reflection" },
           { title: "Memory Architectures"},
@@ -455,9 +530,13 @@ const curriculum: Level[] = [
            { title: "Agent Evaluation"},
 
 
-      ] },
-      { title: "Module 8: Multimodal AI", topics: [
-{ title: "Planning" },
+      ] 
+      },
+      { 
+        title: "Module 8: Multimodal AI",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "Planning" },
           { title: "Vision Transformers" },
           { title: "Vision-Language Models" },
           { title: "Image Generation"},
@@ -465,9 +544,13 @@ const curriculum: Level[] = [
            { title: "Audio Understanding"},
            { title: "Video Understanding"},
 
-      ] },
-      { title: "Module 9: AI Infrastructure", topics: [
-{ title: "GPU Programming" },
+      ] 
+      },
+      { 
+        title: "Module 9: AI Infrastructure",
+        videoUrl: "", // Add your video URL here
+        topics: [
+          { title: "GPU Programming" },
           { title: "CUDA Basics" },
           { title: "Distributed Training" },
           { title: "Parallel Processing"},
@@ -476,8 +559,12 @@ const curriculum: Level[] = [
            { title: "Tensor Parallelism"},
            { title: "Pipeline Parallelism"},
 
-      ] },
-      { title: "Module 10: AI Security & Responsible AI", topics: [
+      ] 
+      },
+      { 
+        title: "Module 10: AI Security & Responsible AI",
+        videoUrl: "", // Add your video URL here
+        topics: [
 
         { title: "AI Ethics" },
           { title: "Explainable AI (XAI)" },
@@ -487,11 +574,16 @@ const curriculum: Level[] = [
            { title: "Privacy"},
            { title: "Governance"},
 
-      ] },
-        {title: "Advanced AI : Your Last Mission!! ", topics: [{
+      ] 
+      },
+        {
+          title: "Advanced AI : Your Last Mission!! ",
+          videoUrl: "", // Add your video URL here
+          topics: [{
            title: "Try It Yourself (Major Project) ",
             isHandsOn: true,
-            labPath: "/level4"}, ], },
+            labPath: "/level4"}, ], 
+        },
     ],
     
   },
@@ -905,6 +997,139 @@ function CheckIcon() {
   );
 }
 
+// NEW: Video icon for video player button
+function VideoIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polygon points="23 7 16 12 23 17 23 7" />
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+    </svg>
+  );
+}
+
+// NEW: Modal for video player - supports local video files
+function VideoModal({
+  videoUrl,
+  onClose,
+  moduleName,
+}: {
+  videoUrl: string;
+  onClose: () => void;
+  moduleName: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    function handleEscapeKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleEscapeKey);
+    return () => window.removeEventListener("keydown", handleEscapeKey);
+  }, [onClose]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        padding: "1rem",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#ffffff",
+          borderRadius: "16px",
+          overflow: "hidden",
+          maxWidth: "90%",
+          width: "100%",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "1rem 1.5rem",
+            borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>
+            {moduleName}
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              color: "#64748b",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Video Container */}
+        <div
+          style={{
+            flex: 1,
+            overflow: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#000",
+            position: "relative",
+            minHeight: "500px",
+          }}
+        >
+          <video
+            ref={videoRef}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+            }}
+            controls
+            autoPlay
+          >
+            <source src={videoUrl} type="video/mp4" />
+            <source src={videoUrl} type="video/webm" />
+            <source src={videoUrl} type="video/ogg" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // -----------------------------------------------------------------------
 // Progress tracker widget — a compact, at-a-glance summary of overall
 // completion plus a per-level breakdown. Purely presentational; all the
@@ -1225,6 +1450,10 @@ export default function Home() {
   // only when there's truly nothing saved yet) inside the effect below.
   const [openLevel, setOpenLevel] = useState<string | null>(null);
   const [openModule, setOpenModule] = useState<string | null>(null);
+  
+  // NEW: State for video modal
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; moduleName: string } | null>(null);
+  
   const levelRefs = useRef<Record<string, HTMLElement | null>>({});
   const topicRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
@@ -1760,6 +1989,45 @@ export default function Home() {
                               )}
                             </button>
 
+                            {/* NEW: Video button for this module */}
+                            {mod.videoUrl && !moduleLocked && (
+                              <button
+                                onClick={() =>
+                                  setSelectedVideo({
+                                    url: mod.videoUrl!,
+                                    moduleName: mod.title,
+                                  })
+                                }
+                                style={{
+                                  margin: "0.75rem 1rem 0",
+                                  padding: "0.65rem 1rem",
+                                  background: `${theme.accent}14`,
+                                  border: `1px solid ${theme.accent}55`,
+                                  borderRadius: "8px",
+                                  color: theme.accent,
+                                  fontWeight: 700,
+                                  fontSize: "0.85rem",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "0.5rem",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = `${theme.accent}25`;
+                                  e.currentTarget.style.borderColor = `${theme.accent}88`;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = `${theme.accent}14`;
+                                  e.currentTarget.style.borderColor = `${theme.accent}55`;
+                                }}
+                              >
+                                <VideoIcon />
+                                Watch Module Video
+                              </button>
+                            )}
+
                             <div
                               className={`al-collapsible ${moduleOpen ? "al-open" : ""}`}
                             >
@@ -1876,7 +2144,14 @@ export default function Home() {
         </div>
       </div>
 
-    
+      {/* NEW: Video Modal */}
+      {selectedVideo && (
+        <VideoModal
+          videoUrl={selectedVideo.url}
+          moduleName={selectedVideo.moduleName}
+          onClose={() => setSelectedVideo(null)}
+        />
+      )}
     </div>
   );
 }
