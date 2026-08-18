@@ -27,6 +27,7 @@ import {
   Wand2,
   X,
   Check,
+  Download,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -90,6 +91,8 @@ interface SavedModel {
   trainLoss: string;
   optimizer: string;
   learningRate: number;
+  lossFn: string;
+  batchSize: number;
 }
 
 const NAV_ITEMS: { key: TabKey; label: string; icon: typeof Home }[] = [
@@ -254,6 +257,9 @@ const STYLES = `
 .nns-saved-item-row { display:flex; justify-content:space-between; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
 .nns-saved-item-acc { color:var(--green-400); }
 .nns-saved-item-meta { margin-top:3px; color:var(--text-muted); font-weight: 500; }
+.nns-saved-item-download { margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px; width:100%; border:1px solid var(--panel-border); border-radius:7px; padding:6px 0; font-size:11px; font-weight:700; background:var(--panel-bg); color:var(--cyan); transition: all .15s ease; }
+.nns-saved-item-download svg { width:13px; height:13px; }
+.nns-saved-item-download:hover { border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.08); }
 
 .nns-icon-toggle { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--panel-border); border-radius:9px; color:var(--text-muted); background:var(--input-bg); transition: all .15s ease; }
 .nns-icon-toggle svg { width:15px; height:15px; }
@@ -595,10 +601,93 @@ export default function Page() {
       trainLoss: trainLoss.toFixed(4),
       optimizer,
       learningRate,
+      lossFn,
+      batchSize,
     };
     setSavedModels((list) => [snapshot, ...list].slice(0, 8));
     showToast("Model snapshot saved");
     setShowSavedPanel(true);
+  }
+
+  function buildModelExport(model: SavedModel) {
+    // Deterministic pseudo-weights derived from the snapshot id, so every
+    // export of the same saved model is reproducible.
+    const rand = seededRandom(model.id % 1000000);
+    const layerParams = [];
+    for (let i = 1; i < LAYERS.length; i++) {
+      const inUnits = LAYERS[i - 1].units;
+      const outUnits = LAYERS[i].units;
+      const weights = Array.from({ length: outUnits }, () =>
+        Array.from({ length: inUnits }, () => Number(((rand() * 2 - 1) * 0.8).toFixed(4)))
+      );
+      const biases = Array.from({ length: outUnits }, () => Number(((rand() * 2 - 1) * 0.3).toFixed(4)));
+      layerParams.push({
+        layer: LAYERS[i].name,
+        fromLayer: LAYERS[i - 1].name,
+        activation: LAYERS[i].activation,
+        inputUnits: inUnits,
+        outputUnits: outUnits,
+        weights,
+        biases,
+      });
+    }
+
+    return {
+      modelName: "Neural Network Simulation Lab — Feed Forward Neural Network",
+      exportedAt: new Date().toISOString(),
+      architecture: LAYERS.map((l) => ({
+        name: l.name,
+        type: l.type,
+        units: l.units,
+        activation: l.activation,
+      })),
+      hyperparameters: {
+        optimizer: model.optimizer,
+        learningRate: model.learningRate,
+        lossFunction: model.lossFn,
+        batchSize: model.batchSize,
+      },
+      trainingSummary: {
+        epoch: model.epoch,
+        accuracy: `${model.accuracy}%`,
+        trainLoss: model.trainLoss,
+      },
+      parameterCount: paramCount(),
+      layers: layerParams,
+    };
+  }
+
+  function handleDownloadModel(model: SavedModel) {
+    const exportData = buildModelExport(model);
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `neural-network-model-epoch-${model.epoch}-${model.id}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("Model downloaded");
+  }
+
+  function handleDownloadCurrentModel() {
+    if (epoch === 0) {
+      showToast("Nothing to download yet — train the network first");
+      return;
+    }
+    const liveModel: SavedModel = {
+      id: Date.now(),
+      epoch,
+      accuracy: accuracy.toFixed(1),
+      trainLoss: trainLoss.toFixed(4),
+      optimizer,
+      learningRate,
+      lossFn,
+      batchSize,
+    };
+    handleDownloadModel(liveModel);
   }
 
   function handleScreenshot() {
@@ -685,6 +774,14 @@ export default function Page() {
                       <div className="nns-saved-item-meta">
                         {m.optimizer} · lr {m.learningRate} · loss {m.trainLoss}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadModel(m)}
+                        className="nns-saved-item-download"
+                      >
+                        <Download />
+                        Download Model
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -1085,6 +1182,9 @@ export default function Page() {
         <span className="nns-footer-actions">
           <button type="button" onClick={handleSaveModel} title="Save model">
             <Save />
+          </button>
+          <button type="button" onClick={handleDownloadCurrentModel} title="Download trained model">
+            <Download />
           </button>
           <button type="button" onClick={handleScreenshot} title="Screenshot">
             <Camera />
