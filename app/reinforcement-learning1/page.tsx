@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { Sun, Moon, Zap, Plus, Trash2, Play, Pause, RotateCcw, BarChart3, AlertCircle, CheckCircle, Info, Layers, TrendingUp, Settings } from 'lucide-react';
 
@@ -174,8 +175,7 @@ export default function ReinforcementLearningSimulator() {
 
   // Initialize theme
   useEffect(() => {
-    const saved = localStorage.getItem('theme') === 'dark';
-    setIsDarkMode(saved);
+    setIsDarkMode(localStorage.getItem('theme') === 'dark');
   }, []);
 
   useEffect(() => {

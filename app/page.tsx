@@ -529,7 +529,6 @@ const curriculum: Level[] = [
            { title: "Tool Use"},
            { title: "Agent Evaluation"},
 
-
       ] 
       },
       { 
@@ -590,10 +589,6 @@ const curriculum: Level[] = [
   
 ];
 
-// -----------------------------------------------------------------------
-// Level theming — a cool → warm spectrum that maps to difficulty.
-// Index lines up 1:1 with `curriculum` above.
-// -----------------------------------------------------------------------
 
 const levelThemes = [
   { accent: "#2D7DD2", name: "Explorer" },
