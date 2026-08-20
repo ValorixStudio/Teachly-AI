@@ -1330,10 +1330,14 @@ function ProgressTrackerWidget({
               style={{
                 textAlign: "left",
                 cursor: level.locked ? "not-allowed" : "pointer",
-                background: level.isCurrent
+                background: level.completedBadge
+                  ? "rgba(34, 197, 94, 0.08)"
+                  : level.isCurrent
                   ? "rgba(15, 23, 42, 0.035)"
                   : "transparent",
-                border: level.isCurrent
+                border: level.completedBadge
+                  ? "1px solid rgba(34, 197, 94, 0.4)"
+                  : level.isCurrent
                   ? `1px solid ${level.accent}55`
                   : "1px solid rgba(15, 23, 42, 0.08)",
                 borderRadius: "12px",
@@ -1376,7 +1380,7 @@ function ProgressTrackerWidget({
                   <LockIcon />
                 )}
                 {!level.locked && level.completedBadge && (
-                  <span style={{ color: level.accent, display: "flex" }}>
+                  <span style={{ color: "#15803d", display: "flex" }}>
                     <CheckIcon />
                   </span>
                 )}
@@ -1419,7 +1423,7 @@ function ProgressTrackerWidget({
                     width: `${percent}%`,
                     height: "100%",
                     borderRadius: "999px",
-                    background: level.accent,
+                    background: level.completedBadge ? "#22c55e" : level.accent,
                     transition: "width 0.4s ease",
                   }}
                 />
@@ -1891,7 +1895,16 @@ export default function Home() {
                   levelRefs.current[level.title] = el;
                 }}
                 className="al-level"
-                style={accentStyle}
+                style={
+                  levelCompleted
+                    ? ({
+                        ...accentStyle,
+                        background: "white",
+                        border: "1px solid rgba(34, 197, 94, 0.35)",
+                        borderRadius: "16px",
+                      } as CSSProperties)
+                    : accentStyle
+                }
                 data-open={levelOpen}
                 data-locked={levelLocked}
               >
@@ -1952,76 +1965,101 @@ export default function Home() {
                             key={mod.title}
                             className="al-module"
                             data-locked={moduleLocked}
+                            style={
+                              moduleCompleted && mod.topics.length > 0
+                                ? {
+                                    background: "white",
+                                    border: "1px solid rgba(34, 197, 94, 0.3)",
+                                    borderRadius: "12px",
+                                  }
+                                : undefined
+                            }
                           >
-                            <button
-                              onClick={() => {
-                                if (moduleLocked) return;
-                                setOpenModule(moduleOpen ? null : moduleKey);
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "stretch",
+                                gap: "0.5rem",
                               }}
-                              className="al-module-header"
-                              aria-expanded={moduleOpen}
-                              aria-disabled={moduleLocked}
-                              disabled={moduleLocked}
                             >
-                              <span className="al-module-heading">
-                                <span className="al-tag al-tag-module">
-                                  M{modIndex + 1}
-                                </span>
-                                <span className="al-module-title">
-                                  {mod.title}
-                                </span>
-                                {moduleCompleted && mod.topics.length > 0 && (
-                                  <span className="al-status-badge al-status-complete">
-                                    <CheckIcon />
-                                    Done
-                                  </span>
-                                )}
-                              </span>
-                              {moduleLocked ? (
-                                <LockIcon />
-                              ) : (
-                                <ChevronIcon open={moduleOpen} />
-                              )}
-                            </button>
-
-                            {/* NEW: Video button for this module */}
-                            {mod.videoUrl && !moduleLocked && (
                               <button
-                                onClick={() =>
-                                  setSelectedVideo({
-                                    url: mod.videoUrl!,
-                                    moduleName: mod.title,
-                                  })
-                                }
-                                style={{
-                                  margin: "0.75rem 1rem 0",
-                                  padding: "0.65rem 1rem",
-                                  background: `${theme.accent}14`,
-                                  border: `1px solid ${theme.accent}55`,
-                                  borderRadius: "8px",
-                                  color: theme.accent,
-                                  fontWeight: 700,
-                                  fontSize: "0.85rem",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: "0.5rem",
-                                  transition: "all 0.2s ease",
+                                onClick={() => {
+                                  if (moduleLocked) return;
+                                  setOpenModule(moduleOpen ? null : moduleKey);
                                 }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = `${theme.accent}25`;
-                                  e.currentTarget.style.borderColor = `${theme.accent}88`;
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = `${theme.accent}14`;
-                                  e.currentTarget.style.borderColor = `${theme.accent}55`;
-                                }}
+                                className="al-module-header"
+                                aria-expanded={moduleOpen}
+                                aria-disabled={moduleLocked}
+                                disabled={moduleLocked}
+                                style={{ flex: 1, minWidth: 0 }}
                               >
-                                <VideoIcon />
-                                Watch Module Video
+                                <span className="al-module-heading">
+                                  <span className="al-tag al-tag-module">
+                                    M{modIndex + 1}
+                                  </span>
+                                  <span className="al-module-title">
+                                    {mod.title}
+                                  </span>
+                                  {moduleCompleted && mod.topics.length > 0 && (
+                                    <span className="al-status-badge al-status-complete">
+                                      <CheckIcon />
+                                      Done
+                                    </span>
+                                  )}
+                                </span>
+                                {moduleLocked ? (
+                                  <LockIcon />
+                                ) : (
+                                  <ChevronIcon open={moduleOpen} />
+                                )}
                               </button>
-                            )}
+
+                              {/* Video button for this module — placed beside the
+                                  module header (not stacked below it) so it lines
+                                  up with the header row for every module that has
+                                  a video, including Module 1. */}
+                              {mod.videoUrl && !moduleLocked && (
+                                <button
+                                  onClick={() =>
+                                    setSelectedVideo({
+                                      url: mod.videoUrl!,
+                                      moduleName: mod.title,
+                                    })
+                                  }
+                                  title="Watch video"
+                                  style={{
+                                    flexShrink: 0,
+                                    alignSelf: "center",
+                                    margin: 0,
+                                    padding: "0.55rem 0.9rem",
+                                    background: `${theme.accent}14`,
+                                    border: `1px solid ${theme.accent}55`,
+                                    borderRadius: "8px",
+                                    color: theme.accent,
+                                    fontWeight: 700,
+                                    fontSize: "0.8rem",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "0.4rem",
+                                    whiteSpace: "nowrap",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = `${theme.accent}25`;
+                                    e.currentTarget.style.borderColor = `${theme.accent}88`;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = `${theme.accent}14`;
+                                    e.currentTarget.style.borderColor = `${theme.accent}55`;
+                                  }}
+                                >
+                                  <VideoIcon />
+                                  Watch Video
+                                </button>
+                              )}
+                            </div>
 
                             <div
                               className={`al-collapsible ${moduleOpen ? "al-open" : ""}`}
@@ -2084,7 +2122,13 @@ export default function Home() {
       href={href}
       className="al-topic-row al-topic-link"
       style={
-        isNextTopic
+        tCompleted
+          ? {
+              background: "rgba(34, 197, 94, 0.08)",
+              border: "1px solid rgba(34, 197, 94, 0.35)",
+              borderRadius: "10px",
+            }
+          : isNextTopic
           ? {
               background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
               border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
@@ -2124,10 +2168,8 @@ export default function Home() {
                                       </li>
                                     );
                                   })}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
+         </ul>                              </div>
+</div>           </div>
                         );
                       })}
                     </div>
