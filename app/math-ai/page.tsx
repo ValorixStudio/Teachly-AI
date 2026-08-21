@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Brain,
   CheckCircle2,
@@ -25,7 +26,9 @@ import {
   ArrowRight,
   Cpu,
   Variable,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon
 } from "lucide-react";
 import {
   LineChart,
@@ -57,6 +60,8 @@ export type MissionId =
   | "bayes"
   | "numpy"
   | "final_ai";
+
+type Theme = "dark" | "light";
 
 export interface MissionDef {
   id: MissionId;
@@ -282,6 +287,14 @@ function calcStdDev(arr: number[]): number {
 // ==========================================
 
 export default function AIMathEnginePage() {
+  const router = useRouter();
+
+  // Theme State
+  const [theme, setTheme] = useState<Theme>("dark");
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   // State: Navigation & XP
   const [currentMission, setCurrentMission] = useState<MissionId>("vectors");
   const [completedMissions, setCompletedMissions] = useState<Record<MissionId, boolean>>({
@@ -316,6 +329,7 @@ export default function AIMathEnginePage() {
 
   // Notifications / Toast
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
+  const [showCertificate, setShowCertificate] = useState<boolean>(false);
 
   const showToast = (msg: string, type: "success" | "error" | "info" = "info") => {
     setToast({ msg, type });
@@ -335,10 +349,15 @@ export default function AIMathEnginePage() {
 
   const level = Math.floor(xp / 150) + 1;
 
-  // Unlocked Missions State
+  // Unlocked Missions State — driven directly by a simple index counter rather
+  // than re-derived from the completedMissions map every render. This avoids
+  // any stale-closure / recomputation edge cases: the moment a mission is
+  // completed we explicitly bump the unlock frontier by one, full stop.
+  const [highestUnlockedIndex, setHighestUnlockedIndex] = useState<number>(0);
+
   const unlockedMissions = useMemo(() => {
     const unlocked: Record<MissionId, boolean> = {
-      vectors: true,
+      vectors: false,
       matrices: false,
       linear_algebra: false,
       eigenvalues: false,
@@ -351,26 +370,31 @@ export default function AIMathEnginePage() {
       numpy: false,
       final_ai: false
     };
-
-    for (let i = 0; i < MISSIONS.length; i++) {
-      const mid = MISSIONS[i].id;
-      if (i === 0) {
-        unlocked[mid] = true;
-      } else {
-        const prevId = MISSIONS[i - 1].id;
-        if (completedMissions[prevId]) {
-          unlocked[mid] = true;
-        }
-      }
-    }
+    MISSIONS.forEach((m, i) => {
+      if (i <= highestUnlockedIndex) unlocked[m.id] = true;
+    });
     return unlocked;
-  }, [completedMissions]);
+  }, [highestUnlockedIndex]);
 
   // Handle Complete Mission
   const completeMission = (id: MissionId) => {
-    if (!completedMissions[id]) {
-      setCompletedMissions((prev) => ({ ...prev, [id]: true }));
-      showToast(`🎉 Mission Completed! +${MISSIONS.find((m) => m.id === id)?.xp} XP`, "success");
+    if (completedMissions[id]) return;
+
+    setCompletedMissions((prev) => ({ ...prev, [id]: true }));
+
+    const idx = MISSIONS.findIndex((m) => m.id === id);
+    const next = MISSIONS[idx + 1];
+
+    // Explicitly advance the unlock frontier — guaranteed to unlock the next
+    // mission regardless of how completedMissions happens to resolve.
+    setHighestUnlockedIndex((prev) => Math.max(prev, idx + 1));
+
+    if (next) {
+      showToast(`🎉 Mission Completed! +${MISSIONS[idx].xp} XP · "${next.title}" unlocked!`, "success");
+      // Auto-advance so the newly unlocked mission is immediately visible/selected
+      setTimeout(() => setCurrentMission(next.id), 600);
+    } else {
+      showToast(`🎉 Final Mission Completed! +${MISSIONS[idx].xp} XP`, "success");
     }
   };
 
@@ -405,6 +429,8 @@ export default function AIMathEnginePage() {
       final_ai: 0
     });
     setCurrentMission("vectors");
+    setHighestUnlockedIndex(0);
+    setShowCertificate(false);
     showToast("Lab progress reset successfully.", "info");
   };
 
@@ -646,6 +672,19 @@ export default function AIMathEnginePage() {
   const allCompleted = useMemo(() => {
     return Object.values(completedMissions).every(Boolean);
   }, [completedMissions]);
+
+  // Show certificate automatically the first time everything is completed
+  useEffect(() => {
+    if (allCompleted) {
+      setShowCertificate(true);
+    }
+  }, [allCompleted]);
+
+  // Finish flow: close the certificate and hand the learner back to the curriculum
+  const handleContinueToCurriculum = () => {
+    setShowCertificate(false);
+    router.push("/");
+  };
 
   // ==========================================
   // RENDER HELPERS FOR MISSIONS
@@ -1704,7 +1743,13 @@ export default function AIMathEnginePage() {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+    <div
+      className={
+        theme === "dark"
+          ? "min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-slate-950"
+          : "min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-emerald-500 selection:text-slate-950"
+      }
+    >
       {/* Toast Notification */}
       {toast && (
         <div
@@ -1722,7 +1767,11 @@ export default function AIMathEnginePage() {
       )}
 
       {/* HEADER */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-40 px-4 py-3">
+      <header
+        className={`border-b backdrop-blur sticky top-0 z-40 px-4 py-3 ${
+          theme === "dark" ? "border-slate-800 bg-slate-900/50" : "border-slate-200 bg-white/80"
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400">
@@ -1732,7 +1781,9 @@ export default function AIMathEnginePage() {
               <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                 🧠 AI Math Engine
               </h1>
-              <p className="text-xs text-slate-400">Mathematics Behind AI Playground</p>
+              <p className={theme === "dark" ? "text-xs text-slate-400" : "text-xs text-slate-500"}>
+                Mathematics Behind AI Playground
+              </p>
             </div>
           </div>
 
@@ -1740,12 +1791,12 @@ export default function AIMathEnginePage() {
           <div className="flex items-center gap-6 w-full md:w-auto">
             <div className="flex-1 md:w-64 space-y-1">
               <div className="flex justify-between text-xs font-mono">
-                <span className="text-slate-400">
+                <span className={theme === "dark" ? "text-slate-400" : "text-slate-500"}>
                   Level {level} • XP {xp} / {TOTAL_XP}
                 </span>
                 <span className="text-emerald-400">{Math.round((xp / TOTAL_XP) * 100)}%</span>
               </div>
-              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div className={`h-2 w-full rounded-full overflow-hidden ${theme === "dark" ? "bg-slate-800" : "bg-slate-200"}`}>
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
                   style={{ width: `${(xp / TOTAL_XP) * 100}%` }}
@@ -1753,9 +1804,26 @@ export default function AIMathEnginePage() {
               </div>
             </div>
 
+            {/* Dark / Light Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg border transition-colors ${
+                theme === "dark"
+                  ? "bg-slate-800 border-slate-700 text-yellow-400 hover:bg-slate-700"
+                  : "bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300"
+              }`}
+              title="Toggle Theme"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             <button
               onClick={resetLab}
-              className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-200 transition-colors"
+              className={`p-2 rounded-lg transition-colors ${
+                theme === "dark"
+                  ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200"
+                  : "bg-slate-200 hover:bg-slate-300 text-slate-500 hover:text-slate-800"
+              }`}
               title="Reset Lab"
             >
               <RotateCcw className="w-4 h-4" />
@@ -1774,14 +1842,26 @@ export default function AIMathEnginePage() {
           <p className="text-xs text-slate-300 max-w-xl mx-auto">
             You have successfully completed all 12 modules from vectors to deep learning loss surfaces and optimization algorithms.
           </p>
+          <button
+            onClick={handleContinueToCurriculum}
+            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all"
+          >
+            Finish &amp; Unlock Next <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* SIDEBAR — MISSION TREE */}
-        <div className="lg:col-span-3 space-y-2 bg-slate-900/40 border border-slate-800 rounded-xl p-3 h-fit">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 mb-3">Missions</h2>
+        <div
+          className={`lg:col-span-3 space-y-2 rounded-xl p-3 h-fit border ${
+            theme === "dark" ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+          }`}
+        >
+          <h2 className={`text-xs font-bold uppercase tracking-wider px-2 mb-3 ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>
+            Missions
+          </h2>
 
           <div className="space-y-1">
             {MISSIONS.map((m) => {
@@ -1798,7 +1878,9 @@ export default function AIMathEnginePage() {
                     isActive
                       ? "bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"
                       : isUnlocked
-                      ? "hover:bg-slate-800/60 text-slate-300 border border-transparent"
+                      ? theme === "dark"
+                        ? "hover:bg-slate-800/60 text-slate-300 border border-transparent"
+                        : "hover:bg-slate-100 text-slate-700 border border-transparent"
                       : "opacity-40 cursor-not-allowed text-slate-500 border border-transparent"
                   }`}
                 >
@@ -1806,16 +1888,16 @@ export default function AIMathEnginePage() {
                     <span className="text-base">{m.icon}</span>
                     <div className="truncate">
                       <div className="text-xs font-semibold truncate">{m.title}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{m.subtitle}</div>
+                      <div className={`text-[10px] truncate ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{m.subtitle}</div>
                     </div>
                   </div>
 
                   {isDone ? (
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   ) : isUnlocked ? (
-                    <Unlock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <Unlock className={`w-3.5 h-3.5 shrink-0 ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`} />
                   ) : (
-                    <Lock className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                    <Lock className={`w-3.5 h-3.5 shrink-0 ${theme === "dark" ? "text-slate-600" : "text-slate-400"}`} />
                   )}
                 </button>
               );
@@ -1826,23 +1908,31 @@ export default function AIMathEnginePage() {
         {/* MAIN PLAYGROUND PANEL */}
         <div className="lg:col-span-9 space-y-6">
           {/* Mission Title Header */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div
+            className={`rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border ${
+              theme === "dark" ? "bg-slate-900/60 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+            }`}
+          >
             <div>
               <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 mb-1">
                 <span>Mission {activeMissionDef.number} of 12</span>
                 <span>•</span>
                 <span>+{activeMissionDef.xp} XP</span>
               </div>
-              <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+              <h2 className={`text-xl font-bold flex items-center gap-2 ${theme === "dark" ? "text-slate-100" : "text-slate-900"}`}>
                 <span>{activeMissionDef.icon}</span> {activeMissionDef.title}
               </h2>
-              <p className="text-xs text-slate-400">{activeMissionDef.subtitle}</p>
+              <p className={theme === "dark" ? "text-xs text-slate-400" : "text-xs text-slate-500"}>{activeMissionDef.subtitle}</p>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handleUseHint}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs flex items-center gap-1.5"
+                className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors ${
+                  theme === "dark"
+                    ? "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                }`}
               >
                 <HelpCircle className="w-3.5 h-3.5" /> Hint ({hintsUsed[currentMission] || 0}/{activeMissionDef.hints.length})
               </button>
@@ -1871,7 +1961,7 @@ export default function AIMathEnginePage() {
           )}
 
           {/* Tabs */}
-          <div className="flex border-b border-slate-800 gap-2 overflow-x-auto">
+          <div className={`flex border-b gap-2 overflow-x-auto ${theme === "dark" ? "border-slate-800" : "border-slate-200"}`}>
             {(["visualization", "formula", "ai"] as const).map((tab) => (
               <button
                 key={tab}
@@ -1879,7 +1969,9 @@ export default function AIMathEnginePage() {
                 className={`px-4 py-2 text-xs font-semibold border-b-2 capitalize transition-all ${
                   activeTab === tab
                     ? "border-emerald-500 text-emerald-400"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    : theme === "dark"
+                    ? "border-transparent text-slate-400 hover:text-slate-200"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
                 {tab === "visualization" ? "Visual Math Lab" : tab === "formula" ? "Formula & Math" : "AI Connection"}
@@ -1892,7 +1984,11 @@ export default function AIMathEnginePage() {
             {activeTab === "visualization" && renderMissionContent()}
 
             {activeTab === "formula" && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+              <div
+                className={`rounded-xl p-6 space-y-4 border ${
+                  theme === "dark" ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                }`}
+              >
                 <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <BookOpen className="w-5 h-5" /> Formula Inspector
                 </h3>
@@ -1914,16 +2010,74 @@ export default function AIMathEnginePage() {
             )}
 
             {activeTab === "ai" && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+              <div
+                className={`rounded-xl p-6 space-y-4 border ${
+                  theme === "dark" ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm"
+                }`}
+              >
                 <h3 className="text-lg font-semibold text-amber-400 flex items-center gap-2">
                   <Cpu className="w-5 h-5" /> 💡 Where AI Uses This Concept
                 </h3>
-                <p className="text-sm text-slate-300 leading-relaxed">{activeMissionDef.aiConnection}</p>
+                <p className={theme === "dark" ? "text-sm text-slate-300 leading-relaxed" : "text-sm text-slate-600 leading-relaxed"}>
+                  {activeMissionDef.aiConnection}
+                </p>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* FINAL CERTIFICATE MODAL */}
+      {showCertificate && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-xl w-full bg-slate-900 border-2 border-emerald-500/50 rounded-2xl p-8 text-center space-y-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowCertificate(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+
+            <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-full flex items-center justify-center mx-auto text-4xl shadow-lg">
+              🏆
+            </div>
+
+            <div>
+              <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                CERTIFICATE OF COMPLETION
+              </span>
+              <h2 className="text-2xl font-extrabold text-white mt-1">AI MATH ENGINEER UNLOCKED</h2>
+              <p className="text-xs text-slate-400 mt-2">
+                Has successfully mastered all 12 modules of the mathematics behind AI, from vectors to gradient-based optimization.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 text-left gap-2 text-xs bg-slate-950 p-4 rounded-xl border border-slate-800">
+              {MISSIONS.map((m) => (
+                <div key={m.id} className="flex items-center gap-2 text-emerald-400 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{m.title}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
+              <button
+                onClick={() => setShowCertificate(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-6 py-2.5 rounded-xl transition-all"
+              >
+                Review Playground
+              </button>
+              <button
+                onClick={handleContinueToCurriculum}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+              >
+                Finish &amp; Unlock Next <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

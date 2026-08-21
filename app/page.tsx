@@ -76,7 +76,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Computer Vision",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l1m3.mp4",
         topics: [
           { title: "Face Recognition" },
           { title: "Self-driving Cars" },
@@ -91,7 +91,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: ChatGPT and Generative AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l1m4.mp4",
         topics: [
           { title: "LLMs" },
           { title: "Prompt Engineering" },
@@ -105,7 +105,7 @@ const curriculum: Level[] = [
       },
   {
     title: "AI Explorer: Your First Mission!! ",
-    videoUrl: "", // Add your video URL here
+    videoUrl: "/videos/l1m5.mp4",
     topics: [{
            title: "Try It Yourself ",
             isHandsOn: true,
@@ -118,7 +118,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: Python Basics",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m1.mp4",
         topics: [
           { title: "Variables" },
           { title: "Loops" },
@@ -134,7 +134,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 2: Data",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m2.mp4",
         topics: [
           { title: "What is Data?" },
           { title: "CSV" },
@@ -146,7 +146,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Machine Learning Basics",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m3.mp4",
         topics: [
           { title: "Machine Learning Basics" },
           { title: "Supervised Learning" },
@@ -165,7 +165,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: Neural Networks",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m4.mp4",
         topics: [
           { title: "Neural Networks" },
           { title: "Biological Neuron" },
@@ -185,7 +185,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 5: Deep Learning",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m5.mp4",
         topics: [
           { title: "CNN" },
           { title: "RNN" },
@@ -200,7 +200,7 @@ const curriculum: Level[] = [
       },
       {
         title: "AI Foundations: Your Second Mission!! ",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l2m6.mp4",
         topics: [{
            title: "Try It Yourself (Mini Project1) ",
             isHandsOn: true,
@@ -213,7 +213,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: Python Programming for AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m1.mp4",
         topics: [
           { title: "Python Basics Revision" },
           { title: "Advanced Data Structures" },
@@ -234,7 +234,7 @@ const curriculum: Level[] = [
       
       {
         title: "Module 2: Mathematics for AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m2.mp4",
         topics: [
           { title: "Linear Algebra" },
           { title: "Matrices" },
@@ -251,7 +251,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 3: Data Science Essentials",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m3.mp4",
         topics: [
           { title: "Data Collection" },
           { title: "Data Cleaning" },
@@ -267,7 +267,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 4: Machine Learning Fundamentals",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m4.mp4",
         topics: [
           { title: "ML Pipeline" },
           { title: "More on Supervised Learning" },
@@ -292,7 +292,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 5: Model Evaluation & Optimization",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m5.mp4",
         topics: [
           { title: "Train/Test Split" },
           { title: "Cross Validation" },
@@ -308,7 +308,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 6: Deep Learning Fundamentals",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m6.mp4",
         topics: [
           { title: "Deep Neural Networks" },
            { title: "Feedforward Neural Networks" },
@@ -331,7 +331,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 7: Computer Vision",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m7.mp4",
         topics: [
          { title: "OpenCV" },
           { title: "Image Processing" },
@@ -346,7 +346,7 @@ const curriculum: Level[] = [
       ] },
       { 
         title: "Module 8: Natural Language Processing",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m8.mp4",
         topics: [ 
           { title: "More on OpenCV" },
           { title: "Text Processing" },
@@ -367,7 +367,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 9: Generative AI & LLMs",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m9.mp4",
         topics: [
           { title: "Introduction to LLMs" },
           { title: "GPT Architecture" },
@@ -382,7 +382,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 10: AI Agents & Automation",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m10.mp4",
         topics: [
           { title: "AI Agents" },
           { title: "Tool Calling" },
@@ -399,7 +399,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 11: Model Deployment & MLOps",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l3m11.mp4",
         topics: [
           { title: "AI Agents" },
           { title: "FastAPI" },
@@ -415,7 +415,7 @@ const curriculum: Level[] = [
       },
          {
            title: "AI Engineer: Your Next Mission!! ",
-           videoUrl: "", // Add your video URL here
+           videoUrl: "/videos/l3m12.mp4",
            topics: [{
            title: "Try It Yourself (Mini Project 2) ",
             isHandsOn: true,
@@ -430,7 +430,7 @@ const curriculum: Level[] = [
     modules: [
       { 
         title: "Module 1: Advanced Mathematics for AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m1.mp4",
         topics: [
           { title: "Advanced Linear Algebra" },
           { title: "Matrix Decomposition" },
@@ -443,7 +443,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 2: Deep Learning Theory",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m2.mp4",
         topics: [
           { title: "Computational Graphs" },
           { title: "Automatic Differentiation" },
@@ -458,7 +458,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 3: Transformer Architecture",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m3.mp4",
         topics: [
           { title: "Self-Attention" },
           { title: "Multi-Head Attention" },
@@ -473,7 +473,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 4: Large Language Models",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m4.mp4",
         topics: [
           { title: "GPT" },
           { title: "BERT" },
@@ -488,7 +488,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 5: LLM Fine-Tuning",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m5.mp4",
         topics: [
         { title: "Fine-Tuning" },
           { title: "LoRA" },
@@ -502,7 +502,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 6: Retrieval-Augmented Generation (RAG)",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m6.mp4",
         topics: [
           { title: "Fine-Tuning" },
           { title: "Embeddings" },
@@ -518,7 +518,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 7: AI Agents & Autonomous Systems",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m7.mp4",
         topics: [
           { title: "Planning" },
           { title: "Reasoning" },
@@ -533,7 +533,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 8: Multimodal AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m8.mp4",
         topics: [
           { title: "Planning" },
           { title: "Vision Transformers" },
@@ -547,7 +547,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 9: AI Infrastructure",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m9.mp4",
         topics: [
           { title: "GPU Programming" },
           { title: "CUDA Basics" },
@@ -562,7 +562,7 @@ const curriculum: Level[] = [
       },
       { 
         title: "Module 10: AI Security & Responsible AI",
-        videoUrl: "", // Add your video URL here
+        videoUrl: "/videos/l4m10.mp4",
         topics: [
 
         { title: "AI Ethics" },
@@ -577,7 +577,7 @@ const curriculum: Level[] = [
       },
         {
           title: "Advanced AI : Your Last Mission!! ",
-          videoUrl: "", // Add your video URL here
+          videoUrl: "/videos/l4m11.mp4",
           topics: [{
            title: "Try It Yourself (Major Project) ",
             isHandsOn: true,
@@ -2030,7 +2030,7 @@ export default function Home() {
                                   style={{
                                     flexShrink: 0,
                                     alignSelf: "center",
-                                    margin: 0,
+                                    margin: "7px",
                                     padding: "0.55rem 0.9rem",
                                     background: `${theme.accent}14`,
                                     border: `1px solid ${theme.accent}55`,

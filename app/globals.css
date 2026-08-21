@@ -1175,7 +1175,6 @@
   flex-direction: column;
   gap: 2.5rem;
   position: relative;
-  padding-left: 52px;
 }
 
 .al-levels::before {

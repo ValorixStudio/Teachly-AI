@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+// Adjust this import path/slug to match how your course registers lab
+// completion (same pattern used by the other labs, e.g. the Generative AI Lab).
+import { markLabTopicComplete } from "../page";
 import {
   Play,
   RotateCcw,
@@ -34,9 +39,13 @@ import {
   Send,
   Plus,
   ArrowRight,
+  ArrowLeft,
   TrendingUp,
   Sliders,
-  Download
+  Download,
+  Copy,
+  ArrowUpDown,
+  Clipboard
 } from "lucide-react";
 
 // ==========================================
@@ -75,6 +84,8 @@ interface StudentData {
   english: number;
   attendance: string;
 }
+
+type SortKey = keyof StudentData;
 
 // ==========================================
 // MISSIONS INITIAL CONFIGURATION
@@ -236,13 +247,7 @@ const MISSIONS: Mission[] = [
     keywords: ["def timer", "wrapper", "*args", "**kwargs", "@timer"],
     activeFile: "decorators.py",
     starterCode: {
-      "decorators.py": `# Mission 7: Python Decorators\nimport time\n\ndef timer(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        end = time.time()\n        print(f"[MONITOR] {func.__name__} executed in {(end - start):.4f}s")\n        return result\n    return wrapper\n\n@timer\ndef analyze_large_dataset():
-    # Simulate work
-    total = sum(i * i for i in range(10000))
-    return total
-
-analyze_large_dataset()
-`
+      "decorators.py": `# Mission 7: Python Decorators\nimport time\n\ndef timer(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        end = time.time()\n        print(f"[MONITOR] {func.__name__} executed in {(end - start):.4f}s")\n        return result\n    return wrapper\n\n@timer\ndef analyze_large_dataset():\n    # Simulate work\n    total = sum(i * i for i in range(10000))\n    return total\n\nanalyze_large_dataset()\n`
     },
     hints: [
       "A decorator takes a function as an argument and returns a replacement function.",
@@ -372,11 +377,30 @@ const INITIAL_PACKAGES: PyPackage[] = [
   { name: "scikit-learn", version: "1.3.2", description: "Machine learning and data mining algorithms in Python", installed: false }
 ];
 
+// Error injection payloads for Mission 6 (used to make the "Inject Error" buttons
+// actually change what the resilient_parser.py mission run reports back).
+const ERROR_INJECTIONS: Record<string, { trace: string; handled: string }> = {
+  "Missing File": {
+    trace: `Traceback (most recent call last):\n  File "resilient_parser.py", line 5, in parse_data\nFileNotFoundError: [Errno 2] No such file or directory: 'non_existent_data.csv'`,
+    handled: "[HANDLED ERROR] File not found. Creating fallback defaults."
+  },
+  "Invalid Number": {
+    trace: `Traceback (most recent call last):\n  File "resilient_parser.py", line 8, in parse_data\nValueError: invalid literal for int() with base 10: 'invalid_number'`,
+    handled: "[HANDLED ERROR] Invalid value encountered: invalid literal for int() with base 10: 'invalid_number'"
+  },
+  "Division By Zero": {
+    trace: `Traceback (most recent call last):\n  File "resilient_parser.py", line 10, in parse_data\nZeroDivisionError: division by zero`,
+    handled: "[HANDLED ERROR] Division by zero avoided safely."
+  }
+};
+
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
 
 export default function PythonEngineeringPlayground() {
+  const router = useRouter();
+
   // Theme State
   const [theme, setTheme] = useState<Theme>("dark");
 
@@ -390,7 +414,7 @@ export default function PythonEngineeringPlayground() {
   // Editor & Files State
   const [fileContents, setFileContents] = useState<Record<string, string>>(MISSIONS[0].starterCode);
   const [activeFileName, setActiveFileName] = useState<string>("main.py");
-  
+
   // Terminal State
   const [terminalLogs, setTerminalLogs] = useState<Array<{ text: string; type: "info" | "success" | "warn" | "error" }>>([
     { text: "🐍 Python Engineering Playground Terminal initialized.", type: "info" },
@@ -428,9 +452,14 @@ export default function PythonEngineeringPlayground() {
   const [capstoneUnlocked, setCapstoneUnlocked] = useState<boolean>(false);
   const [capstoneCompleted, setCapstoneCompleted] = useState<boolean>(false);
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
+  const [capstoneRunning, setCapstoneRunning] = useState<boolean>(false);
 
-  // Data Panel Filter
+  // Data Panel Filter & Sort
   const [dataSearch, setDataSearch] = useState<string>("");
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: "asc" | "desc" } | null>(null);
+
+  // Copy feedback state (which button just fired "Copied!")
+  const [copyFlash, setCopyFlash] = useState<boolean>(false);
 
   const activeMission = MISSIONS.find((m) => m.id === currentMissionId) || MISSIONS[0];
 
@@ -452,6 +481,21 @@ export default function PythonEngineeringPlayground() {
   // Calculate Total Max XP
   const maxXP = MISSIONS.reduce((sum, m) => sum + m.xp, 0) + 200; // 200 extra for Capstone
   const completionPercentage = Math.min(100, Math.round((xp / maxXP) * 100));
+
+  // ---- LIVE INTERACTIVITY: real-time keyword detection as the learner types ----
+  // This powers a live "requirements met" indicator that updates on every
+  // keystroke, instead of only after clicking Run Code.
+  const combinedCode = useMemo(() => Object.values(fileContents).join("\n"), [fileContents]);
+  const keywordStatus = useMemo(
+    () =>
+      activeMission.keywords.map((keyword) => ({
+        keyword,
+        found: combinedCode.toLowerCase().includes(keyword.toLowerCase())
+      })),
+    [combinedCode, activeMission]
+  );
+  const keywordsMetCount = keywordStatus.filter((k) => k.found).length;
+  const isMissionCompleted = completedMissions.includes(activeMission.id);
 
   // Switch Dark/Light Mode
   const toggleTheme = () => {
@@ -484,6 +528,40 @@ export default function PythonEngineeringPlayground() {
     setFileContents(activeMission.starterCode);
     addTerminalLog(`Reset code for ${activeFileName} to default.`, "warn");
     triggerToast("Code reset to starter state.");
+  };
+
+  // Copy active file to clipboard
+  const handleCopyCode = () => {
+    const text = fileContents[activeFileName] || "";
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    setCopyFlash(true);
+    setTimeout(() => setCopyFlash(false), 1500);
+    triggerToast(`📋 Copied ${activeFileName} to clipboard.`);
+  };
+
+  // Download active file to disk
+  const handleDownloadFile = () => {
+    const text = fileContents[activeFileName] || "";
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = activeFileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    triggerToast(`⬇️ Downloaded ${activeFileName}`);
+  };
+
+  // Keyboard shortcut: Cmd/Ctrl + Enter runs the code from the editor
+  const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      handleRunCode();
+    }
   };
 
   // ==========================================
@@ -565,8 +643,14 @@ export default function PythonEngineeringPlayground() {
         const hasTryExcept = code.includes("try:") && code.includes("except");
         if (hasTryExcept) {
           isPassed = true;
+          const injection = injectedError ? ERROR_INJECTIONS[injectedError] : null;
+          feedback = injection
+            ? `Output:\nAttempting to read data file...\n${injection.handled}\n[CLEANUP] File handle operation finalized safely.\n\n✓ Exception handling caught the injected '${injectedError}' fault! Resilience test passed.`
+            : "Output:\nAttempting to read data file...\n[HANDLED ERROR] File/Value error gracefully caught and logged.\n[CLEANUP] File handle operation finalized safely.\n\n✓ Exception handling active! Resilience test passed.";
           setInjectedError(null);
-          feedback = "Output:\nAttempting to read data file...\n[HANDLED ERROR] File/Value error gracefully caught and logged.\n[CLEANUP] File handle operation finalized safely.\n\n✓ Exception handling active! Resilience test passed.";
+        } else if (injectedError) {
+          const injection = ERROR_INJECTIONS[injectedError];
+          feedback = `❌ ${injection.trace}\nCRASH! Unhandled exception terminated execution while simulating '${injectedError}'. Add a try/except block to survive this fault.`;
         } else {
           feedback = "❌ Traceback (most recent call last):\n  File \"main.py\", line 8, in <module>\nValueError: invalid literal for int() with base 10\nCRASH! Unhandled exception terminated execution.";
         }
@@ -598,7 +682,9 @@ export default function PythonEngineeringPlayground() {
           isPassed = true;
           feedback = "Output:\nVirtual Environment: (venv) active\nPython Runtime: 3.11.4 [Isolated]\n\n✓ Virtual Environment validated!";
         } else {
-          feedback = "⚠️ Virtual Environment not activated yet. Use the Shell simulation commands below.";
+          feedback = venvCreated
+            ? "⚠️ Virtual Environment created but not activated yet. Click '$ source venv/bin/activate' in the Virtual Environment Control panel above, then run again."
+            : "⚠️ Virtual Environment not created yet. Click '$ python -m venv venv' in the Virtual Environment Control panel above, then activate it, then run again.";
         }
         break;
       }
@@ -609,7 +695,8 @@ export default function PythonEngineeringPlayground() {
           isPassed = true;
           feedback = "Output:\nPackage Verification:\n- pandas==2.1.4 [INSTALLED]\n- numpy==1.26.2 [INSTALLED]\nRequirements match requirements.txt.\n\n✓ Package Management mission complete!";
         } else {
-          feedback = "⚠️ Missing required dependencies. Go to Package Manager and install 'pandas' and 'numpy'.";
+          const missing = [!pandasInstalled && "pandas", !numpyInstalled && "numpy"].filter(Boolean).join(" and ");
+          feedback = `⚠️ Missing required dependencies. Install ${missing} in the PyPI Package Manager panel above, then run again.`;
         }
         break;
       }
@@ -618,7 +705,14 @@ export default function PythonEngineeringPlayground() {
           isPassed = true;
           feedback = "Output:\nRemote: GitHub Repository Updated!\nBranch: main -> main\nStatus: 100% Synced & Deployed!\n\n✓ Git & GitHub Deployment completed!";
         } else {
-          feedback = "⚠️ Git workflow incomplete. Execute git init, add, commit, and push in the Git simulator.";
+          const nextStep = !gitStatus.initialized
+            ? "git init"
+            : !gitStatus.staged
+            ? "git add ."
+            : !gitStatus.committed
+            ? "git commit"
+            : "git push";
+          feedback = `⚠️ Git workflow incomplete. Next step: click '${nextStep}' in the Git Version Control panel above.`;
         }
         break;
       }
@@ -673,6 +767,7 @@ export default function PythonEngineeringPlayground() {
   // Run Capstone Challenge Validation
   const handleRunCapstone = () => {
     setActiveTab("terminal");
+    setCapstoneRunning(true);
     addTerminalLog("$ python capstone_analyzer.py", "info");
     addTerminalLog("Executing Full Pipeline Python Data Analyzer...", "info");
 
@@ -688,14 +783,60 @@ export default function PythonEngineeringPlayground() {
         setCapstoneCompleted(true);
         setXp((prev) => prev + 200);
         setShowCertificate(true);
+        // Same "finish & unlock next" pattern used across the other labs:
+        // record that this lab topic is complete so the curriculum can unlock
+        // whatever comes next.
+        markLabTopicComplete("python-playground");
       }
+      setCapstoneRunning(false);
     }, 1000);
   };
 
-  // Filtered dataset for Data Panel
+  // Finish flow: close the certificate and hand the learner back to the curriculum
+  const handleContinueToCurriculum = () => {
+    setShowCertificate(false);
+    router.push("/");
+  };
+
+  const handleSort = (key: SortKey) => {
+    setSortConfig((prev) => {
+      if (prev && prev.key === key) {
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  // Filtered + sorted dataset for Data Panel
   const filteredStudents = SAMPLE_STUDENTS_DATA.filter((s) =>
     s.name.toLowerCase().includes(dataSearch.toLowerCase())
   );
+  const sortedStudents = useMemo(() => {
+    const list = [...filteredStudents];
+    if (!sortConfig) return list;
+    const { key, direction } = sortConfig;
+    list.sort((a, b) => {
+      const aVal = a[key];
+      const bVal = b[key];
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return direction === "asc" ? aVal - bVal : bVal - aVal;
+      }
+      return direction === "asc"
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
+    return list;
+  }, [filteredStudents, sortConfig]);
+
+  const dataColumns: { key: SortKey; label: string }[] = [
+    { key: "id", label: "ID" },
+    { key: "name", label: "Name" },
+    { key: "age", label: "Age" },
+    { key: "math", label: "Math" },
+    { key: "science", label: "Science" },
+    { key: "english", label: "English" },
+    { key: "attendance", label: "Attendance" }
+  ];
 
   return (
     <div className={theme === "dark" ? "bg-slate-950 text-slate-100 min-h-screen font-sans" : "bg-slate-50 text-slate-900 min-h-screen font-sans"}>
@@ -707,8 +848,22 @@ export default function PythonEngineeringPlayground() {
         </div>
       )}
 
+      {/* BACK TO CURRICULUM */}
+      <div className="max-w-7xl mx-auto px-4 pt-3">
+        <Link
+          href="/"
+          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+            theme === "dark"
+              ? "text-slate-400 hover:text-indigo-300 bg-slate-900/60 border-slate-800 hover:border-indigo-500/40"
+              : "text-slate-500 hover:text-indigo-600 bg-white border-slate-200 hover:border-indigo-300"
+          }`}
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Curriculum
+        </Link>
+      </div>
+
       {/* TOP HEADER */}
-      <header className={`border-b ${theme === "dark" ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"} backdrop-blur sticky top-0 z-40 px-4 py-3`}>
+      <header className={`border-b ${theme === "dark" ? "bg-slate-900/80 border-slate-800" : "bg-white/80 border-slate-200"} backdrop-blur sticky top-0 z-40 px-4 py-3 mt-3`}>
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           {/* Logo & Title */}
           <div className="flex items-center gap-3">
@@ -722,7 +877,7 @@ export default function PythonEngineeringPlayground() {
                   Level 3 • Engineer
                 </span>
               </h1>
-              <p className="text-xs text-slate-400">Interactive Interactive Hands-On Lab</p>
+              <p className="text-xs text-slate-400">Interactive Hands-On Lab</p>
             </div>
           </div>
 
@@ -907,16 +1062,46 @@ export default function PythonEngineeringPlayground() {
               </div>
             </div>
 
-            {/* Checklist */}
+            {/* Checklist -- now reflects live completion state, not just static text */}
             <div className="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-2 gap-2">
               {activeMission.requirements.map((req, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-xs text-slate-400">
-                  <div className="w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] transition-colors ${
+                      isMissionCompleted
+                        ? "bg-emerald-500 border-emerald-500 text-slate-950"
+                        : "border-slate-700 text-slate-600"
+                    }`}
+                  >
                     ✓
                   </div>
-                  <span>{req}</span>
+                  <span className={isMissionCompleted ? "text-slate-300" : ""}>{req}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Live keyword/syntax detector -- updates on every keystroke */}
+            <div className="mt-3 pt-3 border-t border-slate-800/60">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Live Syntax Check</span>
+                <span className={`text-[10px] font-mono font-bold ${keywordsMetCount === activeMission.keywords.length ? "text-emerald-400" : "text-amber-400"}`}>
+                  {keywordsMetCount}/{activeMission.keywords.length} detected
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {keywordStatus.map(({ keyword, found }) => (
+                  <span
+                    key={keyword}
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors ${
+                      found
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300"
+                        : "bg-slate-800/60 border-slate-700 text-slate-500"
+                    }`}
+                  >
+                    {found ? "✓ " : "· "}{keyword}
+                  </span>
+                ))}
+              </div>
             </div>
 
             {/* Active Hint display */}
@@ -997,15 +1182,219 @@ export default function PythonEngineeringPlayground() {
                 </button>
               </div>
 
-              {/* Execution Action */}
-              <button
-                onClick={handleRunCode}
-                className="my-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-              >
-                <Play className="w-3.5 h-3.5 fill-slate-950" />
-                Run Code
-              </button>
+              {/* Execution Action + live badge */}
+              <div className="flex items-center gap-2 my-1.5">
+                <span
+                  className={`hidden sm:inline-flex text-[10px] font-mono font-bold px-2 py-1 rounded-md border ${
+                    keywordsMetCount === activeMission.keywords.length
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                      : "bg-slate-800 border-slate-700 text-slate-400"
+                  }`}
+                  title="Live syntax detection based on your current code"
+                >
+                  {keywordsMetCount}/{activeMission.keywords.length} ready
+                </span>
+                <button
+                  onClick={handleRunCode}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs px-4 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                  title="Run Code (Ctrl/Cmd + Enter)"
+                >
+                  <Play className="w-3.5 h-3.5 fill-slate-950" />
+                  Run Code
+                </button>
+              </div>
             </div>
+
+            {/* MISSION 9 SPECIFIC TOOL: VIRTUAL ENV SIMULATOR -- persistent across all tabs so it's
+                always reachable, including right after the Run Code warning bounces you to Terminal */}
+            {currentMissionId === 9 && (
+              <div className="mx-4 mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+                <h4 className="font-bold text-slate-300 flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-indigo-400" /> Virtual Environment Control
+                </h4>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    disabled={venvCreated}
+                    onClick={() => {
+                      if (venvCreated) return;
+                      setVenvCreated(true);
+                      addTerminalLog("$ python -m venv venv -> Created directory ./venv", "info");
+                      triggerToast("📁 Virtual environment directory created.");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      venvCreated
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                    }`}
+                  >
+                    {venvCreated && <Check className="w-3.5 h-3.5" />}
+                    $ python -m venv venv
+                  </button>
+                  <button
+                    disabled={!venvCreated || venvActive}
+                    onClick={() => {
+                      if (!venvCreated || venvActive) return;
+                      setVenvActive(true);
+                      addTerminalLog("$ source venv/bin/activate -> Environment (venv) ACTIVE", "success");
+                      triggerToast("✅ Virtual environment activated.");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      venvActive
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : venvCreated
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500"
+                        : "bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed"
+                    }`}
+                  >
+                    {venvActive && <Check className="w-3.5 h-3.5" />}
+                    $ source venv/bin/activate
+                  </button>
+                  {(venvCreated || venvActive) && (
+                    <button
+                      onClick={() => {
+                        setVenvCreated(false);
+                        setVenvActive(false);
+                        addTerminalLog("$ deactivate && rm -rf venv -> Environment removed", "warn");
+                        triggerToast("🗑️ Virtual environment reset.");
+                      }}
+                      className="px-3 py-1.5 rounded border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 flex items-center gap-1.5 transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Reset Env
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      venvActive ? "bg-emerald-400" : venvCreated ? "bg-amber-400" : "bg-slate-600"
+                    }`}
+                  />
+                  Status:{" "}
+                  <span className={venvActive ? "text-emerald-400 font-bold" : venvCreated ? "text-amber-400 font-bold" : "text-slate-500 font-bold"}>
+                    {venvActive ? "Active (venv)" : venvCreated ? "Created, not activated" : "Global Environment"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* MISSION 10 SPECIFIC TOOL: PACKAGE MANAGER -- persistent across all tabs, same fix as venv */}
+            {currentMissionId === 10 && (
+              <div className="mx-4 mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+                <h4 className="font-bold text-slate-300 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-indigo-400" /> PyPI Package Manager Simulator
+                </h4>
+                <div className="space-y-2">
+                  {packages.map((pkg) => (
+                    <div key={pkg.name} className="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                      <div>
+                        <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                          {pkg.installed && <Check className="w-3 h-3 text-emerald-400" />}
+                          {pkg.name} <span className="text-slate-500 text-[10px]">v{pkg.version}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400">{pkg.description}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setPackages((prev) => prev.map((p) => (p.name === pkg.name ? { ...p, installed: !p.installed } : p)));
+                          addTerminalLog(`pip ${pkg.installed ? "uninstall" : "install"} ${pkg.name}`, "info");
+                          triggerToast(`${pkg.installed ? "🗑️ Uninstalled" : "📦 Installed"} ${pkg.name}`);
+                        }}
+                        className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
+                          pkg.installed
+                            ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30"
+                            : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30"
+                        }`}
+                      >
+                        {pkg.installed ? "Uninstall" : "Install"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* MISSION 11 SPECIFIC TOOL: GIT SIMULATOR -- persistent across all tabs, same fix as venv */}
+            {currentMissionId === 11 && (
+              <div className="mx-4 mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
+                <h4 className="font-bold text-slate-300 flex items-center gap-2">
+                  <GitBranch className="w-4 h-4 text-indigo-400" /> Git Version Control Actions
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    disabled={gitStatus.initialized}
+                    onClick={() => {
+                      setGitStatus((prev) => ({ ...prev, initialized: true }));
+                      addTerminalLog("$ git init -> Initialized empty Git repository in .git/", "info");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      gitStatus.initialized
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                    }`}
+                  >
+                    {gitStatus.initialized && <Check className="w-3.5 h-3.5" />}
+                    git init
+                  </button>
+                  <button
+                    disabled={!gitStatus.initialized || gitStatus.staged}
+                    onClick={() => {
+                      setGitStatus((prev) => ({ ...prev, staged: true }));
+                      addTerminalLog("$ git add . -> Staged 8 modified files", "info");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      gitStatus.staged
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 disabled:opacity-40"
+                    }`}
+                  >
+                    {gitStatus.staged && <Check className="w-3.5 h-3.5" />}
+                    git add .
+                  </button>
+                  <button
+                    disabled={!gitStatus.staged || gitStatus.committed}
+                    onClick={() => {
+                      setGitStatus((prev) => ({ ...prev, committed: true }));
+                      addTerminalLog("$ git commit -m 'feat: complete python analyzer' -> Commit saved", "info");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      gitStatus.committed
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 disabled:opacity-40"
+                    }`}
+                  >
+                    {gitStatus.committed && <Check className="w-3.5 h-3.5" />}
+                    git commit
+                  </button>
+                  <button
+                    disabled={!gitStatus.committed || gitStatus.pushed}
+                    onClick={() => {
+                      setGitStatus((prev) => ({ ...prev, pushed: true }));
+                      addTerminalLog("$ git push origin main -> Deployed to GitHub repository!", "success");
+                      triggerToast("🚀 Pushed to GitHub.");
+                    }}
+                    className={`px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                      gitStatus.pushed
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default"
+                        : "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 disabled:opacity-40"
+                    }`}
+                  >
+                    {gitStatus.pushed && <Check className="w-3.5 h-3.5" />}
+                    git push
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                  {["initialized", "staged", "committed", "pushed"].map((step, i) => (
+                    <React.Fragment key={step}>
+                      {i > 0 && <ArrowRight className="w-3 h-3 text-slate-700" />}
+                      <span className={(gitStatus as any)[step] ? "text-emerald-400 font-bold capitalize" : "text-slate-600 capitalize"}>
+                        {step}
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* TAB CONTENT PANELS */}
             <div className="p-4 min-h-[380px]">
@@ -1013,22 +1402,42 @@ export default function PythonEngineeringPlayground() {
               {/* TAB 1: CODE EDITOR */}
               {activeTab === "code" && (
                 <div className="space-y-3">
-                  {/* File Selector Tabs if mission has multiple files */}
-                  <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-                    {Object.keys(fileContents).map((fileName) => (
+                  {/* File Selector Tabs + Copy/Download toolbar */}
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {Object.keys(fileContents).map((fileName) => (
+                        <button
+                          key={fileName}
+                          onClick={() => setActiveFileName(fileName)}
+                          className={`text-xs px-3 py-1 rounded-md font-mono flex items-center gap-1.5 transition-colors ${
+                            activeFileName === fileName
+                              ? "bg-slate-800 text-indigo-300 border border-slate-700"
+                              : "text-slate-400 hover:bg-slate-800/50"
+                          }`}
+                        >
+                          <FileText className="w-3 h-3" />
+                          {fileName}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
                       <button
-                        key={fileName}
-                        onClick={() => setActiveFileName(fileName)}
-                        className={`text-xs px-3 py-1 rounded-md font-mono flex items-center gap-1.5 transition-colors ${
-                          activeFileName === fileName
-                            ? "bg-slate-800 text-indigo-300 border border-slate-700"
-                            : "text-slate-400 hover:bg-slate-800/50"
-                        }`}
+                        onClick={handleCopyCode}
+                        className="text-[11px] flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                        title="Copy current file"
                       >
-                        <FileText className="w-3 h-3" />
-                        {fileName}
+                        {copyFlash ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copyFlash ? "Copied" : "Copy"}
                       </button>
-                    ))}
+                      <button
+                        onClick={handleDownloadFile}
+                        className="text-[11px] flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                        title="Download current file"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download
+                      </button>
+                    </div>
                   </div>
 
                   {/* Textarea Code Editor */}
@@ -1050,11 +1459,15 @@ export default function PythonEngineeringPlayground() {
                             [activeFileName]: e.target.value
                           })
                         }
+                        onKeyDown={handleEditorKeyDown}
                         className="w-full h-80 bg-transparent p-3 text-slate-200 focus:outline-none resize-none font-mono text-xs leading-relaxed"
                         spellCheck={false}
                       />
                     </div>
                   </div>
+                  <p className="text-[10px] text-slate-500 flex items-center gap-1">
+                    <Clipboard className="w-3 h-3" /> Tip: press <kbd className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono">Ctrl/Cmd + Enter</kbd> to run instantly.
+                  </p>
 
                   {/* MISSION 6 SPECIFIC TOOL: INJECT ERROR */}
                   {currentMissionId === 6 && (
@@ -1069,133 +1482,24 @@ export default function PythonEngineeringPlayground() {
                             key={errName}
                             onClick={() => {
                               setInjectedError(errName);
-                              addTerminalLog(`[SIMULATION] Injected fault: ${errName}`, "error");
+                              addTerminalLog(`[SIMULATION] Injected fault: ${errName}. Click Run Code to see the effect.`, "error");
+                              setActiveTab("terminal");
                             }}
-                            className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-2.5 py-1 rounded border border-rose-500/30 text-[11px]"
+                            className={`px-2.5 py-1 rounded border text-[11px] transition-colors ${
+                              injectedError === errName
+                                ? "bg-rose-500/40 text-white border-rose-400"
+                                : "bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border-rose-500/30"
+                            }`}
                           >
                             Trigger {errName}
                           </button>
                         ))}
                       </div>
-                    </div>
-                  )}
-
-                  {/* MISSION 9 SPECIFIC TOOL: VIRTUAL ENV SIMULATOR */}
-                  {currentMissionId === 9 && (
-                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
-                      <h4 className="font-bold text-slate-300 flex items-center gap-2">
-                        <Sliders className="w-4 h-4 text-indigo-400" /> Virtual Environment Control
-                      </h4>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setVenvCreated(true);
-                            addTerminalLog("$ python -m venv venv -> Created directory ./venv", "info");
-                          }}
-                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700"
-                        >
-                          $ python -m venv venv
-                        </button>
-                        <button
-                          disabled={!venvCreated}
-                          onClick={() => {
-                            setVenvActive(true);
-                            addTerminalLog("$ source venv/bin/activate -> Environment (venv) ACTIVE", "success");
-                          }}
-                          className={`px-3 py-1.5 rounded border ${
-                            venvCreated
-                              ? "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500"
-                              : "bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed"
-                          }`}
-                        >
-                          $ source venv/bin/activate
-                        </button>
-                      </div>
-                      <div className="text-[11px] text-slate-400">
-                        Status: <span className={venvActive ? "text-emerald-400 font-bold" : "text-amber-400"}>{venvActive ? "Active (venv)" : "Global Environment"}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MISSION 10 SPECIFIC TOOL: PACKAGE MANAGER */}
-                  {currentMissionId === 10 && (
-                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
-                      <h4 className="font-bold text-slate-300 flex items-center gap-2">
-                        <Package className="w-4 h-4 text-indigo-400" /> PyPI Package Manager Simulator
-                      </h4>
-                      <div className="space-y-2">
-                        {packages.map((pkg) => (
-                          <div key={pkg.name} className="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800">
-                            <div>
-                              <div className="font-bold text-slate-200">{pkg.name} <span className="text-slate-500 text-[10px]">v{pkg.version}</span></div>
-                              <div className="text-[10px] text-slate-400">{pkg.description}</div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setPackages(packages.map(p => p.name === pkg.name ? { ...p, installed: !p.installed } : p));
-                                addTerminalLog(`pip ${pkg.installed ? 'uninstall' : 'install'} ${pkg.name}`, "info");
-                              }}
-                              className={`px-2.5 py-1 rounded text-[11px] font-bold ${
-                                pkg.installed
-                                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                              }`}
-                            >
-                              {pkg.installed ? "Uninstall" : "Install"}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MISSION 11 SPECIFIC TOOL: GIT SIMULATOR */}
-                  {currentMissionId === 11 && (
-                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3">
-                      <h4 className="font-bold text-slate-300 flex items-center gap-2">
-                        <GitBranch className="w-4 h-4 text-indigo-400" /> Git Version Control Actions
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => {
-                            setGitStatus((prev) => ({ ...prev, initialized: true }));
-                            addTerminalLog("$ git init -> Initialized empty Git repository in .git/", "info");
-                          }}
-                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700"
-                        >
-                          git init
-                        </button>
-                        <button
-                          disabled={!gitStatus.initialized}
-                          onClick={() => {
-                            setGitStatus((prev) => ({ ...prev, staged: true }));
-                            addTerminalLog("$ git add . -> Staged 8 modified files", "info");
-                          }}
-                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 disabled:opacity-40"
-                        >
-                          git add .
-                        </button>
-                        <button
-                          disabled={!gitStatus.staged}
-                          onClick={() => {
-                            setGitStatus((prev) => ({ ...prev, committed: true }));
-                            addTerminalLog("$ git commit -m 'feat: complete python analyzer' -> Commit saved", "info");
-                          }}
-                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded border border-slate-700 disabled:opacity-40"
-                        >
-                          git commit
-                        </button>
-                        <button
-                          disabled={!gitStatus.committed}
-                          onClick={() => {
-                            setGitStatus((prev) => ({ ...prev, pushed: true }));
-                            addTerminalLog("$ git push origin main -> Deployed to GitHub repository!", "success");
-                          }}
-                          className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded border border-indigo-500 disabled:opacity-40"
-                        >
-                          git push
-                        </button>
-                      </div>
+                      {injectedError && (
+                        <p className="text-[11px] text-rose-200/80">
+                          Active fault: <strong>{injectedError}</strong>. Run the code to see if your try/except handles it.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1285,17 +1589,30 @@ export default function PythonEngineeringPlayground() {
                     <table className="w-full text-left text-xs text-slate-300">
                       <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-mono">
                         <tr>
-                          <th className="p-2.5">ID</th>
-                          <th className="p-2.5">Name</th>
-                          <th className="p-2.5">Age</th>
-                          <th className="p-2.5">Math</th>
-                          <th className="p-2.5">Science</th>
-                          <th className="p-2.5">English</th>
-                          <th className="p-2.5">Attendance</th>
+                          {dataColumns.map((col) => (
+                            <th key={col.key} className="p-0">
+                              <button
+                                onClick={() => handleSort(col.key)}
+                                className="w-full flex items-center gap-1 p-2.5 hover:text-indigo-300 transition-colors"
+                              >
+                                {col.label}
+                                <ArrowUpDown
+                                  className={`w-3 h-3 ${
+                                    sortConfig?.key === col.key ? "text-indigo-400" : "text-slate-600"
+                                  }`}
+                                />
+                                {sortConfig?.key === col.key && (
+                                  <span className="text-[9px] text-indigo-400">
+                                    {sortConfig.direction === "asc" ? "ASC" : "DESC"}
+                                  </span>
+                                )}
+                              </button>
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/60 bg-slate-900/40 font-mono">
-                        {filteredStudents.map((s) => (
+                        {sortedStudents.map((s) => (
                           <tr key={s.id} className="hover:bg-slate-800/50">
                             <td className="p-2.5 text-slate-500">#{s.id}</td>
                             <td className="p-2.5 font-bold text-slate-200">{s.name}</td>
@@ -1306,6 +1623,11 @@ export default function PythonEngineeringPlayground() {
                             <td className="p-2.5 text-emerald-400">{s.attendance}</td>
                           </tr>
                         ))}
+                        {sortedStudents.length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="p-4 text-center text-slate-500">No students match your search.</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1350,7 +1672,7 @@ export default function PythonEngineeringPlayground() {
           {/* CAPSTONE RUNNER PANEL (Unlocked when all missions complete) */}
           {capstoneUnlocked && (
             <div className="p-5 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-500/10 shadow-lg space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <h3 className="text-lg font-bold text-amber-300 flex items-center gap-2">
                     🚀 Capstone Mission: Full Python Analyzer
@@ -1361,9 +1683,20 @@ export default function PythonEngineeringPlayground() {
                 </div>
                 <button
                   onClick={handleRunCapstone}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-5 py-2 rounded-xl shadow-lg transition-transform active:scale-95"
+                  disabled={capstoneRunning}
+                  className="bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-wait text-slate-950 font-bold text-xs px-5 py-2 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2"
                 >
-                  Deploy Capstone Analyzer
+                  {capstoneRunning ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Deploying...
+                    </>
+                  ) : capstoneCompleted ? (
+                    <>
+                      <ArrowRight className="w-3.5 h-3.5" /> Finish &amp; Unlock Next
+                    </>
+                  ) : (
+                    "Deploy Capstone Analyzer"
+                  )}
                 </button>
               </div>
             </div>
@@ -1409,12 +1742,18 @@ export default function PythonEngineeringPlayground() {
               ))}
             </div>
 
-            <div className="flex items-center justify-center gap-4 pt-2">
+            <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
               <button
                 onClick={() => setShowCertificate(false)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all"
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-6 py-2.5 rounded-xl transition-all"
               >
                 Review Playground
+              </button>
+              <button
+                onClick={handleContinueToCurriculum}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+              >
+                Finish &amp; Unlock Next <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
