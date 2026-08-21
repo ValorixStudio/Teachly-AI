@@ -46,7 +46,7 @@ const curriculum: Level[] = [
     modules: [
       {
         title: "Module 1: What is AI?",
-        videoUrl: "/videos/l1m1.mp4", 
+        videoUrl: "/videos/l1m1.mp4",
         topics: [
           { title: "What is Intelligence?", labPath: "what-is-intelligence" },
           {
@@ -61,7 +61,7 @@ const curriculum: Level[] = [
       },
       {
         title: "Module 2: Machine Learning Without Math",
-        videoUrl: "/videos/l1m2.mp4", 
+        videoUrl: "/videos/l1m2.mp4",
         topics: [
           { title: "What is Learning?" },
           { title: "How Machines Learn" },
@@ -100,17 +100,19 @@ const curriculum: Level[] = [
           {
             title: "ChatGPT and Generative AI Lab",
             isHandsOn: true,
-            labPath: "/chatgpt-and-genAI-lab"},
+            labPath: "/chatgpt-and-genAI-lab"
+          },
         ],
       },
-  {
-    title: "AI Explorer: Your First Mission!! ",
-    videoUrl: "/videos/l1m5.mp4",
-    topics: [{
-           title: "Try It Yourself ",
-            isHandsOn: true,
-            labPath: "/mission-1"}, ]
-  }
+      {
+        title: "AI Explorer: Your First Mission!! ",
+        videoUrl: "/videos/l1m5.mp4",
+        topics: [{
+          title: "Try It Yourself ",
+          isHandsOn: true,
+          labPath: "/mission-1"
+        },]
+      }
     ],
   },
   {
@@ -175,7 +177,6 @@ const curriculum: Level[] = [
           { title: "Activation Functions" },
           { title: "Layers" },
           { title: "Forward Propagation" },
-          // Hands-on: this is the one that jumps into the real lab
           {
             title: "Neural Network Lab",
             isHandsOn: true,
@@ -202,9 +203,10 @@ const curriculum: Level[] = [
         title: "AI Foundations: Your Second Mission!! ",
         videoUrl: "/videos/l2m6.mp4",
         topics: [{
-           title: "Try It Yourself (Mini Project1) ",
-            isHandsOn: true,
-            labPath: "/mission-2"}, ]
+          title: "Try It Yourself (Mini Project1) ",
+          isHandsOn: true,
+          labPath: "/mission-2"
+        },]
       }
     ],
   },
@@ -226,12 +228,9 @@ const curriculum: Level[] = [
           { title: "Virtual Environments" },
           { title: "Package Management" },
           { title: "Git & GitHub Basics" },
-          
           { title: "Python Playground", isHandsOn: true, labPath: "/python-playground" }
-
         ],
       },
-      
       {
         title: "Module 2: Mathematics for AI",
         videoUrl: "/videos/l3m2.mp4",
@@ -246,7 +245,7 @@ const curriculum: Level[] = [
           { title: "Probability" },
           { title: "Statistics" },
           { title: "Bayes Theorem" },
-           { title: "Maths for AI Lab", isHandsOn: true, labPath: "/math-ai" }
+          { title: "Maths for AI Lab", isHandsOn: true, labPath: "/math-ai" }
         ],
       },
       {
@@ -287,7 +286,7 @@ const curriculum: Level[] = [
           { title: "PCA" },
           { title: "Build Multiple ML Models", isHandsOn: true },
           { title: "Unsupervised Learning Simulator", isHandsOn: true, labPath: "/unsupervised-simulator" },
-            { title: "Reinforcement Learning Lab", isHandsOn: true, labPath: "/rnn-lab" },
+          { title: "Reinforcement Learning Lab", isHandsOn: true, labPath: "/rnn-lab" },
         ],
       },
       {
@@ -303,7 +302,6 @@ const curriculum: Level[] = [
           { title: "ROC Curve" },
           { title: "Confusion Matrix" },
           { title: "Bias-Variance Tradeoff" },
-          
         ],
       },
       {
@@ -311,61 +309,60 @@ const curriculum: Level[] = [
         videoUrl: "/videos/l3m6.mp4",
         topics: [
           { title: "Deep Neural Networks" },
-           { title: "Feedforward Neural Networks" },
+          { title: "Feedforward Neural Networks" },
           { title: "More on Forward Propagation" },
-           { title: "Loss Functions" },
+          { title: "Loss Functions" },
           { title: "Backpropagation" },
           { title: "Gradient Descent" },
           { title: "Optimizers" },
-           { title: "Batch Normalization" }, 
+          { title: "Batch Normalization" },
           { title: "Regularization" },
           { title: "Dropout" },
-           {
+          {
             title: "Feedforward Neural Network Simulation Lab",
             isHandsOn: true,
             labPath: "/deep-neural-network-lab"
           },
-           { title: "DNN Lab", isHandsOn: true, labPath: "/dnn-lab" },
-          
+          { title: "DNN Lab", isHandsOn: true, labPath: "/dnn-lab" },
         ],
       },
-      { 
+      {
         title: "Module 7: Computer Vision",
         videoUrl: "/videos/l3m7.mp4",
         topics: [
-         { title: "OpenCV" },
+          { title: "OpenCV" },
           { title: "Image Processing" },
           { title: "CNN-2" },
           { title: "Transfer Learning" },
           { title: "Object Detection" },
           { title: "Image Segmentation" },
           { title: "More on OCR" },
-          { title: "YOLO"}, 
+          { title: "YOLO" },
           { title: "CNN Lab", isHandsOn: true, labPath: "/cnn-lab" },
-          
-      ] },
-      { 
+        ]
+      },
+      {
         title: "Module 8: Natural Language Processing",
         videoUrl: "/videos/l3m8.mp4",
-        topics: [ 
+        topics: [
           { title: "More on OpenCV" },
           { title: "Text Processing" },
           { title: "Tokenization" },
           { title: "Stemming" },
           { title: "Lemmatization" },
           { title: "Embeddings" },
-          { title: "Word2Vec"},
-          { title: "GloVe"},
-            { title: "BERT"},
-                { title: "Transformers"},
-                 {
+          { title: "Word2Vec" },
+          { title: "GloVe" },
+          { title: "BERT" },
+          { title: "Transformers" },
+          {
             title: "Transformers Simulation Lab",
             isHandsOn: true,
             labPath: "/transformers-lab"
           }
-        ] 
+        ]
       },
-      { 
+      {
         title: "Module 9: Generative AI & LLMs",
         videoUrl: "/videos/l3m9.mp4",
         topics: [
@@ -374,13 +371,12 @@ const curriculum: Level[] = [
           { title: "More on Prompt Engineering" },
           { title: "LLM Embeddings" },
           { title: "Vector Databases" },
-          { title: "Retrieval-Augmented Generation (RAG)"},
-          { title: "Function Calling"},
-            { title: "Context Windows"},
-
-      ] 
+          { title: "Retrieval-Augmented Generation (RAG)" },
+          { title: "Function Calling" },
+          { title: "Context Windows" },
+        ]
       },
-      { 
+      {
         title: "Module 10: AI Agents & Automation",
         videoUrl: "/videos/l3m10.mp4",
         topics: [
@@ -389,15 +385,12 @@ const curriculum: Level[] = [
           { title: "Memory Systems" },
           { title: "Multi-Agent Systems" },
           { title: "Embeddings" },
-          { title: "LangChain"},
-          { title: "CrewAI"},
-            { title: "MCP Basics"},
-          
-
-
-      ] 
+          { title: "LangChain" },
+          { title: "CrewAI" },
+          { title: "MCP Basics" },
+        ]
       },
-      { 
+      {
         title: "Module 11: Model Deployment & MLOps",
         videoUrl: "/videos/l3m11.mp4",
         topics: [
@@ -406,29 +399,27 @@ const curriculum: Level[] = [
           { title: "Docker" },
           { title: "Kubernetes" },
           { title: "MLflow" },
-          { title: "CI/CD"},
-          { title: "Monitoring"},
-            { title: "Logging"},
-             { title: "Model Serving"},
-
-      ] 
+          { title: "CI/CD" },
+          { title: "Monitoring" },
+          { title: "Logging" },
+          { title: "Model Serving" },
+        ]
       },
-         {
-           title: "AI Engineer: Your Next Mission!! ",
-           videoUrl: "/videos/l3m12.mp4",
-           topics: [{
-           title: "Try It Yourself (Mini Project 2) ",
-            isHandsOn: true,
-            labPath: "/mission-3"}, ], 
-         },
+      {
+        title: "AI Engineer: Your Next Mission!! ",
+        videoUrl: "/videos/l3m12.mp4",
+        topics: [{
+          title: "Try It Yourself (Mini Project 2) ",
+          isHandsOn: true,
+          labPath: "/mission-3"
+        },],
+      },
     ],
-    
   },
-
   {
     title: "Level 4 - Advanced AI",
     modules: [
-      { 
+      {
         title: "Module 1: Advanced Mathematics for AI",
         videoUrl: "/videos/l4m1.mp4",
         topics: [
@@ -436,12 +427,11 @@ const curriculum: Level[] = [
           { title: "Matrix Decomposition" },
           { title: "Multivariable Calculus" },
           { title: "Convex Optimization" },
-          { title: "Information Theory"},
-          { title: "Numerical Optimization"},
-           
-      ] 
+          { title: "Information Theory" },
+          { title: "Numerical Optimization" },
+        ]
       },
-      { 
+      {
         title: "Module 2: Deep Learning Theory",
         videoUrl: "/videos/l4m2.mp4",
         topics: [
@@ -449,14 +439,12 @@ const curriculum: Level[] = [
           { title: "Automatic Differentiation" },
           { title: "Gradient Flow" },
           { title: "Vanishing/Exploding Gradients" },
-          { title: "Residual Networks"},
-          { title: "Advanced Optimizers"},
-           { title: "Learning Rate Scheduling"},
-           
-        
-      ] 
+          { title: "Residual Networks" },
+          { title: "Advanced Optimizers" },
+          { title: "Learning Rate Scheduling" },
+        ]
       },
-      { 
+      {
         title: "Module 3: Transformer Architecture",
         videoUrl: "/videos/l4m3.mp4",
         topics: [
@@ -464,14 +452,13 @@ const curriculum: Level[] = [
           { title: "Multi-Head Attention" },
           { title: "Positional Encoding" },
           { title: "Encoder" },
-          { title: "Decoder"},
-          { title: "Cross Attention"},
-           { title: "Feed Forward Networks"},
-           { title: "Layer Normalization"},
-
-      ] 
+          { title: "Decoder" },
+          { title: "Cross Attention" },
+          { title: "Feed Forward Networks" },
+          { title: "Layer Normalization" },
+        ]
       },
-      { 
+      {
         title: "Module 4: Large Language Models",
         videoUrl: "/videos/l4m4.mp4",
         topics: [
@@ -479,28 +466,27 @@ const curriculum: Level[] = [
           { title: "BERT" },
           { title: "LLaMA" },
           { title: "Mistral" },
-          { title: "Gemma"},
-          { title: "Tokenizers"},
-           { title: "Scaling Laws"},
-           { title: "Inference Optimization"},
-
-      ] 
+          { title: "Gemma" },
+          { title: "Tokenizers" },
+          { title: "Scaling Laws" },
+          { title: "Inference Optimization" },
+        ]
       },
-      { 
+      {
         title: "Module 5: LLM Fine-Tuning",
         videoUrl: "/videos/l4m5.mp4",
         topics: [
-        { title: "Fine-Tuning" },
+          { title: "Fine-Tuning" },
           { title: "LoRA" },
           { title: "QLoRA" },
           { title: "PEFT" },
-          { title: "RLHF"},
-          { title: "DPO"},
-           { title: "Model Distillation"},
-           { title: "Quantization"},
-      ] 
+          { title: "RLHF" },
+          { title: "DPO" },
+          { title: "Model Distillation" },
+          { title: "Quantization" },
+        ]
       },
-      { 
+      {
         title: "Module 6: Retrieval-Augmented Generation (RAG)",
         videoUrl: "/videos/l4m6.mp4",
         topics: [
@@ -508,87 +494,79 @@ const curriculum: Level[] = [
           { title: "Embeddings" },
           { title: "Chunking" },
           { title: "Retrieval Strategies" },
-          { title: "Hybrid Search"},
-          { title: "Vector Databases"},
-           { title: "Knowledge Graphs"},
-           { title: "Reranking"},
-           { title: "Evaluation"},
-
-      ] 
+          { title: "Hybrid Search" },
+          { title: "Vector Databases" },
+          { title: "Knowledge Graphs" },
+          { title: "Reranking" },
+          { title: "Evaluation" },
+        ]
       },
-      { 
+      {
         title: "Module 7: AI Agents & Autonomous Systems",
         videoUrl: "/videos/l4m7.mp4",
         topics: [
           { title: "Planning" },
           { title: "Reasoning" },
           { title: "Reflection" },
-          { title: "Memory Architectures"},
-          { title: "Agent Communication"},
-           { title: "Multi-Agent Collaboration"},
-           { title: "Tool Use"},
-           { title: "Agent Evaluation"},
-
-      ] 
+          { title: "Memory Architectures" },
+          { title: "Agent Communication" },
+          { title: "Multi-Agent Collaboration" },
+          { title: "Tool Use" },
+          { title: "Agent Evaluation" },
+        ]
       },
-      { 
+      {
         title: "Module 8: Multimodal AI",
         videoUrl: "/videos/l4m8.mp4",
         topics: [
           { title: "Planning" },
           { title: "Vision Transformers" },
           { title: "Vision-Language Models" },
-          { title: "Image Generation"},
-          { title: "Speech Models"},
-           { title: "Audio Understanding"},
-           { title: "Video Understanding"},
-
-      ] 
+          { title: "Image Generation" },
+          { title: "Speech Models" },
+          { title: "Audio Understanding" },
+          { title: "Video Understanding" },
+        ]
       },
-      { 
+      {
         title: "Module 9: AI Infrastructure",
         videoUrl: "/videos/l4m9.mp4",
         topics: [
           { title: "GPU Programming" },
           { title: "CUDA Basics" },
           { title: "Distributed Training" },
-          { title: "Parallel Processing"},
-          { title: "Ray"},
-           { title: "DeepSpeed"},
-           { title: "Tensor Parallelism"},
-           { title: "Pipeline Parallelism"},
-
-      ] 
+          { title: "Parallel Processing" },
+          { title: "Ray" },
+          { title: "DeepSpeed" },
+          { title: "Tensor Parallelism" },
+          { title: "Pipeline Parallelism" },
+        ]
       },
-      { 
+      {
         title: "Module 10: AI Security & Responsible AI",
         videoUrl: "/videos/l4m10.mp4",
         topics: [
-
-        { title: "AI Ethics" },
+          { title: "AI Ethics" },
           { title: "Explainable AI (XAI)" },
           { title: "Adversarial Attacks" },
-          { title: "AI Safety"},
-          { title: "Bias Detection"},
-           { title: "Privacy"},
-           { title: "Governance"},
-
-      ] 
+          { title: "AI Safety" },
+          { title: "Bias Detection" },
+          { title: "Privacy" },
+          { title: "Governance" },
+        ]
       },
-        {
-          title: "Advanced AI : Your Last Mission!! ",
-          videoUrl: "/videos/l4m11.mp4",
-          topics: [{
-           title: "Try It Yourself (Major Project) ",
-            isHandsOn: true,
-            labPath: "/level4"}, ], 
-        },
+      {
+        title: "Advanced AI : Your Last Mission!! ",
+        videoUrl: "/videos/l4m11.mp4",
+        topics: [{
+          title: "Try It Yourself (Major Project) ",
+          isHandsOn: true,
+          labPath: "/level4"
+        },],
+      },
     ],
-    
   },
-  
 ];
-
 
 const levelThemes = [
   { accent: "#2D7DD2", name: "Explorer" },
@@ -610,7 +588,6 @@ export const PENDING_SYNC_STORAGE_KEY = "ai-labs-pending-sync-v1";
 export const RESET_AT_STORAGE_KEY = "ai-labs-reset-at-v1";
 const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
 const LOGIN_TOKEN_KEY = "teachly-ai-token";
-const LOGIN_USER_KEY = "teachly-ai-user";
 const LOGIN_COOKIE = "teachly_ai_logged_in";
 const TOKEN_COOKIE = "teachly_ai_token";
 
@@ -670,11 +647,7 @@ function clearSavedLogin() {
   try {
     window.localStorage.removeItem(LOGIN_STORAGE_KEY);
     window.localStorage.removeItem(LOGIN_TOKEN_KEY);
-    window.localStorage.removeItem(LOGIN_USER_KEY);
-    // Progress now belongs to the account, not the device. Wipe the local
-    // cache/queue on logout so a different account logging in on this same
-    // browser never sees a stale/foreign progress state before its own
-    // server data has loaded.
+    window.localStorage.removeItem("teachly-ai-user");
     clearLocalProgressState();
   } catch {
     // ignore storage failures
@@ -803,8 +776,6 @@ export function findTopicLocation(slug: string) {
   return null;
 }
 
-// Builds the same "openModule" key format the Home page uses
-// (`${level.title}/${module.title}`) for a given level/module index pair.
 function buildModuleKey(levelIndex: number, moduleIndex: number): string | null {
   const level = curriculum[levelIndex];
   const mod = level?.modules[moduleIndex];
@@ -812,12 +783,6 @@ function buildModuleKey(levelIndex: number, moduleIndex: number): string | null 
   return `${level.title}/${mod.title}`;
 }
 
-// Persists which level/module should be considered "active" so the Home
-// page can restore it later. If the topic just completed was the LAST
-// topic in its module, we proactively point "active module" at the NEXT
-// module in the SAME level — this is what makes "finish a module" land
-// the user on the next module of that same level instead of resetting
-// them back to Level 1.
 function setActiveLocation(
   levelIndex: number,
   moduleIndex: number,
@@ -846,17 +811,6 @@ function setActiveLocation(
   }
 }
 
-// Shared "mark this lab/topic as complete" function — every lab page
-// (the dynamic [slug] page, AI Foundations Lab, and any future lab) should
-// import this instead of re-implementing the localStorage read/write logic.
-// This MUST live at module scope (not inside the Home component) so it can
-// be exported and imported elsewhere.
-//
-// Progress is now ACCOUNT-based, not device-based: this function updates
-// the local cache immediately for a snappy UI, then queues + pushes the
-// completion to the server (keyed off the authenticated user's token) so
-// it's visible on every other device signed into the same account. See the
-// "Server progress API contract" comment near PROGRESS_STORAGE_KEY above.
 export function markLabTopicComplete(slug: string): void {
   try {
     const location = findTopicLocation(slug);
@@ -868,26 +822,18 @@ export function markLabTopicComplete(slug: string): void {
       location.topicIndex,
     );
 
-    // Optimistic local update — instant feedback even before the server
-    // round-trip completes (or if the device is briefly offline).
     const localTopics = readLocalProgressCache();
     if (!localTopics.has(key)) {
       localTopics.add(key);
       writeLocalProgressCache(localTopics);
     }
 
-    // Remember the level/module context so returning to the Home page
-    // (e.g. after finishing this lab) keeps the user right where they
-    // left off instead of collapsing back to Level 1.
     setActiveLocation(
       location.levelIndex,
       location.moduleIndex,
       location.topicIndex,
     );
 
-    // Queue + push to the server. This is the actual "account-based, not
-    // device-based" persistence — the local write above is just a fast,
-    // resilient front for it.
     queueTopicForSync(key);
     void flushPendingProgress();
   } catch {
@@ -992,7 +938,6 @@ function CheckIcon() {
   );
 }
 
-// NEW: Video icon for video player button
 function VideoIcon() {
   return (
     <svg
@@ -1011,7 +956,6 @@ function VideoIcon() {
   );
 }
 
-// NEW: Modal for video player - supports local video files
 function VideoModal({
   videoUrl,
   onClose,
@@ -1064,7 +1008,6 @@ function VideoModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div
           style={{
             display: "flex",
@@ -1091,7 +1034,6 @@ function VideoModal({
           </button>
         </div>
 
-        {/* Video Container */}
         <div
           style={{
             flex: 1,
@@ -1125,10 +1067,39 @@ function VideoModal({
   );
 }
 
+// NEW: Toast for "video not uploaded" / error feedback
+function VideoToast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        background: "#1e293b",
+        color: "#fff",
+        padding: "0.75rem 1.25rem",
+        borderRadius: "10px",
+        fontWeight: 700,
+        fontSize: "0.85rem",
+        zIndex: 1100,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+        cursor: "pointer",
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
 // -----------------------------------------------------------------------
-// Progress tracker widget — a compact, at-a-glance summary of overall
-// completion plus a per-level breakdown. Purely presentational; all the
-// actual progress math is computed in Home and passed in as props.
+// Progress tracker widget
 // -----------------------------------------------------------------------
 
 interface LevelProgressInfo {
@@ -1214,7 +1185,6 @@ function ProgressTrackerWidget({
         </div>
       )}
 
-      {/* Overall bar */}
       <div
         style={{
           width: "100%",
@@ -1237,10 +1207,6 @@ function ProgressTrackerWidget({
         />
       </div>
 
-      {/* Continue-where-you-left-off banner: this is the single clearest
-          signal of "what's next" — the exact topic the user is unlocked
-          into but hasn't finished. Per-level cards below back this up
-          with an "IN PROGRESS" tag on the relevant level. */}
       {nextTopic ? (
         <button
           onClick={onContinueClick}
@@ -1308,7 +1274,6 @@ function ProgressTrackerWidget({
         </div>
       )}
 
-      {/* Per-level breakdown */}
       <div
         style={{
           display: "grid",
@@ -1333,13 +1298,13 @@ function ProgressTrackerWidget({
                 background: level.completedBadge
                   ? "rgba(34, 197, 94, 0.08)"
                   : level.isCurrent
-                  ? "rgba(15, 23, 42, 0.035)"
-                  : "transparent",
+                    ? "rgba(15, 23, 42, 0.035)"
+                    : "transparent",
                 border: level.completedBadge
                   ? "1px solid rgba(34, 197, 94, 0.4)"
                   : level.isCurrent
-                  ? `1px solid ${level.accent}55`
-                  : "1px solid rgba(15, 23, 42, 0.08)",
+                    ? `1px solid ${level.accent}55`
+                    : "1px solid rgba(15, 23, 42, 0.08)",
                 borderRadius: "12px",
                 padding: "0.65rem 0.75rem",
                 opacity: level.locked ? 0.55 : 1,
@@ -1436,33 +1401,89 @@ function ProgressTrackerWidget({
   );
 }
 
+interface TutorialContent {
+  title: string;
+  description: string;
+  chapters: unknown[];
+  videoUrl: string | null;
+  videoFileName: string | null;
+  thumbnailUrl: string | null;
+  thumbnailFileName: string | null;
+}
+
+interface Tutorial {
+  id: string;
+  slug: string;
+  classLevel: string;
+  subjectId: string;
+  subjectName: string;
+  pricing: string;
+  order: number;
+  status: string;
+  languages: string[];
+  content: Record<string, TutorialContent>; // keyed by language, e.g. "english"
+  createdAt: string;
+  updatedAt: string;
+}
+
 // -----------------------------------------------------------------------
-// Page
+// Fetch a single tutorial by title. Title is cleaned + encoded before
+// being placed in the URL. Returns null (never throws to the caller of
+// the click handler — errors are caught there) when nothing is found.
 // -----------------------------------------------------------------------
+async function fetchTutorialByTitle(params: {
+  title: string;
+  classLevel: string;
+}): Promise<Tutorial | null> {
+  const { title, classLevel } = params;
+
+  let userEmail: string | undefined;
+  try {
+    const raw = window.localStorage.getItem("teachly-ai-user");
+    userEmail = raw ? JSON.parse(raw)?.email : undefined;
+  } catch {
+    userEmail = undefined;
+  }
+
+  const encrypted_email_id = userEmail ? btoa(userEmail) : undefined;
+
+  const query = new URLSearchParams({
+    classLevel,
+    status: "published",
+    ...(encrypted_email_id ? { encrypted_email_id } : {}),
+  });
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_LOGIN_API_URL}/tutorial/title/${encodeURIComponent(title)}?${query.toString()}`
+  );
+
+  if (!res.ok) {
+    throw new Error(`Tutorial API failed: ${res.status}`);
+  }
+
+  const data = await res.json();
+  // API returns the tutorial object directly (ok, id, slug, content, ...)
+  // — not wrapped in a `.tutorial` field. Guard for both shapes just in case.
+  if (data?.content) return data as Tutorial;
+  if (data?.tutorial) return data.tutorial as Tutorial;
+  return null;
+}
+
+function stripModulePrefix(title: string): string {
+  return title.replace(/^Module\s+\d+:\s*/i, "").trim();
+}
 
 export default function Home() {
   const router = useRouter();
-  // NOTE: these used to default to `curriculum[0]?.title ?? null` / `null`,
-  // which is exactly why the app always bounced back to Level 1 on every
-  // remount (refresh, or navigating back from a lab page). They now start
-  // as `null` and get restored from localStorage (or fall back to Level 1
-  // only when there's truly nothing saved yet) inside the effect below.
   const [openLevel, setOpenLevel] = useState<string | null>(null);
   const [openModule, setOpenModule] = useState<string | null>(null);
-  
-  // NEW: State for video modal
+
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; moduleName: string } | null>(null);
-  
+  const [videoLoadingKey, setVideoLoadingKey] = useState<string | null>(null);
+  const [videoToast, setVideoToast] = useState<string | null>(null);
+
   const levelRefs = useRef<Record<string, HTMLElement | null>>({});
   const topicRefs = useRef<Record<string, HTMLLIElement | null>>({});
-
-  // Set of topicKey(levelIndex, moduleIndex, topicIndex) strings that are done.
-  // IMPORTANT: this must start identical on server and client (an empty Set).
-  // Reading localStorage inside the useState initializer would make the
-  // client's very first render diverge from the server-rendered HTML
-  // (different locked/unlocked topics, "Completed" badges, etc.), which is
-  // exactly what causes a hydration error. So we always start empty here,
-  // and load the real saved progress in an effect below, after mount.
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(
     () => new Set(),
   );
@@ -1470,8 +1491,6 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Proxy verifies URL tokens once, stores cookies, and strips the token from
-  // the URL. The client only restores local state for already-authenticated users.
   useEffect(() => {
     try {
       if (!hasStoredAuth()) {
@@ -1491,8 +1510,6 @@ export default function Home() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          // Avoid setting state synchronously inside an effect to prevent
-          // cascading renders / linter warnings. Schedule the update.
           setTimeout(() => setCompletedTopics(new Set(parsed)), 0);
         }
       }
@@ -1527,9 +1544,6 @@ export default function Home() {
     };
   }, [authChecked]);
 
-  // Keep the local cache mirroring completedTopics whenever it changes.
-  // Actual persistence happens in the backend via markLabTopicComplete; this
-  // just keeps the fast-paint-on-load cache warm and correct.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -1542,9 +1556,6 @@ export default function Home() {
     }
   }, [completedTopics, hydrated]);
 
-  // NEW — persist the active level any time it changes (manual clicks,
-  // restoration, or auto-advance after finishing a module), so a refresh
-  // or a trip out to a lab page and back always returns here.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -1558,7 +1569,6 @@ export default function Home() {
     }
   }, [openLevel, hydrated]);
 
-  // NEW — persist the active module the same way.
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -1607,10 +1617,6 @@ export default function Home() {
       return next;
     });
 
-    // Keep the user anchored on the level they were working in, and if
-    // that was the module's last topic, hop straight to the next module
-    // in that SAME level instead of leaving them stranded (or worse,
-    // letting a later remount fall back to Level 1).
     const level = curriculum[levelIndex];
     const mod = level?.modules[moduleIndex];
     if (!level || !mod) return;
@@ -1627,9 +1633,6 @@ export default function Home() {
     }
   }
 
-  // Counts actual topics completed vs. total topics that exist in a level
-  // (used by the progress tracker widget — separate from the pass/fail
-  // helpers below, which only care about "is everything done or not").
   function getLevelProgress(levelIndex: number): {
     completed: number;
     total: number;
@@ -1657,13 +1660,6 @@ export default function Home() {
     );
   }
 
-  // Walks the curriculum in order and returns the very first topic that's
-  // unlocked but not yet completed — i.e. exactly where the user should
-  // pick back up. Since unlocking is strictly sequential (a topic unlocks
-  // only once the one before it is done, a module only once the previous
-  // module is done, a level only once the previous level is done), the
-  // first unlocked + incomplete topic found top-to-bottom IS the frontier
-  // of the user's progress. Returns null once everything is completed.
   function getNextTopicLocation(): {
     levelIndex: number;
     moduleIndex: number;
@@ -1696,9 +1692,6 @@ export default function Home() {
     return null;
   }
 
-  // Jumps the accordion to a given level from the progress tracker widget:
-  // opens the level, opens the first module the user hasn't finished yet
-  // (falling back to the first module), and scrolls it into view.
   function goToLevel(levelIndex: number) {
     if (!isLevelUnlocked(levelIndex)) return;
     const level = curriculum[levelIndex];
@@ -1725,8 +1718,6 @@ export default function Home() {
     });
   }
 
-  // Used purely for unlocking the NEXT module/level. Empty-content modules
-  // auto-pass here so they never permanently block progression.
   function isModuleCompleted(levelIndex: number, moduleIndex: number): boolean {
     const mod = curriculum[levelIndex].modules[moduleIndex];
     if (mod.topics.length === 0) return true;
@@ -1741,9 +1732,6 @@ export default function Home() {
     );
   }
 
-  // Used purely for the "Completed" BADGE. A module/level only earns the
-  // badge if it actually has content AND that content is finished — an
-  // empty module/level should never display as "Completed".
   function hasAnyContent(levelIndex: number): boolean {
     return curriculum[levelIndex].modules.some((m) => m.topics.length > 0);
   }
@@ -1774,6 +1762,40 @@ export default function Home() {
     return completedTopics.has(
       topicKey(levelIndex, moduleIndex, topicIndex - 1),
     );
+  }
+
+  // Handles the "Watch Video" click for a given level/module.
+  async function handleWatchVideo(level: Level, mod: Module) {
+    const moduleKeyStr = `${level.title}/${mod.title}`;
+    const cleanTitle = stripModulePrefix(mod.title);
+
+    setVideoLoadingKey(moduleKeyStr);
+    setVideoToast(null);
+
+    try {
+      const tutorial = await fetchTutorialByTitle({
+        title: cleanTitle,
+        classLevel: level.title,
+      });
+
+      const englishContent = tutorial?.content?.english;
+
+      if (englishContent?.videoUrl) {
+        // API returned a tutorial with a real video — show it.
+        setSelectedVideo({
+          url: englishContent.videoUrl,
+          moduleName: stripModulePrefix(englishContent.title),
+        });
+      } else {
+        // API responded but no video attached to this tutorial yet.
+        setVideoToast("The video is coming soon. In the meantime, Please continue with the theoretical study materials.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch tutorial video from API:", err);
+      setVideoToast("The video is coming soon. In the meantime, Please continue with the theoretical study materials.");
+    } finally {
+      setVideoLoadingKey(null);
+    }
   }
 
   if (!authChecked) {
@@ -1866,14 +1888,14 @@ export default function Home() {
           nextTopic={
             nextTopicLocation
               ? {
-                  levelShortLabel: `L${nextTopicLocation.levelIndex + 1}`,
-                  levelTitle: nextTopicLocation.levelTitle,
-                  moduleTitle: nextTopicLocation.moduleTitle,
-                  topicTitle: nextTopicLocation.topicTitle,
-                  accent:
-                    (levelThemes[nextTopicLocation.levelIndex] ?? levelThemes[0])
-                      .accent,
-                }
+                levelShortLabel: `L${nextTopicLocation.levelIndex + 1}`,
+                levelTitle: nextTopicLocation.levelTitle,
+                moduleTitle: nextTopicLocation.moduleTitle,
+                topicTitle: nextTopicLocation.topicTitle,
+                accent:
+                  (levelThemes[nextTopicLocation.levelIndex] ?? levelThemes[0])
+                    .accent,
+              }
               : null
           }
           onContinueClick={goToNextTopic}
@@ -1898,11 +1920,11 @@ export default function Home() {
                 style={
                   levelCompleted
                     ? ({
-                        ...accentStyle,
-                        background: "white",
-                        border: "1px solid rgba(34, 197, 94, 0.35)",
-                        borderRadius: "16px",
-                      } as CSSProperties)
+                      ...accentStyle,
+                      background: "white",
+                      border: "1px solid rgba(34, 197, 94, 0.35)",
+                      borderRadius: "16px",
+                    } as CSSProperties)
                     : accentStyle
                 }
                 data-open={levelOpen}
@@ -1959,6 +1981,7 @@ export default function Home() {
                         );
                         const moduleOpen =
                           openModule === moduleKey && !moduleLocked;
+                        const isVideoLoading = videoLoadingKey === moduleKey;
 
                         return (
                           <div
@@ -1968,10 +1991,10 @@ export default function Home() {
                             style={
                               moduleCompleted && mod.topics.length > 0
                                 ? {
-                                    background: "white",
-                                    border: "1px solid rgba(34, 197, 94, 0.3)",
-                                    borderRadius: "12px",
-                                  }
+                                  background: "white",
+                                  border: "1px solid rgba(34, 197, 94, 0.3)",
+                                  borderRadius: "12px",
+                                }
                                 : undefined
                             }
                           >
@@ -2014,19 +2037,11 @@ export default function Home() {
                                 )}
                               </button>
 
-                              {/* Video button for this module — placed beside the
-                                  module header (not stacked below it) so it lines
-                                  up with the header row for every module that has
-                                  a video, including Module 1. */}
                               {mod.videoUrl && !moduleLocked && (
                                 <button
-                                  onClick={() =>
-                                    setSelectedVideo({
-                                      url: mod.videoUrl!,
-                                      moduleName: mod.title,
-                                    })
-                                  }
+                                  onClick={() => handleWatchVideo(level, mod)}
                                   title="Watch video"
+                                  disabled={isVideoLoading}
                                   style={{
                                     flexShrink: 0,
                                     alignSelf: "center",
@@ -2038,15 +2053,17 @@ export default function Home() {
                                     color: theme.accent,
                                     fontWeight: 700,
                                     fontSize: "0.8rem",
-                                    cursor: "pointer",
+                                    cursor: isVideoLoading ? "wait" : "pointer",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                     gap: "0.4rem",
                                     whiteSpace: "nowrap",
                                     transition: "all 0.2s ease",
+                                    opacity: isVideoLoading ? 0.6 : 1,
                                   }}
                                   onMouseEnter={(e) => {
+                                    if (isVideoLoading) return;
                                     e.currentTarget.style.background = `${theme.accent}25`;
                                     e.currentTarget.style.borderColor = `${theme.accent}88`;
                                   }}
@@ -2056,7 +2073,7 @@ export default function Home() {
                                   }}
                                 >
                                   <VideoIcon />
-                                  Watch Video
+                                  {isVideoLoading ? "Loading..." : "Watch Video"}
                                 </button>
                               )}
                             </div>
@@ -2118,25 +2135,25 @@ export default function Home() {
                                           topicRefs.current[topicKeyStr] = el;
                                         }}
                                       >
-    <Link
-      href={href}
-      className="al-topic-row al-topic-link"
-      style={
-        tCompleted
-          ? {
-              background: "rgba(34, 197, 94, 0.08)",
-              border: "1px solid rgba(34, 197, 94, 0.35)",
-              borderRadius: "10px",
-            }
-          : isNextTopic
-          ? {
-              background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
-              border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
-              borderRadius: "10px",
-            }
-          : undefined
-      }
-        >
+                                        <Link
+                                          href={href}
+                                          className="al-topic-row al-topic-link"
+                                          style={
+                                            tCompleted
+                                              ? {
+                                                background: "rgba(34, 197, 94, 0.08)",
+                                                border: "1px solid rgba(34, 197, 94, 0.35)",
+                                                borderRadius: "10px",
+                                              }
+                                              : isNextTopic
+                                                ? {
+                                                  background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
+                                                  border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
+                                                  borderRadius: "10px",
+                                                }
+                                                : undefined
+                                          }
+                                        >
                                           <span className="al-topic-text">
                                             {t.title}
                                             {t.isHandsOn && (
@@ -2168,8 +2185,8 @@ export default function Home() {
                                       </li>
                                     );
                                   })}
-         </ul>                              </div>
-</div>           </div>
+                                </ul>                              </div>
+                            </div>           </div>
                         );
                       })}
                     </div>
@@ -2181,13 +2198,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* NEW: Video Modal */}
       {selectedVideo && (
         <VideoModal
           videoUrl={selectedVideo.url}
           moduleName={selectedVideo.moduleName}
           onClose={() => setSelectedVideo(null)}
         />
+      )}
+
+      {videoToast && (
+        <VideoToast message={videoToast} onClose={() => setVideoToast(null)} />
       )}
     </div>
   );
