@@ -122,11 +122,14 @@ const curriculum: Level[] = [
         title: "Module 1: Python Basics",
         videoUrl: "/videos/l2m1.mp4",
         topics: [
-          { title: "Variables" },
-          { title: "Loops" },
-          { title: "Functions" },
-          { title: "Lists" },
-          { title: "Dictionaries" },
+           { title: "Installation" },
+          { title: "Variables, data types, and input/output" },
+          { title: "Operators, expressions, and type conversion " },
+           { title: "Conditional statements " },
+          { title: "Loops: for and while " },
+           { title: "Lists, tuples, sets, and dictionaries" },
+          { title: "Functions, parameters, return values, and scope " },
+          { title: "Strings & File Handling" },
           {
             title: "Python Basics Lab",
             isHandsOn: true,
@@ -201,7 +204,6 @@ const curriculum: Level[] = [
       },
       {
         title: "AI Foundations: Your Second Mission!! ",
-        videoUrl: "/videos/l2m6.mp4",
         topics: [{
           title: "Try It Yourself (Mini Project1) ",
           isHandsOn: true,
@@ -604,6 +606,7 @@ interface ServerProgressResponse {
   completedTopics?: unknown;
   updatedAt?: unknown;
 }
+
 
 function readTopicKeysFromApi(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -1054,6 +1057,9 @@ function VideoModal({
               objectFit: "contain",
             }}
             controls
+            controlsList="nodownload noremoteplayback"
+            disablePictureInPicture
+            onContextMenu={(e) => e.preventDefault()}
             autoPlay
           >
             <source src={videoUrl} type="video/mp4" />
@@ -2104,6 +2110,10 @@ export default function Home() {
                                       nextTopicLocation.moduleIndex === modIndex &&
                                       nextTopicLocation.topicIndex === i;
                                     const href = resolveTopicPath(t);
+                                    const isLevel2 = levelIndex === 1;
+                                    const topicVideoKeyStr = `${moduleKey}/${t.title}`;
+                                    const isTopicVideoLoading =
+                                      videoLoadingKey === topicVideoKeyStr;
 
                                     if (tLocked) {
                                       return (

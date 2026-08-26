@@ -9,7 +9,9 @@ import {
   Activity,
   Server,
   Container,
+  Terminal,
   Trees,
+  Repeat,
   Globe,
   Grid,
   Clock,
@@ -1220,492 +1222,3879 @@ const data=
     ],
   },
   /* ===================== LEVEL 2 · MODULE 1: Python Basics ===================== */
-  "variables": {
-  title: "Python Variables",
-  subtitle: "Variables are like labeled boxes that store information for your program.",
-  eyebrow: "Concept 1 of 5",
-  accent: "teal",
-  icon: Boxes,
-  sections: [
-      {
-      heading: "What is a Variable?",
-      paragraphs: [
-          "Imagine you have several boxes at home. One box stores toys, another stores books, and another stores clothes. Each box has a label so you know what's inside.",
-          "A variable works in exactly the same way. It is a named container that stores information inside a computer program.",
-          "Instead of remembering the information yourself, you give it a name, and Python remembers it for you. Whenever you need the information later, you simply use the variable's name.",
-        ],
-      },
-      {
-      heading: "Creating a variable in Python",
-      paragraphs: [
-          "Creating a variable is very easy. You choose a name, use the equal sign (=), and assign a value to it.",
-          "Python automatically remembers the value and lets you use it anywhere in your program.",
-        ],
-      bullets: [
-          "name = 'Ananya'",
-          "age = 21",
-          "marks = 95",
-          "is_student = True",
-        ],
-      },
-      {
-      heading: "Let's understand with an example",
-      paragraphs: [
-          "Imagine your teacher writes your name on a notebook. Whenever someone wants to know whose notebook it is, they simply read the name written on it.",
-          "Variables work in the same way. Instead of writing information everywhere in your program, you store it once inside a variable and use its name whenever you need it.",
-          "For example, if your age changes from 21 to 22, you only need to update the variable instead of changing it in many places.",
-        ],
-      },
-      {
-      heading: "Different kinds of values variables can store",
-      bullets: [
-          "Text (String) → name = 'Aman'",
-          "Whole Numbers (Integer) → age = 22",
-          "Decimal Numbers (Float) → height = 5.8",
-          "True or False (Boolean) → is_logged_in = True",
-          "Lists of items → fruits = ['Apple', 'Banana', 'Mango']",
-        ],
-      },
-      {
-      heading: "Rules for naming variables",
-      paragraphs: [
-          "Python allows you to choose almost any meaningful name, but there are a few simple rules to follow.",
-        ],
-      bullets: [
-          "Variable names should begin with a letter or an underscore (_).",
-          "They can contain letters, numbers, and underscores.",
-          "They cannot start with a number.",
-          "Spaces are not allowed in variable names.",
-          "Choose meaningful names like student_name instead of x or a whenever possible.",
-        ],
-      },
-      {
-      heading: "Why do programmers use variables?",
-      paragraphs: [
-          "Imagine writing your school name 100 times in a program. If the school's name changes, you would have to update it everywhere.",
-          "Instead, you can store it in a variable and update it only once.",
-          "Variables make programs easier to write, understand, and maintain.",
-        ],
-      bullets: [
-          "Store information for later use.",
-          "Avoid repeating the same values again and again.",
-          "Make programs easier to read.",
-          "Allow values to change while the program is running.",
-        ],
-      },
-      {
-      heading: "Common mistakes beginners make",
-      paragraphs: [
-          "Everyone makes mistakes while learning programming. Understanding these common errors will help you avoid them.",
-        ],
-      bullets: [
-          "Using spaces in variable names (student name ❌).",
-          "Starting a variable name with a number (123name ❌).",
-          "Using confusing names like x or abc when a meaningful name would be clearer.",
-          "Forgetting that Python treats uppercase and lowercase letters differently (Age and age are two different variables).",
-        ],
-      },
-      {
-      heading: "Key idea to remember",
-      paragraphs: [
-          "A variable is simply a named place where Python stores information. Once a value is stored, you can use the variable again and again throughout your program.",
-          "Think of a variable as a labeled box—the label is the variable's name, and the item inside the box is its value.",
-        ],
-      bullets: [
-          "Variables store information.",
-          "Every variable has a name and a value.",
-          "Values can be changed whenever needed.",
-          "Meaningful variable names make programs easier to understand.",
-        ],
-      },
-    ],
-  },
+  "installation": {
 
-  loops: {
-  title: "Loops",
-  subtitle: "Teaching the computer to repeat a task again and again without writing the same code repeatedly.",
+  title: "Installing Python, Jupyter Notebooks, and VS Code",
+
+  subtitle: "Set up the essential tools you need to write Python code, experiment with notebooks, and build real projects.",
+
+  eyebrow: "Getting Started with Python",
+
+  accent: "teal",
+
+  icon: Code2,
+
+  sections: [
+
+    {
+      heading: "The Modern Python Toolkit",
+
+      paragraphs: [
+        "Before writing Python programs, you need a few essential tools on your computer.",
+        "Python is the programming language you will use to write your programs. Jupyter Notebook gives you an interactive environment where you can write and run Python code in small cells. VS Code is a powerful code editor that helps you create, organize, debug, and run larger Python projects.",
+        "Together, Python, Jupyter Notebook, and VS Code form a powerful toolkit for learning Python, data science, machine learning, automation, and application development."
+      ],
+
+      bullets: [
+        "Python → The programming language",
+        "Jupyter Notebook → Interactive environment for running Python code",
+        "VS Code → Powerful editor for writing and managing Python projects"
+      ],
+    },
+
+    {
+      heading: "What is Python?",
+
+      paragraphs: [
+        "Python is a free and open-source programming language known for its clean and readable syntax.",
+        "Its simple syntax makes Python an excellent first programming language for beginners while also making it powerful enough for professional software development.",
+        "Python is widely used in areas such as data science, artificial intelligence, automation, web development, and application development."
+      ],
+
+      bullets: [
+        "Free and open-source",
+        "Easy-to-read syntax",
+        "Beginner-friendly",
+        "Used in AI, data science, automation, and web development",
+        "Available for Windows, macOS, and Linux"
+      ],
+    },
+
+    {
+      heading: "Downloading Python",
+
+      paragraphs: [
+        "Python should always be downloaded from its official website. Using the official source helps ensure that you are installing a genuine and up-to-date version of Python.",
+        "Visit the Python downloads page and choose the latest stable Python 3 release available for your operating system."
+      ],
+
+      bullets: [
+        "Go to python.org/downloads",
+        "Choose the latest stable Python 3 release",
+        "Download the installer for your operating system",
+        "Avoid downloading Python from unknown or unofficial websites"
+      ],
+    },
+
+    {
+      heading: "Installing Python on Windows",
+
+      paragraphs: [
+        "On Windows, download the Python installer and open the downloaded .exe file to begin the installation.",
+        "One of the most important steps during installation is making sure Python is added to your system PATH. This allows you to run Python commands directly from Command Prompt or PowerShell."
+      ],
+
+      bullets: [
+        "Open the downloaded Python installer.",
+        "Enable the 'Add python.exe to PATH' option.",
+        "Click the Install option.",
+        "Wait for the installation to complete.",
+        "Close the installer after Python has been successfully installed."
+      ],
+    },
+
+    {
+      heading: "Why is adding Python to PATH important?",
+
+      paragraphs: [
+        "PATH is a system setting that tells your computer where to look for programs when you type commands in a terminal.",
+        "When Python is added to PATH, you can simply type commands such as python or pip in Command Prompt or PowerShell without manually navigating to Python's installation folder.",
+        "If Python is not added to PATH, your terminal may not recognize the python command even though Python is installed."
+      ],
+
+      bullets: [
+        "Makes the python command available from the terminal.",
+        "Allows pip commands to work more conveniently.",
+        "Prevents common 'Python was not found' command-line problems."
+      ],
+    },
+
+    {
+      heading: "Checking Your Python Installation",
+
+      paragraphs: [
+        "After installation, always verify that Python is working correctly.",
+        "Open Command Prompt or PowerShell on Windows, or Terminal on macOS and Linux, and check the installed Python version."
+      ],
+
+      bullets: [
+        "python --version",
+        "A successful command displays the installed Python 3 version.",
+        "If the version appears, Python has been successfully installed and is available from the terminal."
+      ],
+    },
+
+    {
+      heading: "What is Jupyter Notebook?",
+
+      paragraphs: [
+        "Jupyter Notebook is a web-based interactive environment that allows you to write and execute Python code in small, independent cells.",
+        "Unlike a traditional Python file where you normally run the entire program, a notebook lets you execute one cell at a time and immediately see its output.",
+        "Jupyter notebooks can contain live Python code, output, charts, explanations, and formatted notes in the same document."
+      ],
+
+      bullets: [
+        "Write Python code in individual cells.",
+        "Run cells independently.",
+        "See results immediately.",
+        "Combine code, output, charts, and notes.",
+        "Useful for data science, machine learning, teaching, and research."
+      ],
+    },
+
+    {
+      heading: "Installing Jupyter Notebook",
+
+      paragraphs: [
+        "Jupyter Notebook can be installed using Python's package manager, pip.",
+        "Once Python is installed and available from the terminal, use pip to install the notebook package."
+      ],
+
+      bullets: [
+        "pip install notebook",
+        "Wait while Python downloads and installs the required Jupyter packages.",
+        "After installation, Jupyter Notebook can be launched from the terminal."
+      ],
+    },
+
+    {
+      heading: "Launching Your First Notebook",
+
+      paragraphs: [
+        "After installing Jupyter Notebook, open a terminal and navigate to the folder where you want to work.",
+        "The cd command can be used to move between folders in the terminal.",
+        "Once you launch Jupyter Notebook, it opens in your web browser and provides an interactive workspace for creating notebooks."
+      ],
+
+      bullets: [
+        "Open Command Prompt or PowerShell.",
+        "Use cd to navigate to your project folder.",
+        "Launch Jupyter Notebook from the terminal.",
+        "Create a new notebook.",
+        "Select the Python 3 kernel.",
+        "Write Python code inside a notebook cell.",
+        "Run the cell and view the output."
+      ],
+    },
+
+    {
+      heading: "Running Python Code in Jupyter",
+
+      paragraphs: [
+        "A Jupyter notebook is divided into cells. You can place Python code inside a cell and execute it to immediately see the result.",
+        "For example, you can write a simple print statement and run the cell to display its output.",
+        "The notebook keeps your code and its results together, making it convenient for experimentation and learning."
+      ],
+
+      bullets: [
+        "print('Hello World')",
+        "Select a cell and run it to execute the Python code.",
+        "The output appears directly below the cell.",
+        "You can create additional cells and continue experimenting."
+      ],
+    },
+
+    {
+      heading: "Useful Jupyter Notebook Shortcut",
+
+      paragraphs: [
+        "Keyboard shortcuts make working with notebooks faster and more convenient.",
+        "The video demonstrates using the keyboard to insert a new cell below the current cell without needing to use the mouse."
+      ],
+
+      bullets: [
+        "Press Esc to enter command mode.",
+        "Press B to create a new cell below the selected cell."
+      ],
+    },
+
+    {
+      heading: "What is Visual Studio Code?",
+
+      paragraphs: [
+        "Visual Studio Code, commonly called VS Code, is a free and powerful code editor developed by Microsoft.",
+        "It provides a lightweight environment for writing, running, debugging, and managing source code.",
+        "For Python developers, VS Code can be extended with Python and Jupyter support, making it possible to work with both Python files and notebooks in one application."
+      ],
+
+      bullets: [
+        "Free code editor developed by Microsoft",
+        "Lightweight and powerful",
+        "Supports Python development",
+        "Provides debugging and IntelliSense",
+        "Can run Jupyter notebooks",
+        "Useful for building larger software projects"
+      ],
+    },
+
+    {
+      heading: "Installing VS Code",
+
+      paragraphs: [
+        "To install VS Code, visit the official Visual Studio Code website and download the installer for your operating system.",
+        "Run the installer and follow the setup instructions. After the installation finishes, launch VS Code from the Start Menu or Applications."
+      ],
+
+      bullets: [
+        "Visit code.visualstudio.com.",
+        "Download VS Code for your operating system.",
+        "Run the downloaded installer.",
+        "Accept the default installation options.",
+        "Complete the installation.",
+        "Launch Visual Studio Code."
+      ],
+    },
+
+    {
+      heading: "Installing Python Extensions in VS Code",
+
+      paragraphs: [
+        "VS Code becomes much more useful for Python development when the appropriate extensions are installed.",
+        "Extensions add features such as Python language support, IntelliSense, debugging, notebook support, and improved development tools."
+      ],
+
+      bullets: [
+        "Open the Extensions panel in VS Code.",
+        "You can also use Ctrl + Shift + X on Windows or Cmd + Shift + X on macOS.",
+        "Search for the Python extension.",
+        "Install the Python extension from Microsoft.",
+        "Install the Jupyter extension from Microsoft.",
+        "Pylance provides rich Python language support and IntelliSense."
+      ],
+    },
+
+    {
+      heading: "Important VS Code Extensions",
+
+      paragraphs: [
+        "A few extensions are especially useful when working with Python and Jupyter notebooks."
+      ],
+
+      bullets: [
+        "Python → Python language support, IntelliSense, linting, and debugging.",
+        "Jupyter → Run and work with .ipynb notebooks directly inside VS Code.",
+        "Pylance → Fast and rich Python language support and IntelliSense."
+      ],
+    },
+
+    {
+      heading: "Running a Python File in VS Code",
+
+      paragraphs: [
+        "Once Python and the required VS Code extensions are installed, you can create a Python file and run it directly from VS Code.",
+        "For example, create a file named Hello.py, write a simple Python program, and execute it using the Python environment configured in VS Code.",
+        "The output of the program appears in the integrated terminal."
+      ],
+
+      bullets: [
+        "Create a Python file such as Hello.py.",
+        "Write your Python code.",
+        "Make sure the correct Python interpreter is selected.",
+        "Run the Python file.",
+        "View the program output in the VS Code terminal."
+      ],
+    },
+
+    {
+      heading: "Python Files vs Jupyter Notebooks",
+
+      paragraphs: [
+        "Python files and Jupyter notebooks are both useful, but they are commonly used for different kinds of work.",
+        "Python files are ideal for building organized programs and larger software projects, while notebooks are excellent for experimentation, learning, data analysis, visualization, and machine learning."
+      ],
+
+      bullets: [
+        ".py files → Traditional Python programs and projects",
+        ".ipynb files → Interactive Jupyter notebooks",
+        "Jupyter → Experiment and explore code interactively",
+        "VS Code → Build and manage complete Python projects"
+      ],
+    },
+
+    {
+      heading: "Common Beginner Problems",
+
+      paragraphs: [
+        "Setting up a development environment can sometimes produce warnings or errors. Most beginner problems are related to PATH configuration, missing packages, or missing VS Code extensions.",
+        "If a command is not recognized, first verify that Python is installed correctly and that the Python installation is available through PATH."
+      ],
+
+      bullets: [
+        "Python command is not recognized → Check the Python PATH configuration.",
+        "pip command does not work → Verify that Python and pip are correctly installed.",
+        "Jupyter command is unavailable → Make sure the notebook package was installed successfully.",
+        "Python code does not run in VS Code → Check that the Python extension is installed.",
+        "Notebook does not run → Select the correct Python 3 / ipykernel environment.",
+        "VS Code does not provide Python features → Install the Python and Pylance extensions."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Setting up Python is the first step toward becoming a Python programmer. Python provides the language, Jupyter provides an interactive environment for experimentation, and VS Code provides a complete development environment for building projects.",
+        "Once these tools are installed and configured, you are ready to write Python programs, experiment with notebooks, explore data, and begin working toward AI and machine learning projects."
+      ],
+
+      bullets: [
+        "Install Python from the official Python website.",
+        "Always verify the installation using python --version.",
+        "Use pip install notebook to install Jupyter Notebook.",
+        "Use Jupyter for interactive Python experimentation.",
+        "Install VS Code for a powerful Python development environment.",
+        "Install Python, Jupyter, and Pylance extensions in VS Code.",
+        "Select the correct Python interpreter or Jupyter kernel.",
+        "Keep Python, Jupyter, and VS Code ready for future AI and data science work."
+      ],
+    },
+
+  ],
+
+},
+ "variables-data-types-and-inputoutput": {
+
+  title: "Python Variables, Input & Output",
+
+  subtitle: "Learn how Python stores information, works with different data types, accepts user input, and displays results.",
+
   eyebrow: "Concept 2 of 5",
-  accent: "coral",
-  icon: GitBranch,
-  sections: [
-      {
-      heading: "What is a Loop?",
-      paragraphs: [
-          "Imagine your teacher asks you to write your name 20 times. You could write it again and again, but that would take time and be very repetitive.",
-          "Instead of writing the same instruction many times, programming gives us something called a loop. A loop tells the computer, 'Repeat this task for me.'",
-          "A loop is a programming tool that repeats the same block of code multiple times until the job is finished. It helps programmers write shorter, cleaner, and smarter programs.",
-        ],
-      },
-      {
-      heading: "Why do we use loops?",
-      paragraphs: [
-          "Without loops, programmers would have to write the same code over and over again. This would make programs longer, harder to read, and more likely to contain mistakes.",
-          "Loops save time because you write the instructions once, and the computer repeats them as many times as needed.",
-        ],
-      bullets: [
-          "Avoid writing the same code again and again.",
-          "Make programs shorter and easier to understand.",
-          "Save time while programming.",
-          "Reduce mistakes caused by repeated code.",
-        ],
-      },
-      {
-      heading: "The two loops you'll use most often",
-      bullets: [
-          "for loop — Used when you already know how many times you want to repeat something or when you want to go through each item in a collection like a list.",
-          "while loop — Used when you don't know exactly how many times to repeat. The loop keeps running until a condition becomes false.",
-        ],
-      },
-      {
-      heading: "Let's understand with an example",
-      paragraphs: [
-          "Imagine your teacher asks you to clap your hands 10 times.",
-          "Instead of saying 'Clap' ten separate times, the teacher could simply say, 'Clap 10 times.'",
-          "A loop works in the same way. You write the instruction only once, and Python repeats it automatically.",
-          "Similarly, imagine watering every plant in a garden. Instead of giving separate instructions for each plant, you can simply say, 'Water every plant.' A loop follows this idea by repeating the same action for each item.",
-        ],
-      },
-      {
-      heading: "Where are loops used?",
-      paragraphs: [
-          "Loops are everywhere in programming. Whenever a task needs to be repeated, programmers use loops to make the program more efficient.",
-        ],
-      bullets: [
-          "Displaying numbers from 1 to 100.",
-          "Printing every student's name from a class list.",
-          "Checking every answer in an online quiz.",
-          "Reading every file inside a folder.",
-          "Processing thousands of images for an AI application.",
-          "Repeating game actions until the game ends.",
-        ],
-      },
-      {
-      heading: "Common mistakes beginners make",
-      paragraphs: [
-          "Loops are very powerful, but beginners often make small mistakes while using them.",
-        ],
-      bullets: [
-          "Forgetting to stop a while loop, causing it to run forever (an infinite loop).",
-          "Using the wrong number of repetitions in a for loop.",
-          "Changing the loop variable incorrectly.",
-          "Writing code outside the loop because of incorrect indentation.",
-        ],
-      },
-      {
-      heading: "Key idea to remember",
-      paragraphs: [
-          "A loop allows the computer to repeat the same instructions automatically. Instead of writing the same code many times, you write it once and let Python do the repetition for you.",
-          "Whenever you notice yourself repeating the same task, think about using a loop. That's exactly what experienced programmers do.",
-        ],
-      bullets: [
-          "Loops repeat code automatically.",
-          "Use a for loop when the number of repetitions is known.",
-          "Use a while loop when repetition depends on a condition.",
-          "Loops make programs shorter, cleaner, and easier to maintain.",
-        ],
-      },
-    ],
-  },
 
-  functions: {
-  title: "Functions",
-  subtitle: "Writing a set of instructions once and using them whenever you need.",
-  eyebrow: "Concept 3 of 5",
-  accent: "gold",
-  icon: Boxes,
-  sections: [
-      {
-      heading: "What is a Function?",
-      paragraphs: [
-          "Imagine your teacher asks you to clap your hands 5 times several times during the day. Instead of explaining the same instruction again and again, the teacher could simply say, 'Do the clap activity.'",
-          "A function works in the same way. It is a named block of code that performs a specific task. Once you create a function, you can use it whenever you need without writing the same code again.",
-          "Functions help programmers organize their code into small, reusable pieces. This makes programs easier to read, understand, and maintain.",
-        ],
-      },
-      {
-      heading: "Why do we use functions?",
-      paragraphs: [
-          "Without functions, programmers often repeat the same code in many different places. If something needs to change later, they must edit every copy of that code.",
-          "Functions solve this problem by storing the instructions in one place. Whenever you need those instructions, you simply call the function by its name.",
-        ],
-      bullets: [
-          "Avoid writing the same code repeatedly.",
-          "Make programs shorter and more organized.",
-          "Save time while programming.",
-          "Make code easier to update and fix.",
-        ],
-      },
-      {
-      heading: "The three important parts of a function",
-      bullets: [
-          "Inputs (Parameters) — The information the function needs to perform its task, such as a person's name or two numbers.",
-          "Body — The set of instructions that tells the function what to do.",
-          "Output (Return Value) — The result the function gives back after completing its work. Some functions return a value, while others simply perform an action.",
-        ],
-      },
-      {
-      heading: "Let's understand with an example",
-      paragraphs: [
-          "Imagine you have a juice machine. Every time you put fruits into the machine and press the button, it follows the same steps and prepares fresh juice.",
-          "The fruits are the inputs, the machine is the function, and the juice is the output.",
-          "No matter how many times you use the machine, you don't have to rebuild it each time. In the same way, once a function is created, you can use it again and again whenever you need it.",
-        ],
-      },
-      {
-      heading: "Where are functions used?",
-      paragraphs: [
-          "Functions are used in almost every computer program. They help programmers divide large programs into smaller, manageable tasks.",
-        ],
-      bullets: [
-          "Calculating the total marks of a student.",
-          "Displaying a welcome message on a website.",
-          "Checking whether a password is correct.",
-          "Sending an email or text message.",
-          "Processing images in AI applications.",
-          "Performing calculations in games and mobile apps.",
-        ],
-      },
-      {
-      heading: "Common mistakes beginners make",
-      paragraphs: [
-          "Functions are simple to use, but beginners often make a few common mistakes while learning them.",
-        ],
-      bullets: [
-          "Creating a function but forgetting to call it.",
-          "Passing the wrong number of inputs (parameters).",
-          "Expecting a function to return a value when it doesn't.",
-          "Using confusing function names instead of meaningful ones like calculate_total() or greet_user().",
-        ],
-      },
-      {
-      heading: "Key idea to remember",
-      paragraphs: [
-          "A function is a reusable block of code that performs a specific task. Instead of writing the same instructions many times, you write them once inside a function and call the function whenever you need it.",
-          "Think of a function like a machine. You provide the required inputs, the machine performs its job, and it may produce an output.",
-        ],
-      bullets: [
-          "Functions help reuse code.",
-          "A function can take inputs called parameters.",
-          "A function performs a specific task.",
-          "A function may return an output.",
-          "Functions make programs cleaner, shorter, and easier to maintain.",
-        ],
-      },
-    ],
-  },
-
- lists: {
-  title: "Lists",
-  subtitle: "Storing many pieces of information together in a single container.",
-  eyebrow: "Concept 4 of 5",
-  accent: "purple",
-  icon: Table2,
-  sections: [
-      {
-      heading: "What is a List?",
-      paragraphs: [
-          "Imagine you have a basket filled with different fruits like apples, bananas, oranges, and mangoes. Instead of carrying each fruit separately, you keep them together in one basket.",
-          "A list in Python works in a very similar way. It is a container that stores multiple values under one variable name. These values are stored in a specific order, so Python remembers which item comes first, second, third, and so on.",
-          "Lists are one of the most useful data structures in Python because they allow us to store and work with many pieces of information at once.",
-        ],
-      },
-      {
-      heading: "Creating a list",
-      paragraphs: [
-          "In Python, a list is created by placing values inside square brackets [ ] and separating each value with a comma.",
-          "The values inside a list can be numbers, text, or even other lists.",
-        ],
-      bullets: [
-          "fruits = ['Apple', 'Banana', 'Mango']",
-          "marks = [88, 91, 76]",
-          "colors = ['Red', 'Blue', 'Green']",
-          "numbers = [10, 20, 30, 40]",
-        ],
-      },
-      {
-      heading: "Why order and position matter",
-      paragraphs: [
-          "Every item inside a list has a position called an index. Python starts counting from 0 instead of 1.",
-          "This means the first item is at index 0, the second item is at index 1, the third item is at index 2, and so on.",
-          "Knowing the index allows us to access or change a specific item in the list whenever we need it.",
-        ],
-      bullets: [
-          "The first item is at index 0, not index 1.",
-          "Each item has its own unique position.",
-          "You can quickly access any item using its index.",
-          "The order of items is remembered by Python.",
-        ],
-      },
-      {
-      heading: "Let's understand with an example",
-      paragraphs: [
-          "Imagine your classroom has a row of five students sitting in fixed seats.",
-          "If your teacher asks, 'Who is sitting in the first seat?' everyone knows it's the student sitting at position 1. Python works similarly, except it starts counting from 0.",
-          "So the student in the first seat is at index 0, the second student is at index 1, and the third student is at index 2.",
-          "This numbering system helps Python quickly find any item inside the list.",
-        ],
-      },
-      {
-      heading: "What can we do with lists?",
-      paragraphs: [
-          "Lists are flexible, which means we can change them even after creating them. We can add new items, remove old ones, update values, or arrange them in a different order.",
-        ],
-      bullets: [
-          "Add new items to a list.",
-          "Remove items you no longer need.",
-          "Change existing values.",
-          "Sort items in alphabetical or numerical order.",
-          "Count how many items are in the list.",
-          "Loop through every item one by one.",
-        ],
-      },
-      {
-      heading: "Where are lists used?",
-      paragraphs: [
-          "Lists are used almost everywhere in programming because most real-world applications work with groups of data instead of just one value.",
-        ],
-      bullets: [
-          "Storing the names of students in a class.",
-          "Keeping a shopping list.",
-          "Saving quiz scores or exam marks.",
-          "Managing contacts in a phone.",
-          "Storing images, sentences, or numbers in AI and Machine Learning applications.",
-          "Displaying products on an online shopping website.",
-        ],
-      },
-      {
-      heading: "Common mistakes beginners make",
-      paragraphs: [
-          "Lists are easy to learn, but beginners often make a few common mistakes.",
-        ],
-      bullets: [
-          "Thinking the first item has index 1 instead of 0.",
-          "Trying to access an index that doesn't exist.",
-          "Forgetting to use square brackets [ ].",
-          "Confusing a list with a single variable.",
-        ],
-      },
-      {
-      heading: "Key idea to remember",
-      paragraphs: [
-          "A list is an ordered collection of multiple values stored under one variable name. Every item has its own position, called an index, which starts from 0 in Python.",
-          "Whenever you need to store many related values together, a list is usually the best choice.",
-        ],
-      bullets: [
-          "Lists store multiple values together.",
-          "Items stay in a specific order.",
-          "The first item is at index 0.",
-          "Lists can grow, shrink, and be modified anytime.",
-          "Lists are widely used in Python, AI, and data science.",
-        ],
-      },
-    ],
-  },
-
- dictionaries: {
-  title: "Dictionaries",
-  subtitle: "Storing information as 'name → value' pairs for quick and easy lookup.",
-  eyebrow: "Concept 5 of 5",
   accent: "teal",
-  icon: Database,
+
+  icon: Terminal,
+
   sections: [
-      {
-      heading: "What is a Dictionary?",
+
+    {
+      heading: "What are Variables?",
+
       paragraphs: [
-          "Imagine your school keeps a student record book. Instead of remembering every student's information by their position in the book, the teacher searches using the student's name or roll number.",
-          "A dictionary in Python works in a similar way. Instead of storing values by their position like a list, it stores information using a key and its corresponding value.",
-          "Each key acts like a label, and each value is the information connected to that label. This makes it very easy to find exactly what you need without counting positions.",
-        ],
-      },
-      {
-      heading: "Creating a dictionary",
-      paragraphs: [
-          "A dictionary is created using curly braces { } and stores information as key-value pairs. Each key is followed by a colon (:) and its value.",
-          "Keys should be unique so that every piece of information can be found easily.",
-        ],
+        "A variable is a name that refers to a value stored in your Python program. Variables allow you to give meaningful names to data so that you can use and change that data later.",
+        "Creating a variable is as simple as assigning a value to a name using the equal sign (=). Python automatically determines the type of value being stored.",
+        "For example, age = 20 stores the value 20 in the variable age. If you later assign a new value to age, the variable now refers to the new value."
+      ],
+
       bullets: [
-          "student = {'name': 'Riya', 'age': 15}",
-          "book = {'title': 'Python Basics', 'pages': 250}",
-          "car = {'brand': 'Toyota', 'color': 'Blue'}",
-          "country = {'capital': 'New Delhi', 'currency': 'Rupee'}",
-        ],
-      },
-      {
-      heading: "Keys and values, not positions",
+        "age = 20",
+        "name = 'twenty'",
+        "x = 10",
+        "Variables can be reassigned to new values.",
+        "Python does not require you to declare a variable's type before using it."
+      ],
+    },
+
+    {
+      heading: "How Python Variables Work in Memory",
+
       paragraphs: [
-          "Unlike a list, a dictionary does not use index numbers like 0, 1, or 2 to find information.",
-          "Instead, you use the key to access its value. For example, if the key is 'name', Python immediately finds the person's name without counting through every item.",
-          "This makes dictionaries very useful when each piece of information has a meaningful label.",
-        ],
+        "A Python variable is better understood as a name or reference pointing to an object rather than simply a box containing a value.",
+        "When two variables refer to the same object, they can point to the same location in memory. Python's id() function can be used to inspect the identity of an object.",
+        "When a variable is reassigned, it can begin referring to a different object. This is one reason understanding objects and references is important when learning Python."
+      ],
+
       bullets: [
-          "Every key has one associated value.",
-          "Keys should be unique inside a dictionary.",
-          "You look up information using the key, not an index number.",
-          "The key acts like a label that helps find the correct value.",
-        ],
-      },
-      {
-      heading: "Let's understand with an example",
+        "x = 10",
+        "y = x",
+        "print(id(x))",
+        "print(id(y))",
+        "If x and y refer to the same object, their object identities can be the same."
+      ],
+    },
+
+    {
+      heading: "Multiple Assignment and Object Reuse",
+
       paragraphs: [
-          "Imagine you visit a library and want to borrow a book.",
-          "Instead of checking every shelf one by one, you search using the book's title in the library computer. The computer quickly finds where the book is located.",
-          "A dictionary works in the same way. Instead of searching by position, it uses a key to directly find the value you need.",
-        ],
-      },
-      {
-      heading: "When is a dictionary better than a list?",
-      paragraphs: [
-          "Lists are useful when the order of items is important. Dictionaries are useful when each piece of information has a name or label.",
-        ],
+        "Python provides convenient ways to assign values to multiple variables. You can assign the same value to several variables in a single statement or unpack multiple values into separate variables.",
+        "Python also manages objects automatically. When an object is no longer referenced, Python can reclaim the memory associated with it through garbage collection."
+      ],
+
       bullets: [
-          "Storing a student's information like name, age, and marks.",
-          "Keeping product details such as price, brand, and stock.",
-          "Saving employee information in a company.",
-          "Looking up the meaning of a word in a dictionary app.",
-          "Storing user profiles in websites and mobile applications.",
-          "Managing settings and configurations in software.",
-        ],
-      },
-      {
-      heading: "Common mistakes beginners make",
+        "Chained assignment → x = y = z = 100",
+        "Unpacking assignment → a, b, c = 1, 2.5, 'Python'",
+        "Python automatically manages memory.",
+        "Objects that are no longer referenced can eventually be cleaned up by garbage collection."
+      ],
+    },
+
+    {
+      heading: "Understanding Python Data Types",
+
       paragraphs: [
-          "Dictionaries are easy to use, but beginners often make a few common mistakes while learning them.",
-        ],
+        "A data type describes what kind of value an object represents and determines what operations can be performed on it.",
+        "Python provides several built-in data types for working with numbers, text, logical values, and collections of data.",
+        "You can use type() to find the type of an object and isinstance() to check whether an object belongs to a particular type."
+      ],
+
       bullets: [
-          "Trying to access a value using an index instead of a key.",
-          "Using the same key more than once.",
-          "Forgetting to use curly braces { }.",
-          "Misspelling a key while trying to access its value.",
-        ],
-      },
-      {
-      heading: "Lists vs Dictionaries",
+        "int → Whole numbers such as 10 or 20",
+        "float → Decimal numbers such as 3.5 or 5.8",
+        "complex → Numbers with real and imaginary parts such as 2.5 + 4j",
+        "str → Text such as 'Python'",
+        "bool → True or False values",
+        "list → Ordered, changeable collection",
+        "tuple → Ordered, unchangeable collection",
+        "dict → Key-value pairs",
+        "set → Collection of unique values"
+      ],
+    },
+
+    {
+      heading: "Working with Numbers",
+
       paragraphs: [
-          "Both lists and dictionaries store multiple values, but they organize information in different ways.",
-        ],
+        "Python supports integers and floating-point numbers for everyday numerical calculations.",
+        "It also supports complex numbers, which contain a real part and an imaginary part. Python provides attributes such as real and imag to access the individual components of a complex number."
+      ],
+
       bullets: [
-          "Lists use positions (indexes) to find items.",
-          "Dictionaries use keys (labels) to find values.",
-          "Choose a list when order matters.",
-          "Choose a dictionary when information has meaningful names like 'name', 'age', or 'price'.",
-        ],
-      },
-      {
-      heading: "Key idea to remember",
+        "x = 10",
+        "y = 3.5",
+        "z = 2.5 + 4j",
+        "print(type(x))",
+        "print(type(y))",
+        "print(type(z))",
+        "print(z.real)"
+      ],
+    },
+
+    {
+      heading: "Strings: Working with Text",
+
       paragraphs: [
-          "A dictionary stores information as key-value pairs. Instead of remembering where something is stored, you simply use its key to find the value quickly.",
-          "Think of a dictionary as a real-life contact book. You search for a person's name (the key) to find their phone number (the value).",
-        ],
+        "A string is a sequence of characters used to represent text. Strings can be accessed character by character using indexing and can also be sliced to extract a portion of the text.",
+        "Python provides many built-in string methods that make it easy to transform and work with text.",
+        "Strings are immutable, which means that operations on a string create a new string rather than changing the original string in place."
+      ],
+
       bullets: [
-          "Dictionaries store information as key-value pairs.",
-          "Keys are unique labels used to find values.",
-          "You access values using keys, not indexes.",
-          "Dictionaries are perfect for storing records and structured information.",
-          "They are widely used in Python, web development, AI, and databases.",
-        ],
-      },
-    ],
-  },
+        "word = 'Python'",
+        "word[0] → accesses the first character",
+        "word[1:4] → extracts a portion of the string",
+        "len(word) → returns the number of characters",
+        "word.upper() → converts text to uppercase",
+        "'Python'.replace('Py', 'Jy') → replaces part of the text"
+      ],
+    },
+
+    {
+      heading: "Lists: Ordered and Changeable Data",
+
+      paragraphs: [
+        "A list is an ordered collection that can store multiple values. Lists are mutable, which means you can add, remove, or modify elements after creating the list.",
+        "Lists are useful when you need a collection of items whose contents may change during a program."
+      ],
+
+      bullets: [
+        "fruits = ['apple', 'pear']",
+        "fruits.append('fig') → adds an item to the end",
+        "fruits.insert(2, 'Pineapple') → inserts an item at a specific position",
+        "fruits[0] = 'kiwi' → changes an existing item",
+        "fruits.sort() → sorts the list",
+        "len(fruits) → returns the number of items"
+      ],
+    },
+
+    {
+      heading: "Tuples: Ordered but Immutable",
+
+      paragraphs: [
+        "A tuple is another ordered collection type, but unlike a list, a tuple cannot be modified after it is created.",
+        "Tuples are useful when you want to represent fixed collections of values that should not accidentally be changed."
+      ],
+
+      bullets: [
+        "point = (3, 7)",
+        "point[0] → accesses the first value",
+        "Tuples are ordered.",
+        "Tuples are immutable.",
+        "Trying to change an element such as point[0] = 9 results in a TypeError."
+      ],
+    },
+
+    {
+      heading: "Lists vs Tuples",
+
+      paragraphs: [
+        "Lists and tuples both store ordered collections, but their main difference is mutability.",
+        "Use a list when the collection needs to change. Use a tuple when the values should remain fixed."
+      ],
+
+      bullets: [
+        "List → mutable and changeable",
+        "Tuple → immutable and fixed",
+        "List uses square brackets → [ ]",
+        "Tuple uses parentheses → ( )",
+        "Lists are useful for collections that change.",
+        "Tuples are useful for fixed data such as coordinates."
+      ],
+    },
+
+    {
+      heading: "Dictionaries: Key-Value Pairs",
+
+      paragraphs: [
+        "A dictionary stores information as key-value pairs. Instead of accessing information by its position, you access a value using its associated key.",
+        "Dictionaries are especially useful for structured and labeled data because every value can have a meaningful name."
+      ],
+
+      bullets: [
+        "user = {'name': 'Ada', 'age': 36}",
+        "user['name'] → accesses the value associated with the name key",
+        "user.keys() → returns the dictionary's keys",
+        "user.values() → returns the dictionary's values",
+        "user.items() → returns key-value pairs"
+      ],
+    },
+
+    {
+      heading: "Sets: Working with Unique Values",
+
+      paragraphs: [
+        "A set is a collection designed for storing unique values. When duplicate values are added, the set automatically keeps only one copy.",
+        "Sets are particularly useful when you need to remove duplicates or perform mathematical set operations such as union and intersection."
+      ],
+
+      bullets: [
+        "a = {1, 2, 2, 3} → duplicates are removed",
+        "b = {2, 3, 4}",
+        "a | b → union of the two sets",
+        "a & b → intersection of the two sets",
+        "Sets are useful when uniqueness matters."
+      ],
+    },
+
+    {
+      heading: "Boolean Values and Comparisons",
+
+      paragraphs: [
+        "Boolean values represent one of two possibilities: True or False.",
+        "Comparison expressions produce Boolean results. These values are important for making decisions and controlling the behavior of Python programs."
+      ],
+
+      bullets: [
+        "print(5 == 5) → True",
+        "print(3 == 4) → False",
+        "print(True) → True",
+        "True and False are Boolean values.",
+        "Comparison operators such as == can be used to compare values."
+      ],
+    },
+
+    {
+      heading: "What is Type Conversion?",
+
+      paragraphs: [
+        "Sometimes a value needs to be converted from one data type to another. Python provides built-in functions such as int(), float(), str(), and bool() for converting values.",
+        "Type conversion is especially important when working with user input because input received from input() is returned as a string."
+      ],
+
+      bullets: [
+        "int('20') → converts the string '20' into the integer 20",
+        "float('3.5') → converts the string '3.5' into the float 3.5",
+        "int(float('3.8')) → converts the string to a float and then to an integer",
+        "str(20) → converts a number into text",
+        "bool(value) → converts a value into a Boolean"
+      ],
+    },
+
+    {
+      heading: "Taking Input from the User",
+
+      paragraphs: [
+        "The input() function allows a Python program to interact with the user by asking them to enter information.",
+        "When input() is used, Python waits for the user to type something and press Enter.",
+        "An important point to remember is that input() returns the entered value as a string, even when the user enters a number."
+      ],
+
+      bullets: [
+        "name = input('Enter your name: ')",
+        "age = input('Enter your current age: ')",
+        "Input received from the user is initially a string.",
+        "Convert numeric input using int() or float() when calculations are required."
+      ],
+    },
+
+    {
+      heading: "Using Input with Type Conversion",
+
+      paragraphs: [
+        "If you want to perform mathematical operations on a value entered by the user, you need to convert the input string into a numeric type.",
+        "For example, an age entered using input() should be converted to an integer before adding a number to it."
+      ],
+
+      bullets: [
+        "age = int(input('Enter your current age: '))",
+        "print(age + 1)",
+        "If the user enters 20, age becomes the integer 20.",
+        "The program can then perform numerical operations such as age + 1."
+      ],
+    },
+
+    {
+      heading: "Displaying Output with print()",
+
+      paragraphs: [
+        "The print() function is used to display information on the screen.",
+        "You can print variables, text, numbers, expressions, and the results of calculations.",
+        "Python also allows formatted output so that variables can be combined with text in a readable way."
+      ],
+
+      bullets: [
+        "print('Hello, Python')",
+        "print(age)",
+        "print('Hello', name)",
+        "print(age + 1)",
+        "print(f'Hello, {name}')"
+      ],
+    },
+
+    {
+      heading: "Combining Input, Variables, and Output",
+
+      paragraphs: [
+        "Variables, input(), and print() work together to create interactive programs.",
+        "A program can ask the user for information, store that information in variables, process it, and then display the result back to the user."
+      ],
+
+      bullets: [
+        "name = input('Enter your name: ')",
+        "print(f'Hello, {name}')",
+        "age = int(input('Enter your current age: '))",
+        "print(age + 1)",
+        "The program receives data, stores it, processes it, and produces output."
+      ],
+    },
+
+    {
+      heading: "Common Beginner Mistakes",
+
+      paragraphs: [
+        "Beginners often run into problems when they confuse strings with numbers or try to modify immutable objects.",
+        "Understanding the type of your data before performing an operation helps prevent many common Python errors."
+      ],
+
+      bullets: [
+        "Forgetting that input() returns a string.",
+        "Trying to perform arithmetic directly on numeric input without using int() or float().",
+        "Trying to modify a tuple element, which causes a TypeError.",
+        "Confusing list syntax [ ] with tuple syntax ( ).",
+        "Expecting a set to preserve duplicate values.",
+        "Using a dictionary key that does not exist.",
+        "Forgetting that strings are immutable.",
+        "Using the wrong data type for an operation."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Python variables are names that refer to objects, and those objects can represent many different kinds of data. Understanding data types helps you choose the right structure and operation for your program.",
+        "Lists are useful for changeable ordered collections, tuples are useful for fixed collections, dictionaries organize information using keys, and sets keep unique values.",
+        "Input and output make programs interactive. Use input() to receive information, convert it when necessary, and use print() to display the result."
+      ],
+
+      bullets: [
+        "Variables store references to Python objects.",
+        "Use type() to inspect a value's type.",
+        "Use int(), float(), str(), and bool() for type conversion.",
+        "Lists are mutable; tuples are immutable.",
+        "Dictionaries store key-value pairs.",
+        "Sets automatically remove duplicates.",
+        "input() receives user input as a string.",
+        "print() displays information to the user.",
+        "Convert numeric input before performing calculations.",
+        "Choosing the correct data type makes Python programs easier to build and understand."
+      ],
+    },
+
+  ],
+
+},
+"operators-expressions-and-type-conversion-": {
+
+  title: "Python Operators, Expressions & Type Conversion",
+
+  subtitle: "Learn how Python performs computations, evaluates expressions, and safely converts values between different data types.",
+
+  eyebrow: "Concept 3 of 5",
+
+  accent: "teal",
+
+  icon: Calculator,
+
+  sections: [
+
+    {
+      heading: "What is an Operator?",
+
+      paragraphs: [
+        "An operator is a symbol that performs an action on one or more values.",
+        "The values that an operator works with are called operands. For example, in 5 + 3, the numbers 5 and 3 are operands, while + is the operator.",
+        "Every operator produces a value as a result. The result can be stored in a variable, printed, or used in another calculation.",
+        "Python groups operators into different families based on what they do."
+      ],
+
+      bullets: [
+        "Arithmetic operators → Perform mathematical calculations",
+        "Comparison operators → Compare values",
+        "Logical operators → Combine or invert conditions",
+        "Assignment operators → Assign and update values",
+        "Bitwise operators → Work directly with binary values",
+        "Identity operators → Check whether objects are the same object",
+        "Membership operators → Check whether a value exists inside a collection"
+      ],
+    },
+
+    {
+      heading: "Arithmetic Operators",
+
+      paragraphs: [
+        "Arithmetic operators are used for everyday mathematical calculations in Python.",
+        "Python provides operators for addition, subtraction, multiplication, division, floor division, finding a remainder, and calculating powers."
+      ],
+
+      bullets: [
+        "Addition → 5 + 3 → 8",
+        "Subtraction → 5 - 3 → 2",
+        "Multiplication → 5 * 3 → 15",
+        "True division → 5 / 2 → 2.5",
+        "Floor division → 5 // 2 → 2",
+        "Modulus → 5 % 2 → 1",
+        "Exponent → 5 ** 2 → 25"
+      ],
+    },
+
+    {
+      heading: "Division vs Floor Division",
+
+      paragraphs: [
+        "Python has two different operators for division. The / operator performs true division and returns a floating-point result.",
+        "The // operator performs floor division. It discards the remainder and returns the floor of the result."
+      ],
+
+      bullets: [
+        "10 / 2 → 5.0",
+        "5 / 2 → 2.5",
+        "5 // 2 → 2",
+        "The / operator always returns a float.",
+        "The // operator performs floor division."
+      ],
+    },
+
+    {
+      heading: "Comparison Operators",
+
+      paragraphs: [
+        "Comparison operators compare two values and always produce a Boolean result: either True or False.",
+        "They are commonly used when a program needs to determine whether values are equal, different, greater, or smaller."
+      ],
+
+      bullets: [
+        "Equal to → 5 == 5 → True",
+        "Not equal to → 5 != 3 → True",
+        "Greater than → 5 > 3 → True",
+        "Less than → 5 < 3 → False",
+        "Greater than or equal to → 5 >= 5 → True",
+        "Less than or equal to → 5 <= 3 → False"
+      ],
+    },
+
+    {
+      heading: "Do Not Confuse = and ==",
+
+      paragraphs: [
+        "One of the most common beginner mistakes is confusing the assignment operator = with the comparison operator ==.",
+        "The = operator assigns a value to a variable, while == asks whether two values are equal and returns True or False."
+      ],
+
+      bullets: [
+        "x = 5 → assigns 5 to x",
+        "x == 5 → checks whether x is equal to 5",
+        "= → assignment",
+        "== → equality comparison"
+      ],
+    },
+
+    {
+      heading: "Logical Operators",
+
+      paragraphs: [
+        "Logical operators are used to combine or invert Boolean expressions.",
+        "Python provides three main logical operators: and, or, and not.",
+        "The and operator requires both conditions to be True. The or operator is True when at least one condition is True. The not operator reverses a Boolean value."
+      ],
+
+      bullets: [
+        "and → True only when both conditions are True",
+        "or → True when at least one condition is True",
+        "not → Flips True to False and False to True",
+        "age = 20",
+        "has_id = True",
+        "age >= 18 and has_id → True",
+        "age < 18 or has_id → True",
+        "not has_id → False"
+      ],
+    },
+
+    {
+      heading: "Assignment Operators",
+
+      paragraphs: [
+        "Assignment operators are used to assign values to variables and update their existing values.",
+        "The combined assignment operators provide a shorter way to perform an operation and store the result back in the same variable."
+      ],
+
+      bullets: [
+        "= → Assign",
+        "+= → Add and assign",
+        "-= → Subtract and assign",
+        "*= → Multiply and assign",
+        "/= → Divide and assign",
+        "//= → Floor divide and assign",
+        "%= → Modulus and assign",
+        "**= → Exponent and assign"
+      ],
+    },
+
+    {
+      heading: "Understanding Shorthand Assignment",
+
+      paragraphs: [
+        "An expression such as x += 3 is a shorthand version of x = x + 3.",
+        "Python first uses the current value of x, performs the operation, and then stores the updated result back in x."
+      ],
+
+      bullets: [
+        "x = 5",
+        "x += 3 → x becomes 8",
+        "x -= 2 → x becomes 6",
+        "x *= 4 → x becomes 24",
+        "x /= 2 → x becomes 12.0",
+        "x //= 5 → x becomes 2",
+        "x %= 3 → x becomes 2",
+        "x **= 3 → x becomes 8"
+      ],
+    },
+
+    {
+      heading: "Bitwise Operators",
+
+      paragraphs: [
+        "Bitwise operators work directly with the binary representation of integers.",
+        "They operate on the individual 0s and 1s that make up an integer. These operators are not commonly needed in simple beginner programs, but they are important for areas such as flags, masks, and low-level programming."
+      ],
+
+      bullets: [
+        "a = 0b1010 → 10",
+        "b = 0b0110 → 6",
+        "a & b → AND → 2",
+        "a | b → OR → 14",
+        "a ^ b → XOR → 12",
+        "~a → NOT → -11",
+        "a << 1 → Left shift → 20",
+        "a >> 1 → Right shift → 5"
+      ],
+    },
+
+    {
+      heading: "Left Shift and Right Shift",
+
+      paragraphs: [
+        "The left shift operator moves the binary bits to the left, while the right shift operator moves them to the right.",
+        "A left shift by one position effectively multiplies an integer by 2, while a right shift by one position effectively divides it by 2 while discarding the remainder."
+      ],
+
+      bullets: [
+        "a << 1 → shifts bits one position to the left",
+        "a >> 1 → shifts bits one position to the right",
+        "Left shift by one position → multiply by 2",
+        "Right shift by one position → divide by 2 and discard the remainder"
+      ],
+    },
+
+    {
+      heading: "Identity Operators",
+
+      paragraphs: [
+        "Identity operators are used to check whether two names refer to the exact same object in memory.",
+        "Python provides the is and is not operators for identity comparisons.",
+        "This is different from ==, which checks whether two values are equal."
+      ],
+
+      bullets: [
+        "is → Checks whether two names refer to the same object",
+        "is not → Checks whether two names refer to different objects",
+        "a == b → Checks whether values have equal contents",
+        "a is b → Checks whether they are the same object",
+        "x is None → The correct and idiomatic way to check for None"
+      ],
+    },
+
+    {
+      heading: "Equality vs Identity",
+
+      paragraphs: [
+        "Consider two separate lists that contain the same values. The == operator can report that they are equal because their contents match, while is can report False because they are different objects.",
+        "Identity is therefore stricter than equality. Use == when you want to compare values and is when you specifically want to check object identity."
+      ],
+
+      bullets: [
+        "a = [1, 2]",
+        "b = [1, 2]",
+        "c = a",
+        "a == b → True",
+        "a is b → False",
+        "a is c → True"
+      ],
+    },
+
+    {
+      heading: "Membership Operators",
+
+      paragraphs: [
+        "Membership operators check whether a value exists inside a collection.",
+        "Python provides in and not in for membership testing.",
+        "Membership operators work with collections such as strings, lists, tuples, dictionaries, and sets."
+      ],
+
+      bullets: [
+        "fruits = ['apple', 'pear']",
+        "'apple' in fruits → True",
+        "'mango' not in fruits → True",
+        "'Py' in 'Python' → True",
+        "Membership tests return True or False.",
+        "They provide a simple alternative to manually looping through a collection to find a value."
+      ],
+    },
+
+    {
+      heading: "What is an Expression?",
+
+      paragraphs: [
+        "An expression is anything that Python can evaluate down to a single value.",
+        "Expressions can contain values, variables, operators, and function calls. Python evaluates the different parts of an expression and eventually produces one final value.",
+        "Expressions can also contain other expressions, allowing complex calculations to be built from smaller pieces."
+      ],
+
+      bullets: [
+        "5 + 3 → expression",
+        "len('hi') → expression",
+        "x > 10 → expression",
+        "(5 + 3) * len('hi') → expression containing other expressions",
+        "Expressions can be used wherever Python expects a value."
+      ],
+    },
+
+    {
+      heading: "Expression vs Statement",
+
+      paragraphs: [
+        "An expression produces a value, while a statement performs an action.",
+        "For example, 5 + 3 is an expression because it evaluates to 8. An assignment such as x = 5 is a statement because it assigns a value to a variable."
+      ],
+
+      bullets: [
+        "5 + 3 → expression",
+        "len('hi') → expression",
+        "x > 10 → expression",
+        "x = 5 → statement",
+        "if x > 3: → statement"
+      ],
+    },
+
+    {
+      heading: "Operator Precedence",
+
+      paragraphs: [
+        "When an expression contains multiple operators, Python needs to know which operation should happen first.",
+        "Operator precedence determines the order in which different operators are evaluated.",
+        "Parentheses can be used to make the intended order explicit."
+      ],
+
+      bullets: [
+        "1. Parentheses → ()",
+        "2. Exponent → **",
+        "3. Multiplication, division, floor division, modulus → * / // %",
+        "4. Addition and subtraction → + -",
+        "5. Comparisons → == != > < >= <=",
+        "6. Logical operators → not, and, or"
+      ],
+    },
+
+    {
+      heading: "Understanding Precedence with an Example",
+
+      paragraphs: [
+        "Consider the expression 2 + 3 * 4 ** 2. Python does not simply evaluate it from left to right.",
+        "The exponent is evaluated first, followed by multiplication, and finally addition."
+      ],
+
+      bullets: [
+        "result = 2 + 3 * 4 ** 2",
+        "Step 1 → 4 ** 2 = 16",
+        "Step 2 → 3 * 16 = 48",
+        "Step 3 → 2 + 48 = 50",
+        "print(result) → 50"
+      ],
+    },
+
+    {
+      heading: "Evaluating Complex Expressions",
+
+      paragraphs: [
+        "Python evaluates complex expressions one step at a time until the entire expression becomes one final value.",
+        "Parenthesized expressions are evaluated first, regardless of the normal precedence rules.",
+        "Python also supports chained comparisons, which allow multiple comparisons to be written in a readable form."
+      ],
+
+      bullets: [
+        "total = (4 + 6) * 2",
+        "First → (4 + 6) = 10",
+        "Then → 10 * 2 = 20",
+        "in_range = 1 < total < 50",
+        "1 < total < 50 is equivalent to (1 < total) and (total < 50)",
+        "print(in_range) → True"
+      ],
+    },
+
+    {
+      heading: "What is Type Conversion?",
+
+      paragraphs: [
+        "Type conversion is the process of moving a value from one data type to another.",
+        "Python performs type conversion in two main ways: implicit conversion, which happens automatically, and explicit conversion, where the programmer asks Python to convert a value."
+      ],
+
+      bullets: [
+        "Implicit conversion → Python converts the type automatically.",
+        "Explicit conversion → The programmer manually converts the type.",
+        "Implicit conversion is also called coercion.",
+        "Explicit conversion is also called casting."
+      ],
+    },
+
+    {
+      heading: "Implicit Type Conversion",
+
+      paragraphs: [
+        "Implicit conversion happens automatically when Python needs to convert an operand's type during an operation.",
+        "Python generally promotes a value toward a type that can preserve the information without unnecessary loss."
+      ],
+
+      bullets: [
+        "a = 7",
+        "b = 2.0",
+        "c = a + b",
+        "print(c) → 9.0",
+        "print(type(c)) → float",
+        "int + float → float",
+        "Python automatically promotes the integer to a float."
+      ],
+    },
+
+    {
+      heading: "Boolean Values in Arithmetic",
+
+      paragraphs: [
+        "In Python, bool is a subclass of int, so True and False can behave like 1 and 0 in arithmetic operations.",
+        "This means Boolean values can participate in numerical calculations even though they are normally used to represent logical conditions."
+      ],
+
+      bullets: [
+        "True behaves like 1 in arithmetic.",
+        "False behaves like 0 in arithmetic.",
+        "True + 1 → 2",
+        "Not every combination of data types can be automatically converted.",
+        "Python does not automatically combine strings and integers."
+      ],
+    },
+
+    {
+      heading: "Explicit Type Conversion",
+
+      paragraphs: [
+        "Explicit conversion happens when you intentionally convert a value using a constructor function.",
+        "Python provides functions such as int(), float(), str(), and bool() for converting values from one type to another."
+      ],
+
+      bullets: [
+        "int() → Converts a value to an integer",
+        "float() → Converts a value to a floating-point number",
+        "str() → Converts a value to a string",
+        "bool() → Converts a value to a Boolean",
+        "list() → Converts an iterable into a list",
+        "tuple() → Converts a sequence into a tuple"
+      ],
+    },
+
+    {
+      heading: "Converting Strings to Numbers",
+
+      paragraphs: [
+        "Strings containing numeric characters can be converted into numbers using int() or float().",
+        "This is especially useful when numeric information is stored as text and needs to be used in calculations."
+      ],
+
+      bullets: [
+        "int('42') → 42",
+        "float('3.5') → 3.5",
+        "age_text = '30'",
+        "age = int(age_text)",
+        "print(age + 1) → 31"
+      ],
+    },
+
+    {
+      heading: "Converting Values to Strings",
+
+      paragraphs: [
+        "The str() function converts a value into its text representation.",
+        "This is useful when you need to combine a numeric value with text."
+      ],
+
+      bullets: [
+        "str(99) → '99'",
+        "str(42) → '42'",
+        "Use str() when a number needs to be represented as text.",
+        "String concatenation requires compatible string values."
+      ],
+    },
+
+    {
+      heading: "Converting Values to Boolean",
+
+      paragraphs: [
+        "The bool() function converts a value into either True or False.",
+        "Zero, an empty value, or None becomes False. Other values generally become True."
+      ],
+
+      bullets: [
+        "bool(0) → False",
+        "bool('') → False",
+        "bool(None) → False",
+        "bool('ab') → True",
+        "bool(5) → True"
+      ],
+    },
+
+    {
+      heading: "Converting Iterables",
+
+      paragraphs: [
+        "Python can also convert iterable values into collections such as lists and tuples.",
+        "The list() function creates a list from an iterable, while tuple() creates an immutable tuple."
+      ],
+
+      bullets: [
+        "list('ab') → ['a', 'b']",
+        "tuple([1, 2]) → (1, 2)",
+        "list() → Creates a list from an iterable",
+        "tuple() → Creates a fixed, immutable tuple"
+      ],
+    },
+
+    {
+      heading: "Common Type Conversion Pitfalls",
+
+      paragraphs: [
+        "Type conversion can cause errors when Python cannot safely interpret a value as the requested type.",
+        "Understanding these common mistakes helps prevent unexpected TypeError and ValueError exceptions."
+      ],
+
+      bullets: [
+        "Strings and numbers do not automatically combine.",
+        "print('Score: ' + 95) → TypeError",
+        "Use str(95) when combining the number with text.",
+        "int('3.5') → ValueError because the string contains a decimal point.",
+        "int(float('3.5')) → 3",
+        "int(9.9) → 9",
+        "int() truncates the decimal part rather than rounding it.",
+        "round(9.9) → 10 when rounding is intended."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Operators are the tools Python uses to perform calculations, comparisons, logical operations, assignments, bitwise operations, identity checks, and membership tests.",
+        "Expressions combine values and operators into computable code that Python evaluates down to one final value. Operator precedence determines the order in which mixed expressions are evaluated.",
+        "Type conversion allows Python values to move between different data types. Implicit conversion happens automatically, while explicit conversion uses functions such as int(), float(), str(), and bool()."
+      ],
+
+      bullets: [
+        "Operators act on operands and produce values.",
+        "Arithmetic operators perform mathematical calculations.",
+        "Comparison operators return True or False.",
+        "Logical operators combine Boolean expressions.",
+        "Assignment operators update variable values.",
+        "Bitwise operators work with binary representations.",
+        "Identity operators compare object identity.",
+        "Membership operators check whether a value exists in a collection.",
+        "Expressions evaluate to a final value.",
+        "Operator precedence determines evaluation order.",
+        "Implicit conversion happens automatically.",
+        "Explicit conversion uses functions such as int(), float(), str(), and bool().",
+        "Watch out for str + int, int('3.5'), and float-to-int truncation."
+      ],
+    },
+
+  ],
+
+},
+
+"conditional-statements-": {
+
+  title: "Python Conditional Statements",
+
+  subtitle: "Teach your Python programs to make decisions and choose different actions based on conditions.",
+
+  eyebrow: "Concept 4 of 5",
+
+  accent: "teal",
+
+  icon: GitBranch,
+
+  sections: [
+
+    {
+      heading: "What is a Conditional Statement?",
+
+      paragraphs: [
+        "A conditional statement allows a Python program to make decisions and choose between different paths.",
+        "Instead of always executing the same instructions, a program can check whether a condition is True or False and decide what to do next.",
+        "The condition is an expression that evaluates to True or False. It can contain comparisons, Boolean values, or other expressions.",
+        "Python executes only the block whose condition is satisfied and skips the other blocks."
+      ],
+
+      bullets: [
+        "Condition → An expression that evaluates to True or False",
+        "True → The associated block runs",
+        "False → The block is skipped",
+        "Indentation determines which statements belong to a conditional block"
+      ],
+    },
+
+    {
+      heading: "The if Statement",
+
+      paragraphs: [
+        "The if statement runs a block of code only when its condition is True.",
+        "Python uses a colon (:) after the condition to indicate that a new block is beginning.",
+        "Every line belonging to the if block must be indented. When Python reaches the first unindented line, the if block ends.",
+        "If the condition is False, Python simply skips the entire block and continues with the rest of the program."
+      ],
+
+      bullets: [
+        "temperature = 35",
+        "if temperature > 30:",
+        "    print(\"It's a hot day\")",
+        "The colon after the condition is required.",
+        "Indentation defines the code belonging to the if block."
+      ],
+    },
+
+    {
+      heading: "The if-else Statement",
+
+      paragraphs: [
+        "The if-else statement is used when there are two possible outcomes.",
+        "If the condition is True, the if block runs. Otherwise, the else block runs.",
+        "Unlike a simple if statement, an if-else statement guarantees that exactly one of the two branches will execute."
+      ],
+
+      bullets: [
+        "age = 16",
+        "if age >= 18:",
+        "    print(\"You can vote\")",
+        "else:",
+        "    print(\"Not old enough yet\")",
+        "else does not have its own condition.",
+        "Exactly one branch always runs."
+      ],
+    },
+
+    {
+      heading: "When Should You Use if-else?",
+
+      paragraphs: [
+        "Use if-else when your program needs to choose between exactly two possible outcomes.",
+        "For example, a program can check whether a person is old enough to vote and display one message if they are eligible and another if they are not."
+      ],
+
+      bullets: [
+        "Use if when you only need to act when a condition is True.",
+        "Use if-else when there are two possible outcomes.",
+        "The if branch handles the True case.",
+        "The else branch handles everything the if condition did not catch."
+      ],
+    },
+
+    {
+      heading: "The if-elif-else Chain",
+
+      paragraphs: [
+        "When a program needs to choose between several possibilities, you can use an if-elif-else chain.",
+        "Python checks the conditions from top to bottom and executes the first condition that evaluates to True.",
+        "Once a matching condition is found, Python stops checking the remaining conditions."
+      ],
+
+      bullets: [
+        "score = 82",
+        "if score >= 90:",
+        "    grade = \"A\"",
+        "elif score >= 80:",
+        "    grade = \"B\"",
+        "elif score >= 70:",
+        "    grade = \"C\"",
+        "else:",
+        "    grade = \"F\"",
+        "elif means 'else if'.",
+        "else is optional and acts as the final catch-all."
+      ],
+    },
+
+    {
+      heading: "Why Does the Order of elif Matter?",
+
+      paragraphs: [
+        "The order of conditions in an if-elif-else chain is extremely important because Python stops at the first True condition.",
+        "A broad condition placed before a more specific condition can prevent the later condition from ever being checked."
+      ],
+
+      bullets: [
+        "Python checks conditions from top to bottom.",
+        "The first True condition wins.",
+        "More specific conditions should not be hidden behind a broader condition.",
+        "Always think about the order in which your conditions will be evaluated."
+      ],
+    },
+
+    {
+      heading: "Nested Conditionals",
+
+      paragraphs: [
+        "A nested conditional is an if statement placed inside another if statement's block.",
+        "The inner condition is checked only when the outer condition is True.",
+        "Each nested conditional adds another level of indentation, so deeply nested code can become difficult to read."
+      ],
+
+      bullets: [
+        "is_member = True",
+        "purchase = 120",
+        "if is_member:",
+        "    if purchase > 100:",
+        "        print(\"15% discount\")",
+        "    else:",
+        "        print(\"10% discount\")",
+        "else:",
+        "    print(\"No discount\")"
+      ],
+    },
+
+    {
+      heading: "Avoiding Deep Nesting",
+
+      paragraphs: [
+        "Although nested conditionals are sometimes useful, too many levels of nesting can make decision logic difficult to understand.",
+        "When possible, related conditions can often be combined using logical operators such as and and or.",
+        "For example, checking is_member and purchase > 100 together can be clearer than creating multiple nested if statements."
+      ],
+
+      bullets: [
+        "Avoid unnecessary levels of indentation.",
+        "Use and when multiple conditions must be True.",
+        "Use or when any one of several conditions can be True.",
+        "Consider flattening simple nested conditions."
+      ],
+    },
+
+    {
+      heading: "Combining Conditions",
+
+      paragraphs: [
+        "Python allows you to combine multiple conditions directly inside an if statement.",
+        "Logical operators such as and and or make it possible to create more powerful decision rules.",
+        "Python also supports chained comparisons, allowing mathematical-style conditions to be written naturally."
+      ],
+
+      bullets: [
+        "age = 25",
+        "has_ticket = True",
+        "if 18 <= age <= 65 and has_ticket:",
+        "    print(\"Entry allowed\")",
+        "if age < 13 or age >= 65:",
+        "    print(\"Discount applies\")"
+      ],
+    },
+
+    {
+      heading: "Understanding and and or",
+
+      paragraphs: [
+        "The and operator requires all connected conditions to be True before the combined condition becomes True.",
+        "The or operator requires only one of the connected conditions to be True.",
+        "Choosing the correct logical operator is important when building decision-making logic."
+      ],
+
+      bullets: [
+        "and → Every condition must be True.",
+        "or → At least one condition must be True.",
+        "18 <= age <= 65 → Checks both age boundaries.",
+        "18 <= age <= 65 and has_ticket → Both the age range and ticket condition must be satisfied."
+      ],
+    },
+
+    {
+      heading: "The Ternary Conditional Expression",
+
+      paragraphs: [
+        "Python provides a short one-line form of if-else called a ternary or conditional expression.",
+        "Unlike a normal if statement, a ternary expression evaluates to a value. This means it can be assigned to a variable or used directly inside another expression.",
+        "The basic structure is: value if condition else value."
+      ],
+
+      bullets: [
+        "age = 20",
+        "status = \"adult\" if age >= 18 else \"minor\"",
+        "print(status)",
+        "The expression is equivalent to a normal if-else assignment.",
+        "Use ternary expressions for simple conditions.",
+        "Avoid deeply nested ternary expressions because they become difficult to read."
+      ],
+    },
+
+    {
+      heading: "Membership in Conditions",
+
+      paragraphs: [
+        "The in and not in operators can be used directly inside conditional statements to check whether a value exists in a collection.",
+        "Membership testing works naturally with strings, lists, tuples, dictionaries, and sets."
+      ],
+
+      bullets: [
+        "fruit = \"apple\"",
+        "if fruit in [\"apple\", \"pear\"]:",
+        "    print(\"in stock\")",
+        "'apple' in [\"apple\", \"pear\"] → True",
+        "'mango' not in [\"apple\", \"pear\"] → True",
+        "Membership checks produce a Boolean result."
+      ],
+    },
+
+    {
+      heading: "Identity Checks with is",
+
+      paragraphs: [
+        "The is and is not operators check whether two names refer to the same object.",
+        "The lecture specifically highlights is None as the correct and idiomatic way to check whether a value is None.",
+        "Identity is different from equality: == compares values, while is checks object identity."
+      ],
+
+      bullets: [
+        "result = None",
+        "if result is None:",
+        "    print(\"not computed yet\")",
+        "Use is None when checking for None.",
+        "Use == when comparing values for equality."
+      ],
+    },
+
+    {
+      heading: "The match-case Statement",
+
+      paragraphs: [
+        "Python 3.10 introduced structural pattern matching through the match-case statement.",
+        "match-case provides a clean alternative to long elif chains when you are checking one value against several specific possibilities.",
+        "It is particularly useful for situations such as menus, commands, categories, or fixed options."
+      ],
+
+      bullets: [
+        "day = \"Sat\"",
+        "match day:",
+        "    case \"Sat\" | \"Sun\":",
+        "        print(\"Weekend\")",
+        "    case _:",
+        "        print(\"Weekday\")",
+        "match-case requires Python 3.10 or newer."
+      ],
+    },
+
+    {
+      heading: "Understanding case Patterns",
+
+      paragraphs: [
+        "Each case inside a match statement represents a pattern that Python attempts to match against the value.",
+        "The | operator allows multiple patterns to be combined in one case.",
+        "The underscore (_) acts as a wildcard and matches anything that was not matched by the previous cases."
+      ],
+
+      bullets: [
+        "\"Sat\" | \"Sun\" → Matches either Saturday or Sunday.",
+        "case _ → Matches anything not already matched.",
+        "case _ works like a final catch-all branch.",
+        "match-case is useful when checking one value against many exact patterns."
+      ],
+    },
+
+    {
+      heading: "Common Conditional Pitfalls",
+
+      paragraphs: [
+        "Conditional statements are easy to write, but a few mistakes commonly cause problems or unexpected behavior.",
+        "Understanding these mistakes helps you write conditions that behave exactly as intended."
+      ],
+
+      bullets: [
+        "Using = instead of == for comparison → if x = 5: causes a SyntaxError.",
+        "Comparing floating-point values directly can produce unexpected results → 0.1 + 0.2 == 0.3 is False.",
+        "Putting a broad condition before more specific elif conditions can prevent later branches from running.",
+        "Writing if is_valid == True: is unnecessary when if is_valid: expresses the same condition more clearly."
+      ],
+    },
+
+    {
+      heading: "Writing Better Conditionals",
+
+      paragraphs: [
+        "Good conditional code should be easy to read and understand.",
+        "Avoid unnecessary comparisons, extract complicated logic into meaningful variables, and avoid excessive nesting.",
+        "Choose the conditional structure that best matches the problem you are solving."
+      ],
+
+      bullets: [
+        "Write if x: instead of if x == True:.",
+        "Give complex conditions meaningful variable names.",
+        "Example → is_eligible = age >= 18 and has_id",
+        "Avoid deep nesting whenever possible.",
+        "Use if-elif for ranges or multiple conditions.",
+        "Use match-case when checking one value against many exact patterns."
+      ],
+    },
+
+    {
+      heading: "Choosing the Right Conditional",
+
+      paragraphs: [
+        "Different conditional structures are useful in different situations.",
+        "A simple if works when an action should happen only when a condition is True. if-else is useful for two outcomes, while if-elif-else is useful when several conditions need to be tested.",
+        "For one variable with many exact patterns, match-case can make the code cleaner and easier to maintain."
+      ],
+
+      bullets: [
+        "if → One condition and one possible action.",
+        "if-else → Two possible outcomes.",
+        "if-elif-else → Multiple conditions or ranges.",
+        "Nested if → A condition depends on another condition.",
+        "Ternary expression → Simple one-line value selection.",
+        "match-case → One value compared against multiple patterns."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Conditional statements give Python programs the ability to make decisions. Python evaluates a condition and chooses which block of code should run based on whether the condition is True or False.",
+        "As your decision logic becomes more complex, you can combine conditions using and and or, check membership using in, check identity using is, or use modern features such as ternary expressions and match-case.",
+        "Good conditional code is simple, readable, correctly ordered, and avoids unnecessary nesting."
+      ],
+
+      bullets: [
+        "if runs code when a condition is True.",
+        "if-else handles two possible outcomes.",
+        "if-elif-else handles multiple conditions.",
+        "Nested conditionals place one decision inside another.",
+        "and requires all combined conditions to be True.",
+        "or requires at least one condition to be True.",
+        "in checks membership.",
+        "is checks object identity and is commonly used with None.",
+        "Ternary expressions provide a compact one-line if-else.",
+        "match-case is useful for matching one value against multiple patterns.",
+        "Avoid == True when a direct Boolean condition is clearer.",
+        "Keep conditional logic readable and avoid unnecessary deep nesting."
+      ],
+    },
+
+  ],
+
+},
+
+
+  "loops-for-and-while-": {
+
+  title: "Loops in Python",
+
+  subtitle: "Learn how Python repeats code efficiently using for loops, while loops, and powerful loop-control statements.",
+
+  eyebrow: "Concept 5 of 5",
+
+  accent: "teal",
+
+  icon: Repeat,
+
+  sections: [
+
+    {
+      heading: "What are Loops?",
+
+      paragraphs: [
+        "A loop allows a Python program to repeat a block of code without writing the same instructions again and again.",
+        "Instead of copying the same statement many times, you write the instruction once and tell Python how many times or under what condition it should repeat.",
+        "Every loop needs a way to stop. If nothing causes the loop to finish, the program may continue running forever."
+      ],
+
+      bullets: [
+        "Loops reduce repetitive code.",
+        "A loop repeats a block of instructions.",
+        "for loops repeat over items in a collection or range.",
+        "while loops repeat while a condition remains True.",
+        "Every loop should have a clear stopping point."
+      ],
+    },
+
+    {
+      heading: "Why Do We Need Loops?",
+
+      paragraphs: [
+        "Imagine you want to print the same message five times. Without a loop, you would need to write print() five separate times.",
+        "With a loop, you write the instruction once and Python repeats it for you.",
+        "Loops make programs shorter, easier to maintain, and much more useful when working with collections of data."
+      ],
+
+      bullets: [
+        "Without a loop → print('Welcome!') repeated many times",
+        "With a loop → write the print statement once",
+        "Loops are useful for repetitive tasks.",
+        "Loops are especially useful when working with collections of data."
+      ],
+    },
+
+    {
+      heading: "The Two Main Types of Loops",
+
+      paragraphs: [
+        "Python provides two main types of loops: for loops and while loops.",
+        "The type of loop you choose depends on what controls the repetition.",
+        "A for loop is generally used when you want to process each item in a sequence, while a while loop is useful when repetition depends on a condition."
+      ],
+
+      bullets: [
+        "for → Repeat once for every item in a collection or range.",
+        "while → Repeat as long as a condition remains True.",
+        "Choose for when the items or number of iterations are known.",
+        "Choose while when the stopping point depends on a changing condition."
+      ],
+    },
+
+    {
+      heading: "The for Loop",
+
+      paragraphs: [
+        "A for loop walks through a collection one item at a time and executes the loop body for each item.",
+        "Python automatically assigns each item to the loop variable, so you do not need to manually create and update a counter.",
+        "Once every item has been processed, the for loop stops automatically."
+      ],
+
+      bullets: [
+        "fruits = ['apple', 'pear', 'fig']",
+        "for fruit in fruits:",
+        "    print(fruit)",
+        "The loop variable fruit receives each item one at a time.",
+        "The loop ends automatically after all items have been visited."
+      ],
+    },
+
+    {
+      heading: "Indentation in for Loops",
+
+      paragraphs: [
+        "Python uses indentation to determine which statements belong to a loop.",
+        "The colon after the for statement marks the beginning of the loop block, and the indented lines are executed during every iteration."
+      ],
+
+      bullets: [
+        "for fruit in fruits:",
+        "    print(fruit)",
+        "A colon (:) is required after the loop declaration.",
+        "The loop body must be indented.",
+        "The first unindented statement marks the end of the loop body."
+      ],
+    },
+
+    {
+      heading: "The range() Function",
+
+      paragraphs: [
+        "The range() function produces a sequence of numbers that can be used with for loops.",
+        "The stop value is excluded, which means range(5) produces 0, 1, 2, 3, and 4.",
+        "range() can accept a stop value, a start and stop value, or a start, stop, and step value."
+      ],
+
+      bullets: [
+        "range(5) → 0, 1, 2, 3, 4",
+        "range(2, 5) → 2, 3, 4",
+        "range(0, 10, 2) → 0, 2, 4, 6, 8",
+        "range(1, 6) → 1, 2, 3, 4, 5",
+        "The stop value is always excluded."
+      ],
+    },
+
+    {
+      heading: "Understanding start, stop, and step",
+
+      paragraphs: [
+        "The full form of range() is range(start, stop, step).",
+        "start determines where the sequence begins, stop determines where it ends before, and step determines how much the value changes each time.",
+        "The step can also be negative, allowing you to count backwards."
+      ],
+
+      bullets: [
+        "range(5) → start defaults to 0",
+        "range(2, 6) → starts at 2 and stops before 6",
+        "range(0, 10, 2) → increases by 2",
+        "range(5, 0, -1) → counts backwards",
+        "range() does not create a complete list of numbers in memory up front."
+      ],
+    },
+
+    {
+      heading: "Looping Through Strings and Collections",
+
+      paragraphs: [
+        "The for loop works with almost any iterable object. This includes strings, lists, tuples, sets, dictionaries, and range objects.",
+        "When looping through a string, Python provides one character at a time. When looping through a list, Python provides one element at a time."
+      ],
+
+      bullets: [
+        "for ch in 'abc':",
+        "    print(ch)",
+        "for item in [10, 20, 30]:",
+        "    print(item)",
+        "Strings, lists, tuples, and sets can all be iterated over.",
+        "One consistent for-loop syntax works across many Python data types."
+      ],
+    },
+
+    {
+      heading: "Looping Through Dictionaries",
+
+      paragraphs: [
+        "When you loop directly over a dictionary, Python gives you its keys by default.",
+        "If you need both the key and its corresponding value, you can use the dictionary's items() method."
+      ],
+
+      bullets: [
+        "scores = {'Steve': 90}",
+        "for name in scores:",
+        "    print(name)",
+        "Direct dictionary iteration → gives keys.",
+        "scores.items() → provides key-value pairs."
+      ],
+    },
+
+    {
+      heading: "The while Loop",
+
+      paragraphs: [
+        "A while loop repeats a block of code as long as its condition remains True.",
+        "The condition is checked before every iteration. If it is False at the beginning, the loop body does not execute even once.",
+        "Something inside the loop should usually change the condition so that it eventually becomes False."
+      ],
+
+      bullets: [
+        "while condition:",
+        "    do_something()",
+        "The condition is checked before every iteration.",
+        "The loop stops when the condition becomes False.",
+        "Use while when the number of repetitions is not known in advance."
+      ],
+    },
+
+    {
+      heading: "Your First while Loop",
+
+      paragraphs: [
+        "A common while-loop pattern uses a counter that starts with an initial value, is checked by the condition, and is updated inside the loop.",
+        "The update is important because it moves the condition toward False and eventually ends the loop."
+      ],
+
+      bullets: [
+        "count = 1",
+        "while count <= 3:",
+        "    print(count)",
+        "    count += 1",
+        "Output → 1, 2, 3",
+        "After printing 3, count becomes 4 and the condition becomes False."
+      ],
+    },
+
+    {
+      heading: "How a while Loop Works",
+
+      paragraphs: [
+        "A while loop follows a simple cycle: check the condition, execute the loop body, change the relevant value, and check the condition again.",
+        "The loop continues only while the condition remains True."
+      ],
+
+      bullets: [
+        "1. Check the condition.",
+        "2. If True, execute the loop body.",
+        "3. Update the value controlling the condition.",
+        "4. Check the condition again.",
+        "5. Stop when the condition becomes False."
+      ],
+    },
+
+    {
+      heading: "Infinite while Loops",
+
+      paragraphs: [
+        "An infinite loop occurs when the condition of a while loop never becomes False.",
+        "For example, while True: creates a loop whose condition is permanently True. The loop will continue until the program is manually interrupted or another mechanism stops it."
+      ],
+
+      bullets: [
+        "while True:",
+        "    print('Hello Friend')",
+        "True never becomes False.",
+        "The loop continues indefinitely.",
+        "Always identify how and when a while-loop condition will become False."
+      ],
+    },
+
+    {
+      heading: "Avoiding Infinite Loops",
+
+      paragraphs: [
+        "A common mistake is forgetting to update the variable that controls a while-loop condition.",
+        "If the condition depends on count but count never changes, the condition may remain True forever."
+      ],
+
+      bullets: [
+        "Problem → count = 1",
+        "while count <= 3:",
+        "    print(count)",
+        "count never changes → infinite loop",
+        "Fix → add count += 1",
+        "Always make sure the loop has a path toward False."
+      ],
+    },
+
+    {
+      heading: "The Guessing Game Example",
+
+      paragraphs: [
+        "A guessing game is a good example of when a while loop is useful because the number of attempts is unpredictable.",
+        "The loop continues asking the player for a guess until the entered value matches the secret number."
+      ],
+
+      bullets: [
+        "secret = 7",
+        "guess = 0",
+        "while guess != secret:",
+        "    guess = int(input('Guess 1–20: '))",
+        "print('You got it!')",
+        "while is useful because we do not know how many guesses the player will need."
+      ],
+    },
+
+    {
+      heading: "The break Statement",
+
+      paragraphs: [
+        "The break statement immediately stops the current loop.",
+        "When Python reaches break, it exits the loop completely and continues executing the code after the loop."
+      ],
+
+      bullets: [
+        "for number in range(1, 10):",
+        "    if number == 5:",
+        "        break",
+        "    print(number)",
+        "Output → 1, 2, 3, 4",
+        "break stops the loop before number 5 is printed."
+      ],
+    },
+
+    {
+      heading: "The continue Statement",
+
+      paragraphs: [
+        "The continue statement skips the rest of the current iteration and moves directly to the next iteration.",
+        "Unlike break, continue does not terminate the loop. The loop keeps running after skipping the current pass."
+      ],
+
+      bullets: [
+        "for number in range(1, 6):",
+        "    if number == 3:",
+        "        continue",
+        "    print(number)",
+        "Output → 1, 2, 4, 5",
+        "continue skips only the iteration where number is 3."
+      ],
+    },
+
+    {
+      heading: "break vs continue",
+
+      paragraphs: [
+        "Both break and continue control the flow of a loop, but they behave differently.",
+        "Use break when you want to leave the loop completely. Use continue when you only want to skip the current iteration."
+      ],
+
+      bullets: [
+        "break → Exits the entire loop.",
+        "continue → Skips the current iteration.",
+        "break → No more iterations are performed.",
+        "continue → The next iteration begins."
+      ],
+    },
+
+    {
+      heading: "Nested Loops",
+
+      paragraphs: [
+        "A nested loop is a loop placed inside another loop.",
+        "For every iteration of the outer loop, the inner loop runs through all of its iterations before the outer loop moves to its next value.",
+        "Nested loops are especially useful for grids, tables, coordinate systems, and comparing pairs of items."
+      ],
+
+      bullets: [
+        "for row in range(3):",
+        "    for col in range(3):",
+        "        print(row, col)",
+        "The inner loop completes before the outer loop advances.",
+        "3 outer iterations × 3 inner iterations = 9 total inner iterations."
+      ],
+    },
+
+    {
+      heading: "Why Nested Loops Can Be Expensive",
+
+      paragraphs: [
+        "Nested loops can cause the number of operations to grow quickly because the inner loop runs for every iteration of the outer loop.",
+        "For example, a 3 × 3 nested loop performs 9 inner iterations. Larger nested loops can therefore become expensive."
+      ],
+
+      bullets: [
+        "2 × 2 loops → 4 inner iterations",
+        "3 × 3 loops → 9 inner iterations",
+        "10 × 10 loops → 100 inner iterations",
+        "Be careful when the collection sizes become large.",
+        "Use nested loops when they clearly match the problem being solved."
+      ],
+    },
+
+    {
+      heading: "Choosing Between for and while",
+
+      paragraphs: [
+        "Choosing the correct loop makes your code easier to understand.",
+        "Use for when you are processing each item in a sequence or when the number of iterations is known. Use while when the loop should continue until a condition changes."
+      ],
+
+      bullets: [
+        "for → Each student in a list",
+        "for → Each letter in a word",
+        "for → Print numbers 1 through 10",
+        "while → Wait until a password is correct",
+        "while → Continue while lives remain",
+        "while → Continue until a game ends",
+        "Remember: for = sequence, while = condition."
+      ],
+    },
+
+    {
+      heading: "The Accumulator Pattern",
+
+      paragraphs: [
+        "An accumulator is a variable that keeps a running result as a loop processes multiple values.",
+        "A common example is calculating the total of several numbers."
+      ],
+
+      bullets: [
+        "total = 0",
+        "for n in [4, 8, 15]:",
+        "    total += n",
+        "The final value of total is 27.",
+        "The accumulator is updated during every iteration."
+      ],
+    },
+
+    {
+      heading: "The Counter Pattern",
+
+      paragraphs: [
+        "A counter keeps track of how many times something happens or how many items satisfy a particular condition.",
+        "The counter starts at zero and is increased whenever the desired condition is met."
+      ],
+
+      bullets: [
+        "count = 0",
+        "for ch in 'banana':",
+        "    if ch == 'a':",
+        "        count += 1",
+        "The final value of count is 3.",
+        "Counters are useful for counting matching items."
+      ],
+    },
+
+    {
+      heading: "Building a New List with a Loop",
+
+      paragraphs: [
+        "Loops can also be used to build a new collection from existing values.",
+        "For example, you can loop through numbers and calculate their squares, adding each result to a new list."
+      ],
+
+      bullets: [
+        "squares = []",
+        "for n in range(5):",
+        "    squares.append(n ** 2)",
+        "The loop creates a list containing the squares of the numbers.",
+        "This pattern is useful when transforming one collection into another."
+      ],
+    },
+
+    {
+      heading: "Common Loop Mistakes",
+
+      paragraphs: [
+        "Most beginner loop errors come from incorrect indentation, forgetting how range() works, or creating a while loop that never reaches its stopping condition.",
+        "Understanding how the loop progresses on every iteration helps prevent these problems."
+      ],
+
+      bullets: [
+        "Forgetting to indent the loop body.",
+        "Forgetting that range() excludes its stop value.",
+        "Forgetting to update a while-loop counter.",
+        "Creating a condition that remains True forever.",
+        "Using while when a simple for loop would be clearer.",
+        "Making nested loops unnecessarily large or complex."
+      ],
+    },
+
+    {
+      heading: "Best Practices for Writing Loops",
+
+      paragraphs: [
+        "Good loops should clearly communicate what they are repeating and why.",
+        "Keep loop bodies simple, choose the loop type that matches the task, and always verify that while loops have a safe stopping condition."
+      ],
+
+      bullets: [
+        "Prefer for when the number of iterations or sequence is known.",
+        "Use while when repetition depends on a changing condition.",
+        "Always update variables that control a while loop.",
+        "Double-check every while-loop condition.",
+        "Remember that range() excludes the stop value.",
+        "Keep loop bodies simple.",
+        "Use break and continue only when they make the logic clearer."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Loops allow Python programs to repeat work efficiently. A for loop is ideal for processing each item in a sequence, while a while loop is ideal when repetition depends on a condition.",
+        "The range() function is useful for generating sequences of numbers, while break and continue provide control over individual iterations.",
+        "Nested loops are useful for grids and pairwise operations, but their runtime can grow quickly. The most important habit with while loops is to make sure the condition eventually becomes False."
+      ],
+
+      bullets: [
+        "for = repeat over a sequence.",
+        "while = repeat while a condition is True.",
+        "Indentation defines the loop body.",
+        "range() excludes its stop value.",
+        "for loops usually stop automatically after processing all items.",
+        "while loops require a condition that eventually becomes False.",
+        "break exits a loop completely.",
+        "continue skips the current iteration.",
+        "Nested loops place one loop inside another.",
+        "Accumulators build running totals.",
+        "Counters count matching items.",
+        "Loops can transform existing data into new collections.",
+        "Always check while-loop conditions to avoid infinite loops."
+      ],
+    },
+
+  ],
+
+},
+"lists-tuples-sets-and-dictionaries": {
+
+  title: "Python Lists, Tuples, Sets & Dictionaries",
+
+  subtitle: "Learn how Python stores and organizes collections of data using four powerful built-in data structures.",
+
+  eyebrow: "Concept 6 of 5",
+
+  accent: "teal",
+
+  icon: Boxes,
+
+  sections: [
+
+    {
+      heading: "Why Do Data Structures Matter?",
+
+      paragraphs: [
+        "Every Python program needs a way to store and organize data. Data structures provide different ways to group, access, modify, and manage information.",
+        "The data structure you choose can affect how clear, correct, and efficient your program becomes.",
+        "Python provides four important built-in collection types: lists, tuples, sets, and dictionaries."
+      ],
+
+      bullets: [
+        "Lists → Ordered and changeable collections",
+        "Tuples → Ordered collections that cannot be changed",
+        "Sets → Collections that automatically remove duplicates",
+        "Dictionaries → Key-value mappings for labeled lookups",
+        "All four are built into Python and require no additional imports."
+      ],
+    },
+
+    {
+      heading: "Python Lists",
+
+      paragraphs: [
+        "A list is an ordered, mutable collection of values.",
+        "Lists are useful when the order of items matters and the collection needs to grow, shrink, or change over time.",
+        "Lists can contain duplicate values and allow you to access individual elements using their index."
+      ],
+
+      bullets: [
+        "Lists use square brackets [ ].",
+        "Lists are ordered.",
+        "Lists are mutable, meaning their contents can be changed.",
+        "Lists allow duplicate values.",
+        "Indexing starts at 0.",
+        "Negative indexing can be used to access items from the end.",
+        "Example → fruits = ['apple', 'banana', 'cherry']"
+      ],
+    },
+
+    {
+      heading: "Accessing and Changing List Items",
+
+      paragraphs: [
+        "Because lists are indexed, you can access individual elements using their position.",
+        "Since lists are mutable, an existing item can also be replaced with a new value."
+      ],
+
+      bullets: [
+        "fruits = ['apple', 'banana', 'cherry']",
+        "fruits[0] → 'apple'",
+        "fruits[1] → 'banana'",
+        "fruits[-1] → 'cherry'",
+        "fruits[1] = 'blueberry'",
+        "Lists can be modified after they are created."
+      ],
+    },
+
+    {
+      heading: "Common List Methods",
+
+      paragraphs: [
+        "Python lists provide built-in methods for adding, removing, and reorganizing items.",
+        "These methods modify the existing list directly, so you generally do not need to assign the result back to the variable."
+      ],
+
+      bullets: [
+        "append(x) → Adds x to the end of the list.",
+        "insert(i, x) → Inserts x at position i.",
+        "remove(x) → Removes the first item equal to x.",
+        "pop(i) → Removes and returns the item at index i. By default, it removes the last item.",
+        "sort() → Sorts the list in place.",
+        "reverse() → Reverses the order of the list."
+      ],
+    },
+
+    {
+      heading: "List Example: A To-Do List",
+
+      paragraphs: [
+        "A to-do list is a practical example of where lists are useful.",
+        "Tasks need to remain in an order, while users should be able to add, remove, and reorganize tasks whenever necessary."
+      ],
+
+      bullets: [
+        "tasks = ['Write report', 'Call client']",
+        "tasks.append('Review budget')",
+        "tasks.remove('Call client')",
+        "print(tasks)",
+        "Result → ['Write report', 'Review budget']",
+        "The list preserves task order and can grow or shrink freely.",
+        "Duplicate task names are also allowed."
+      ],
+    },
+
+    {
+      heading: "Python Tuples",
+
+      paragraphs: [
+        "A tuple is an ordered collection whose values cannot be changed after the tuple is created.",
+        "Tuples are useful when you have a fixed group of related values that should remain unchanged.",
+        "Like lists, tuples are indexed and can contain duplicate values."
+      ],
+
+      bullets: [
+        "Tuples use parentheses ( ).",
+        "Tuples are ordered.",
+        "Tuples are immutable.",
+        "Tuples allow duplicate values.",
+        "Tuple elements can be accessed using indexes.",
+        "Tuples are useful for fixed records such as coordinates or RGB values.",
+        "Tuples are slightly faster and more memory-efficient than lists."
+      ],
+    },
+
+    {
+      heading: "Creating and Accessing Tuples",
+
+      paragraphs: [
+        "Tuples can contain multiple values separated by commas.",
+        "Because tuples are ordered, individual values can be accessed using their index just like list elements."
+      ],
+
+      bullets: [
+        "point = (10, 20)",
+        "print(point[0]) → 10",
+        "name, age = ('Asha', 29)",
+        "Tuples can store different types of values together.",
+        "Trying to modify a tuple element causes a TypeError."
+      ],
+    },
+
+    {
+      heading: "Tuple Immutability",
+
+      paragraphs: [
+        "The most important characteristic of a tuple is immutability.",
+        "Once a tuple is created, its existing elements cannot be changed, removed, or replaced.",
+        "If you need a mutable version, you can create a list from the tuple."
+      ],
+
+      bullets: [
+        "point = (10, 20)",
+        "point[0] = 99 → TypeError",
+        "Tuples cannot use append(), remove(), or sort().",
+        "To edit the values, create a new tuple or convert it to a list.",
+        "list(point) → Creates a mutable list copy."
+      ],
+    },
+
+    {
+      heading: "Tuple Methods and Patterns",
+
+      paragraphs: [
+        "Because tuples are immutable, they expose only a small number of methods.",
+        "However, tuple packing, unpacking, and nesting make tuples very useful for organizing fixed groups of values."
+      ],
+
+      bullets: [
+        "count(x) → Counts how many times x appears.",
+        "index(x) → Returns the index of the first occurrence of x.",
+        "Packing → a = 1, 2, 3",
+        "Unpacking → a, b, c = t",
+        "Nesting → Tuples can contain other tuples or lists.",
+        "list(t) → Converts a tuple into a mutable list."
+      ],
+    },
+
+    {
+      heading: "Tuple Example: Returning Multiple Values",
+
+      paragraphs: [
+        "Tuples are useful when a function needs to return several related values together.",
+        "The returned tuple can then be unpacked into separate variables, making the result easy to use."
+      ],
+
+      bullets: [
+        "def min_max(nums):",
+        "    return (min(nums), max(nums))",
+        "lo, hi = min_max([4, 9, 1, 7])",
+        "print(lo, hi)",
+        "Result → 1 9",
+        "The fixed pair of minimum and maximum values is a natural fit for a tuple."
+      ],
+    },
+
+    {
+      heading: "Python Sets",
+
+      paragraphs: [
+        "A set is an unordered collection that automatically keeps only unique values.",
+        "Sets are useful when you care about uniqueness, fast membership testing, or mathematical operations such as union, intersection, and difference.",
+        "Unlike lists and tuples, sets do not provide a guaranteed position for each element."
+      ],
+
+      bullets: [
+        "Sets use curly braces { }.",
+        "Sets are unordered.",
+        "Sets are mutable.",
+        "Duplicate values are automatically removed.",
+        "Sets provide fast membership testing using in.",
+        "Sets support union, intersection, and difference operations."
+      ],
+    },
+
+    {
+      heading: "Adding Items to a Set",
+
+      paragraphs: [
+        "The add() method inserts an element into a set.",
+        "If the value is already present, adding it again has no effect because sets automatically enforce uniqueness."
+      ],
+
+      bullets: [
+        "colors = {'red', 'green', 'blue'}",
+        "colors.add('red')",
+        "The set remains unchanged because 'red' already exists.",
+        "Sets never store the same value more than once."
+      ],
+    },
+
+    {
+      heading: "Common Set Methods",
+
+      paragraphs: [
+        "Sets provide methods for adding, removing, and comparing collections of unique values.",
+        "Some of these operations correspond directly to mathematical set operations."
+      ],
+
+      bullets: [
+        "add(x) → Adds x to the set.",
+        "remove(x) → Removes x and raises an error if it is missing.",
+        "discard(x) → Removes x if present without raising an error when it is missing.",
+        "union(b) → Returns all unique elements from both sets.",
+        "intersection(b) → Returns elements found in both sets.",
+        "difference(b) → Returns elements present in one set but not the other."
+      ],
+    },
+
+    {
+      heading: "Set Operators",
+
+      paragraphs: [
+        "Python also provides operators for performing common set operations.",
+        "These operators make it easy to combine sets or find common and different elements."
+      ],
+
+      bullets: [
+        "| → Union",
+        "& → Intersection",
+        "- → Difference",
+        "{1, 2, 3} & {2, 3, 4} → {2, 3}",
+        "Union combines unique elements.",
+        "Intersection finds common elements.",
+        "Difference finds elements in the first set that are not in the second."
+      ],
+    },
+
+    {
+      heading: "Set Example: Removing Duplicates",
+
+      paragraphs: [
+        "Sets are especially useful when the same data appears multiple times and you need a unique collection.",
+        "For example, email addresses collected from multiple spreadsheets can be combined into one unique set before sending a campaign."
+      ],
+
+      bullets: [
+        "list_a = ['a@co.com', 'b@co.com']",
+        "list_b = ['b@co.com', 'c@co.com']",
+        "unique = set(list_a) | set(list_b)",
+        "Result → {'a@co.com', 'b@co.com', 'c@co.com'}",
+        "Converting the lists to sets automatically removes duplicates.",
+        "The union operator combines the two sources."
+      ],
+    },
+
+    {
+      heading: "Python Dictionaries",
+
+      paragraphs: [
+        "A dictionary stores data as key-value pairs.",
+        "Instead of accessing a value by a numeric position, you use a meaningful key to retrieve the value.",
+        "Dictionaries are ideal when data needs to be labeled and looked up by name."
+      ],
+
+      bullets: [
+        "Dictionaries use curly braces with key-value pairs.",
+        "Example → {'name': 'Rhea', 'age': 22}",
+        "Keys must be unique.",
+        "Values can be repeated.",
+        "Dictionaries are mutable.",
+        "Keys must be immutable types such as strings, numbers, or tuples.",
+        "Dictionaries preserve insertion order in Python 3.7+.",
+        "Dictionaries provide fast lookups by key."
+      ],
+    },
+
+    {
+      heading: "Creating and Updating Dictionaries",
+
+      paragraphs: [
+        "A dictionary can be created with one or more key-value pairs.",
+        "Because dictionaries are mutable, new keys can be added and existing values can be changed after creation."
+      ],
+
+      bullets: [
+        "student = {'name': 'Rhea', 'age': 22}",
+        "student['grade'] = 'A'",
+        "print(student['name']) → Rhea",
+        "New key-value pairs can be added using assignment.",
+        "Existing values can be updated by assigning a new value to their key."
+      ],
+    },
+
+    {
+      heading: "Accessing Dictionary Values",
+
+      paragraphs: [
+        "Dictionary values can be accessed using their keys.",
+        "You can use square brackets when the key is expected to exist, or get() when you want a safer lookup that provides a default value if the key is missing."
+      ],
+
+      bullets: [
+        "student['name'] → 'Rhea'",
+        "student.get('city', 'N/A') → 'N/A'",
+        "student['city'] can raise a KeyError if the key does not exist.",
+        "get() safely returns a default value when a key is missing."
+      ],
+    },
+
+    {
+      heading: "Common Dictionary Methods",
+
+      paragraphs: [
+        "Dictionary methods make it easier to retrieve keys and values, iterate through key-value pairs, merge dictionaries, and remove entries."
+      ],
+
+      bullets: [
+        "get(k, d) → Looks up k and returns d if it is missing.",
+        "keys() → Returns a view of all keys.",
+        "values() → Returns a view of all values.",
+        "items() → Returns key-value pairs together.",
+        "update(d2) → Adds or updates entries using another dictionary.",
+        "pop(k) → Removes key k and returns its value."
+      ],
+    },
+
+    {
+      heading: "Looping Through a Dictionary",
+
+      paragraphs: [
+        "Dictionaries can be iterated over using their keys, values, or key-value pairs.",
+        "The items() method is particularly useful when you need both the key and its corresponding value during a loop."
+      ],
+
+      bullets: [
+        "for key in student:",
+        "    print(key)",
+        "Direct iteration over a dictionary gives its keys.",
+        "student.keys() → Access the keys.",
+        "student.values() → Access the values.",
+        "student.items() → Access key-value pairs."
+      ],
+    },
+
+    {
+      heading: "Dictionary Example: API Response",
+
+      paragraphs: [
+        "Dictionaries are a natural choice for storing structured information such as an API response.",
+        "Each piece of information can be given a meaningful label, making the data self-documenting and easy to access."
+      ],
+
+      bullets: [
+        "weather = {",
+        "    'city': 'Delhi',",
+        "    'temp_c': 34,",
+        "    'condition': 'Sunny'",
+        "}",
+        "print(f\"{weather['city']}: {weather['temp_c']}C\")",
+        "Keys clearly describe what each value represents.",
+        "New fields can be added whenever the response contains additional information."
+      ],
+    },
+
+    {
+      heading: "List vs Tuple",
+
+      paragraphs: [
+        "Lists and tuples are both ordered collections, but the key difference is whether their contents can be changed.",
+        "Choose a list when the collection needs to change. Choose a tuple when the values should remain fixed."
+      ],
+
+      bullets: [
+        "List → Ordered and mutable.",
+        "Tuple → Ordered and immutable.",
+        "List → Duplicates allowed.",
+        "Tuple → Duplicates allowed.",
+        "List → [1, 2, 3]",
+        "Tuple → (1, 2, 3)",
+        "Use a list for changing sequences.",
+        "Use a tuple for fixed groups of values."
+      ],
+    },
+
+    {
+      heading: "List vs Set",
+
+      paragraphs: [
+        "Lists preserve order and allow duplicates, while sets focus on uniqueness and fast membership testing.",
+        "If the position of an item matters, a list is usually the better choice. If duplicates should automatically disappear, a set is more appropriate."
+      ],
+
+      bullets: [
+        "List → Ordered.",
+        "Set → Unordered.",
+        "List → Duplicates allowed.",
+        "Set → Duplicates automatically removed.",
+        "List → Access by index.",
+        "Set → Membership by value.",
+        "Use a set when uniqueness is important."
+      ],
+    },
+
+    {
+      heading: "Set vs Dictionary",
+
+      paragraphs: [
+        "Sets and dictionaries both use curly braces, but they serve very different purposes.",
+        "A set stores unique values, while a dictionary stores labeled key-value pairs."
+      ],
+
+      bullets: [
+        "Set → {1, 2, 3}",
+        "Dictionary → {'name': 'Rhea', 'age': 22}",
+        "Set → Stores values.",
+        "Dictionary → Stores key-value pairs.",
+        "Set → Useful for uniqueness and membership.",
+        "Dictionary → Useful for labeled lookups."
+      ],
+    },
+
+    {
+      heading: "How the Four Data Structures Compare",
+
+      paragraphs: [
+        "The four data structures differ mainly in ordering, mutability, duplicate handling, and how values are accessed.",
+        "Understanding these differences makes it easier to choose the correct structure for a particular programming problem."
+      ],
+
+      bullets: [
+        "List → Ordered, mutable, duplicates allowed, lookup by index.",
+        "Tuple → Ordered, immutable, duplicates allowed, lookup by index.",
+        "Set → Unordered, mutable, duplicates not allowed, lookup by value.",
+        "Dictionary → Ordered by insertion in Python 3.7+, mutable, keys unique, lookup by key."
+      ],
+    },
+
+    {
+      heading: "Which Data Structure Should You Use?",
+
+      paragraphs: [
+        "Choosing a data structure becomes much easier when you first think about how the data should behave.",
+        "Ask whether you need order, whether the values should change, whether duplicates are allowed, and whether you need to find values by a label."
+      ],
+
+      bullets: [
+        "Need an ordered, changeable sequence? → Use a List.",
+        "Need fixed values that should stay constant? → Use a Tuple.",
+        "Need uniqueness or fast membership checks? → Use a Set.",
+        "Need to look values up using meaningful labels? → Use a Dictionary."
+      ],
+    },
+
+    {
+      heading: "Common Beginner Mistakes",
+
+      paragraphs: [
+        "Each data structure has characteristics that beginners should understand before choosing it.",
+        "Using the wrong structure can make code harder to understand or can cause unexpected behavior."
+      ],
+
+      bullets: [
+        "Trying to modify a tuple → TypeError.",
+        "Expecting a set to preserve a meaningful item position.",
+        "Expecting a set to keep duplicate values.",
+        "Using a list when you really need unique values.",
+        "Using dictionary square-bracket access for a key that may not exist.",
+        "Forgetting that dictionary keys must be unique.",
+        "Confusing a set of values with a dictionary of key-value pairs."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Lists, tuples, sets, and dictionaries are four core Python data structures, and each one is designed for a different kind of problem.",
+        "Lists are best for ordered collections that change. Tuples are best for fixed groups of values. Sets are best when uniqueness and membership testing matter. Dictionaries are best when values need meaningful labels.",
+        "The best data structure is the one whose behavior matches the way your data needs to be stored and used."
+      ],
+
+      bullets: [
+        "List → Ordered + mutable + duplicates allowed.",
+        "Tuple → Ordered + immutable + duplicates allowed.",
+        "Set → Unordered + unique values.",
+        "Dictionary → Key-value pairs + unique keys.",
+        "Use indexes with lists and tuples.",
+        "Use membership checks with sets.",
+        "Use keys for dictionary lookups.",
+        "Choose the structure based on how your data should behave.",
+        "The right data structure improves correctness, clarity, and performance."
+      ],
+    },
+
+  ],
+
+},
+
+ "functions-parameters-return-values-and-scope-": {
+
+  title: "Python Functions",
+
+  subtitle: "Learn how to create reusable blocks of code, pass information into functions, return results, and understand how scope works.",
+
+  eyebrow: "Concept 7 of 5",
+
+  accent: "teal",
+
+  icon: FunctionSquare,
+
+  sections: [
+
+    {
+      heading: "What is a Function?",
+
+      paragraphs: [
+        "A function is a reusable block of code designed to perform a specific task.",
+        "Functions help break a large program into smaller, focused pieces. Instead of writing the same logic repeatedly, you write it once and call the function whenever you need it.",
+        "A function does not execute simply because it has been defined. The function runs only when you call it by its name."
+      ],
+
+      bullets: [
+        "Functions are reusable blocks of code.",
+        "Functions are designed to perform a specific task.",
+        "Functions are defined using the def keyword.",
+        "Calling a function means writing its name followed by parentheses.",
+        "The function body is the indented block beneath the def statement."
+      ],
+    },
+
+    {
+      heading: "Creating and Calling a Function",
+
+      paragraphs: [
+        "To create a function, use the def keyword followed by the function name and parentheses.",
+        "The code that belongs to the function is written inside an indented block.",
+        "After defining the function, call it by writing its name followed by parentheses."
+      ],
+
+      bullets: [
+        "def welcome():",
+        "    print('Welcome to class!')",
+        "",
+        "welcome()",
+        "Output → Welcome to class!",
+        "Defining the function does not run it.",
+        "Calling welcome() executes the function."
+      ],
+    },
+
+    {
+      heading: "Why Do We Use Functions?",
+
+      paragraphs: [
+        "Functions make programs easier to build and maintain by allowing the same logic to be reused.",
+        "A well-named function can also make code easier to understand because its name describes what a particular block of code does.",
+        "Large programs become easier to organize when they are divided into smaller functions."
+      ],
+
+      bullets: [
+        "Reusability → Write the logic once and call it multiple times.",
+        "Readability → A meaningful function name describes what the code does.",
+        "Organization → Break large programs into smaller focused pieces.",
+        "Maintenance → Update reusable logic in one place instead of many."
+      ],
+    },
+
+    {
+      heading: "A Practical Function Example",
+
+      paragraphs: [
+        "Imagine a grading program that needs to determine whether many students have passed.",
+        "Instead of repeating the same comparison for every student, we can put the grading logic inside a function and call it for each score."
+      ],
+
+      bullets: [
+        "def is_passing(score):",
+        "    if score >= 40:",
+        "        return 'Pass'",
+        "    else:",
+        "        return 'Fail'",
+        "",
+        "print(is_passing(72))   # Pass",
+        "print(is_passing(28))   # Fail",
+        "The passing rule is written only once.",
+        "The function can be reused for every student's score."
+      ],
+    },
+
+    {
+      heading: "Parameters and Arguments",
+
+      paragraphs: [
+        "Parameters and arguments allow information to be passed into a function.",
+        "A parameter is the variable written in the function definition. An argument is the actual value supplied when the function is called."
+      ],
+
+      bullets: [
+        "def f(x):",
+        "x is the parameter.",
+        "",
+        "f(5)",
+        "5 is the argument.",
+        "Parameter → Placeholder defined in the function.",
+        "Argument → Actual value supplied during the function call."
+      ],
+    },
+
+    {
+      heading: "Positional Arguments",
+
+      paragraphs: [
+        "With positional arguments, values are matched to parameters according to their order.",
+        "The first argument is assigned to the first parameter, the second argument to the second parameter, and so on."
+      ],
+
+      bullets: [
+        "def greet(name, age):",
+        "    print(name, age)",
+        "",
+        "greet('Asha', 22)",
+        "'Asha' → name",
+        "22 → age",
+        "Positional arguments depend on their order."
+      ],
+    },
+
+    {
+      heading: "Keyword Arguments",
+
+      paragraphs: [
+        "Keyword arguments are matched to parameters by their names instead of their positions.",
+        "This means the order of keyword arguments does not matter as long as the parameter names are correct."
+      ],
+
+      bullets: [
+        "def profile(name, age):",
+        "    print(name, age)",
+        "",
+        "profile(age=22, name='Asha')",
+        "age is matched to the age parameter.",
+        "name is matched to the name parameter.",
+        "Keyword arguments can be supplied in a different order."
+      ],
+    },
+
+    {
+      heading: "Default Arguments",
+
+      paragraphs: [
+        "A default argument gives a parameter a fallback value.",
+        "If the caller does not provide a value for that parameter, Python automatically uses the default."
+      ],
+
+      bullets: [
+        "def order(item, qty=1):",
+        "    print(item, qty)",
+        "",
+        "order('pen')",
+        "qty automatically becomes 1.",
+        "",
+        "order('pen', 5)",
+        "qty becomes 5 because the caller provided a value."
+      ],
+    },
+
+    {
+      heading: "Positional and Keyword Arguments Together",
+
+      paragraphs: [
+        "A function call can combine positional and keyword arguments.",
+        "However, positional arguments must come before keyword arguments in the function call."
+      ],
+
+      bullets: [
+        "f(1, b=2) → Valid",
+        "f(a=1, 2) → Invalid",
+        "Positional arguments come first.",
+        "Keyword arguments come after positional arguments."
+      ],
+    },
+
+    {
+      heading: "Arbitrary Arguments with *args",
+
+      paragraphs: [
+        "Sometimes you cannot predict how many positional arguments a function will receive.",
+        "The *args syntax allows a function to accept any number of additional positional arguments.",
+        "Inside the function, those extra positional arguments are collected into a tuple."
+      ],
+
+      bullets: [
+        "def describe_trip(*stops):",
+        "    print(stops)",
+        "",
+        "describe_trip('Delhi', 'Agra')",
+        "Output → ('Delhi', 'Agra')",
+        "*args collects extra positional arguments into a tuple.",
+        "The name args is a convention; the * is what provides the special behavior."
+      ],
+    },
+
+    {
+      heading: "Arbitrary Keyword Arguments with **kwargs",
+
+      paragraphs: [
+        "The **kwargs syntax allows a function to accept any number of additional keyword arguments.",
+        "Inside the function, those keyword arguments are collected into a dictionary."
+      ],
+
+      bullets: [
+        "def describe_trip(**details):",
+        "    print(details)",
+        "",
+        "describe_trip(mode='train', days=3)",
+        "Output → {'mode': 'train', 'days': 3}",
+        "**kwargs collects extra keyword arguments into a dictionary."
+      ],
+    },
+
+    {
+      heading: "Using *args and **kwargs Together",
+
+      paragraphs: [
+        "A function can accept both arbitrary positional and arbitrary keyword arguments.",
+        "This is useful when a function has a required piece of information but should also allow callers to provide any number of additional details."
+      ],
+
+      bullets: [
+        "def describe_trip(*stops, **details):",
+        "    print('Stops:', stops)",
+        "    print('Details:', details)",
+        "",
+        "describe_trip('Delhi', 'Agra', mode='train', days=3)",
+        "Stops → ('Delhi', 'Agra')",
+        "Details → {'mode': 'train', 'days': 3}"
+      ],
+    },
+
+    {
+      heading: "A Practical Flexible Function",
+
+      paragraphs: [
+        "A logging function is a useful example of arbitrary arguments.",
+        "Every log entry needs a message, but callers may want to attach any number of tags and additional details."
+      ],
+
+      bullets: [
+        "def log(message, *tags, **details):",
+        "    print(f'[{message}]', tags, details)",
+        "",
+        "log('Server started')",
+        "log('Disk low', 'infra', host='db1', level='WARN')",
+        "message remains required.",
+        "*tags accepts any number of labels.",
+        "**details accepts additional named information."
+      ],
+    },
+
+    {
+      heading: "Return Values",
+
+      paragraphs: [
+        "The return statement sends a result from a function back to the code that called it.",
+        "When Python reaches a return statement, the function ends immediately and the specified value is sent back to the caller.",
+        "A function can return values of any data type."
+      ],
+
+      bullets: [
+        "def double(n):",
+        "    return n * 2",
+        "",
+        "print(double(6))",
+        "Output → 12",
+        "",
+        "print(double(-3))",
+        "Output → -6"
+      ],
+    },
+
+    {
+      heading: "What Happens When There Is No return?",
+
+      paragraphs: [
+        "A function does not have to explicitly return a value.",
+        "If a function finishes without encountering a return statement, Python returns None."
+      ],
+
+      bullets: [
+        "def welcome():",
+        "    print('Hello!')",
+        "",
+        "result = welcome()",
+        "result → None",
+        "No return statement means the function returns None."
+      ],
+    },
+
+    {
+      heading: "Returning Multiple Values",
+
+      paragraphs: [
+        "A Python function can return multiple values together.",
+        "Python packages the returned values into a tuple, which can then be unpacked into separate variables."
+      ],
+
+      bullets: [
+        "def min_max(nums):",
+        "    if not nums:",
+        "        return None, None",
+        "    return min(nums), max(nums)",
+        "",
+        "lo, hi = min_max([4, 9, 1, 7])",
+        "print(lo, hi)",
+        "Output → 1 9",
+        "Multiple returned values are packed into a tuple."
+      ],
+    },
+
+    {
+      heading: "Why Return Multiple Values?",
+
+      paragraphs: [
+        "Returning multiple values can keep related calculations together and avoid making multiple function calls.",
+        "The caller can unpack the result into meaningful variables, making the code easier to read."
+      ],
+
+      bullets: [
+        "One function call can produce multiple related results.",
+        "Returning a tuple keeps related values together.",
+        "Unpacking makes the results easy to work with.",
+        "An early return can safely handle special cases such as empty input."
+      ],
+    },
+
+    {
+      heading: "Understanding Scope",
+
+      paragraphs: [
+        "Scope determines where a variable can be accessed in a Python program.",
+        "A variable created inside a function is local to that function and is not directly available outside it.",
+        "Understanding scope helps prevent unexpected variable changes and makes functions easier to reason about."
+      ],
+
+      bullets: [
+        "Local variable → Created inside a function.",
+        "Global variable → Defined outside functions.",
+        "A local variable normally exists only within its function.",
+        "Different functions can have their own local variables with the same name."
+      ],
+    },
+
+    {
+      heading: "Local Variables",
+
+      paragraphs: [
+        "Variables created inside a function belong to that function's local scope.",
+        "Once the function finishes, the local variable is no longer directly accessible from outside the function."
+      ],
+
+      bullets: [
+        "def calculate():",
+        "    result = 100",
+        "    print(result)",
+        "",
+        "calculate()",
+        "result is local to calculate().",
+        "Trying to access result outside the function does not access that local variable."
+      ],
+    },
+
+    {
+      heading: "Mutable and Immutable Objects",
+
+      paragraphs: [
+        "Python passes references to objects rather than making automatic copies of objects when they are passed into functions.",
+        "This becomes especially important when working with mutable and immutable objects.",
+        "Mutable objects, such as lists, can be changed in place. Immutable objects, such as numbers and strings, cannot be changed in place."
+      ],
+
+      bullets: [
+        "Mutable examples → lists.",
+        "Immutable examples → numbers and strings.",
+        "A function can mutate a mutable object such as a list.",
+        "Reassigning a parameter does not change the caller's immutable value.",
+        "Mutating an object and rebinding a variable are different operations."
+      ],
+    },
+
+    {
+      heading: "Mutating a List Inside a Function",
+
+      paragraphs: [
+        "When a list is passed to a function, the function can modify the original list because lists are mutable.",
+        "Calling a method such as append() changes the existing list object."
+      ],
+
+      bullets: [
+        "def add_item(cart):",
+        "    cart.append('milk')",
+        "",
+        "cart = ['eggs']",
+        "add_item(cart)",
+        "print(cart)",
+        "Output → ['eggs', 'milk']",
+        "The original list has been changed."
+      ],
+    },
+
+    {
+      heading: "Reassigning an Immutable Value",
+
+      paragraphs: [
+        "Numbers and strings are immutable, so they cannot be modified in place.",
+        "If a parameter containing an immutable value is reassigned inside a function, only the local parameter name is changed. The original variable outside the function remains unchanged."
+      ],
+
+      bullets: [
+        "def rename(label):",
+        "    label = 'new'",
+        "",
+        "name = 'old'",
+        "rename(name)",
+        "print(name)",
+        "Output → 'old'",
+        "The local parameter is rebound, but the caller's variable is unchanged."
+      ],
+    },
+
+    {
+      heading: "Understanding Closures",
+
+      paragraphs: [
+        "A closure occurs when a nested function remembers and can access variables from its enclosing function.",
+        "This allows a function to keep access to state even after the outer function has finished executing."
+      ],
+
+      bullets: [
+        "def make_counter():",
+        "    count = 0",
+        "    def increment():",
+        "        nonlocal count",
+        "        count += 1",
+        "        return count",
+        "    return increment",
+        "",
+        "counter = make_counter()",
+        "counter() → 1",
+        "counter() → 2"
+      ],
+    },
+
+    {
+      heading: "The nonlocal Keyword",
+
+      paragraphs: [
+        "The nonlocal keyword allows a nested function to modify a variable that belongs to its enclosing function.",
+        "Without nonlocal, assigning to count inside increment() would create a new local variable instead of changing the count from make_counter()."
+      ],
+
+      bullets: [
+        "nonlocal refers to a variable in the enclosing function.",
+        "It allows the nested function to modify that variable.",
+        "Each call to make_counter() creates an independent counter.",
+        "Closures can be useful for maintaining private, persistent state."
+      ],
+    },
+
+    {
+      heading: "Functions as Reusable Building Blocks",
+
+      paragraphs: [
+        "Functions become especially powerful when a program is divided into small pieces, with each function responsible for one focused task.",
+        "A good function can be called repeatedly with different arguments while keeping the underlying logic in one place."
+      ],
+
+      bullets: [
+        "Give functions meaningful names.",
+        "Keep each function focused on a specific task.",
+        "Use parameters to make functions reusable with different inputs.",
+        "Use return values to send results back to the caller.",
+        "Avoid repeating the same logic in multiple places."
+      ],
+    },
+
+    {
+      heading: "Common Beginner Mistakes",
+
+      paragraphs: [
+        "Understanding how functions are defined, called, and scoped helps prevent common programming errors.",
+        "Many beginner mistakes happen when parameters and arguments are confused, when a function is defined but never called, or when the difference between mutation and reassignment is misunderstood."
+      ],
+
+      bullets: [
+        "Defining a function and expecting it to execute automatically.",
+        "Forgetting to call the function using parentheses.",
+        "Confusing parameters with arguments.",
+        "Putting positional arguments after keyword arguments.",
+        "Expecting a function without return to produce a value other than None.",
+        "Expecting reassignment of a number or string parameter to change the caller's variable.",
+        "Forgetting that mutating a list can change the original object.",
+        "Using nonlocal incorrectly when working with nested functions."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Functions are reusable blocks of code that help make Python programs organized, readable, and easier to maintain.",
+        "Parameters allow functions to receive information, arguments provide the actual values, and return sends results back to the caller.",
+        "Python supports positional, keyword, default, and arbitrary arguments using *args and **kwargs.",
+        "Understanding scope and mutability is important because variables created inside functions have local scope, while mutable objects such as lists can be changed inside a function."
+      ],
+
+      bullets: [
+        "def defines a function.",
+        "Calling a function with () executes it.",
+        "Parameters are placeholders in a function definition.",
+        "Arguments are actual values supplied during a function call.",
+        "Positional arguments are matched by order.",
+        "Keyword arguments are matched by name.",
+        "Default arguments provide fallback values.",
+        "*args collects extra positional arguments into a tuple.",
+        "**kwargs collects extra keyword arguments into a dictionary.",
+        "return sends a result back to the caller.",
+        "No return statement means the function returns None.",
+        "Multiple values can be returned together as a tuple.",
+        "Variables created inside functions are local to those functions.",
+        "Mutable objects such as lists can be changed inside functions.",
+        "Immutable objects such as numbers and strings cannot be changed in place.",
+        "Closures allow nested functions to remember variables from their enclosing function."
+      ],
+    },
+
+  ],
+
+},
+
+ "strings-file-handling": {
+
+  title: "Python Strings & File Handling",
+
+  subtitle: "Learn how to work with text and files in Python — from slicing strings to safely reading and writing data.",
+
+  eyebrow: "Concept 8 of 5",
+
+  accent: "teal",
+
+  icon: FileText,
+
+  sections: [
+
+    {
+      heading: "What is a String?",
+
+      paragraphs: [
+        "A string is a sequence of characters used to represent text in Python.",
+        "Strings can contain letters, numbers, symbols, spaces, and other characters.",
+        "Python does not have a separate character type. A single character is simply a string with a length of one."
+      ],
+
+      bullets: [
+        "Strings can be created using single quotes: 'Hello'",
+        "Strings can also use double quotes: \"Hello\"",
+        "Triple quotes can be used for multi-line strings.",
+        "Newlines inside triple-quoted strings are preserved.",
+        "A single character is simply a string of length one."
+      ],
+    },
+
+    {
+      heading: "Creating Strings",
+
+      paragraphs: [
+        "Creating a string is as simple as placing text inside quotation marks.",
+        "Single and double quotes work in the same way. You can choose the style that makes your text easier to write and read."
+      ],
+
+      bullets: [
+        "a = 'Hi'",
+        "b = \"AI with Shivank\"",
+        "print(a) → Hi",
+        "print(b) → AI with Shivank",
+        "Triple quotes can store text across multiple lines."
+      ],
+    },
+
+    {
+      heading: "Multi-line Strings",
+
+      paragraphs: [
+        "Triple single quotes or triple double quotes allow you to create strings that span multiple lines.",
+        "Python preserves the line breaks inside these strings, making them useful for paragraphs, messages, documentation, and other multi-line text."
+      ],
+
+      bullets: [
+        "s = \"\"\"I am Learning",
+        "Python Strings from",
+        "My AI Tutor at Teachly\"\"\"",
+        "print(s)",
+        "The line breaks are preserved exactly as they appear in the string."
+      ],
+    },
+
+    {
+      heading: "Understanding String Indexing",
+
+      paragraphs: [
+        "Every character in a string has a position called an index.",
+        "Python starts counting indexes from 0, so the first character has index 0, the second has index 1, and so on.",
+        "Python also supports negative indexing, which allows you to access characters from the end of the string."
+      ],
+
+      bullets: [
+        "s = 'ABCDEF'",
+        "s[0] → 'A'",
+        "s[1] → 'B'",
+        "s[4] → 'E'",
+        "s[-1] → 'F'",
+        "s[-2] → 'E'",
+        "Positive indexing starts at 0.",
+        "Negative indexing starts from -1 at the last character."
+      ],
+    },
+
+    {
+      heading: "String Slicing",
+
+      paragraphs: [
+        "Slicing allows you to extract a portion of a string.",
+        "The syntax s[start:end] includes the character at start but stops before the character at end.",
+        "You can also leave start or end empty to slice from the beginning or continue to the end."
+      ],
+
+      bullets: [
+        "s = 'ABCDEF'",
+        "s[1:4] → 'BCD'",
+        "s[:3] → 'ABC'",
+        "s[3:] → 'DEF'",
+        "s[::-1] → 'FEDCBA'",
+        "The end position in a slice is not included.",
+        "s[::-1] is a common way to reverse a string."
+      ],
+    },
+
+    {
+      heading: "Common String Indexing Mistakes",
+
+      paragraphs: [
+        "Python checks that string indexes are valid and of the correct type.",
+        "Using an index outside the available range or using a non-integer index causes an error."
+      ],
+
+      bullets: [
+        "An index outside the string's range → IndexError.",
+        "A non-integer index → TypeError.",
+        "Remember that indexing starts at 0.",
+        "Use negative indexes when you want to count from the end."
+      ],
+    },
+
+    {
+      heading: "Looping Through a String",
+
+      paragraphs: [
+        "Strings are iterable, which means you can loop through them one character at a time.",
+        "A for loop is commonly used when you need to examine or process every character in a string."
+      ],
+
+      bullets: [
+        "s = 'Python'",
+        "for char in s:",
+        "    print(char)",
+        "Each loop iteration gives one character.",
+        "Strings can therefore be processed character by character."
+      ],
+    },
+
+    {
+      heading: "Strings Are Immutable",
+
+      paragraphs: [
+        "Strings are immutable in Python. This means that once a string is created, its individual characters cannot be changed in place.",
+        "When you appear to modify a string, Python actually creates a new string rather than changing the original string."
+      ],
+
+      bullets: [
+        "s = 'aBCDEF'",
+        "s = 'A' + s[1:]",
+        "The result becomes 'ABCDEF'.",
+        "The original string was not modified.",
+        "A new string was created and assigned to s."
+      ],
+    },
+
+    {
+      heading: "Deleting a String Variable",
+
+      paragraphs: [
+        "The del statement can remove the variable itself.",
+        "After the variable has been deleted, trying to use that variable results in a NameError."
+      ],
+
+      bullets: [
+        "s = 'Hello'",
+        "del s",
+        "print(s) → NameError",
+        "del removes the variable reference rather than modifying individual characters inside the string."
+      ],
+    },
+
+    {
+      heading: "Useful String Methods",
+
+      paragraphs: [
+        "Python provides many built-in string methods that make common text-processing tasks easier.",
+        "These methods return processed strings rather than changing the original string in place."
+      ],
+
+      bullets: [
+        "len(s) → Returns the number of characters.",
+        "s.upper() → Converts text to uppercase.",
+        "s.lower() → Converts text to lowercase.",
+        "s.strip() → Removes leading and trailing whitespace.",
+        "s.replace(a, b) → Replaces occurrences of a with b.",
+        "Strings remain immutable, so these operations produce new string values."
+      ],
+    },
+
+    {
+      heading: "String Length",
+
+      paragraphs: [
+        "The len() function tells you how many characters are present in a string.",
+        "Spaces and other characters are also counted as part of the string."
+      ],
+
+      bullets: [
+        "s = 'AI with Shivank'",
+        "len(s) → 15",
+        "len() is useful when checking text length or controlling loops."
+      ],
+    },
+
+    {
+      heading: "Changing Case",
+
+      paragraphs: [
+        "The upper() and lower() methods are useful when you need consistent capitalization.",
+        "This can be especially helpful when comparing user input or displaying text in a particular format."
+      ],
+
+      bullets: [
+        "s = 'Hello'",
+        "s.upper() → 'HELLO'",
+        "s.lower() → 'hello'",
+        "These methods return new strings."
+      ],
+    },
+
+    {
+      heading: "Removing Extra Whitespace",
+
+      paragraphs: [
+        "The strip() method removes whitespace from the beginning and end of a string.",
+        "It is especially useful when processing text entered by users or read from files."
+      ],
+
+      bullets: [
+        "s = ' ABC '",
+        "s.strip() → 'ABC'",
+        "strip() removes leading and trailing whitespace.",
+        "The characters inside the text are not removed."
+      ],
+    },
+
+    {
+      heading: "Replacing Text",
+
+      paragraphs: [
+        "The replace() method creates a new string with specified text replaced by another value.",
+        "It is useful when you need to update or transform parts of a piece of text."
+      ],
+
+      bullets: [
+        "s = 'fun'",
+        "s.replace('fun', 'awesome') → 'awesome'",
+        "The original string remains unchanged because strings are immutable."
+      ],
+    },
+
+    {
+      heading: "Joining Strings Together",
+
+      paragraphs: [
+        "The + operator can be used to concatenate, or join, strings together.",
+        "This is useful when several pieces of text need to be combined into one string."
+      ],
+
+      bullets: [
+        "s1 = 'Hello'",
+        "s2 = 'World'",
+        "s1 + s2 → 'HelloWorld'",
+        "You can include a space explicitly when needed.",
+        "Example → 'Hello' + ' ' + 'World'"
+      ],
+    },
+
+    {
+      heading: "Repeating Strings",
+
+      paragraphs: [
+        "The * operator can repeat a string multiple times.",
+        "The number on the right determines how many copies of the string are created."
+      ],
+
+      bullets: [
+        "s = 'Hello'",
+        "s * 3 → 'HelloHelloHello'",
+        "'-' * 10 → '----------'",
+        "String repetition is useful for simple patterns and formatting."
+      ],
+    },
+
+    {
+      heading: "Formatting Strings with f-Strings",
+
+      paragraphs: [
+        "f-strings provide a convenient and readable way to insert variables and expressions directly into text.",
+        "Place an f before the opening quote and put the values or expressions you want to insert inside curly braces."
+      ],
+
+      bullets: [
+        "name = 'Jacob'",
+        "age = 22",
+        "print(f'Name: {name}, Age: {age}')",
+        "Output → Name: Jacob, Age: 22",
+        "f-strings are the modern and preferred way to format strings in Python."
+      ],
+    },
+
+    {
+      heading: "The format() Method",
+
+      paragraphs: [
+        "The format() method is another way to insert values into a string.",
+        "Although f-strings are generally preferred in modern Python, format() is still common in existing code."
+      ],
+
+      bullets: [
+        "s = 'My name is {} and I am {} years old.'",
+        "s.format('Emily', 22)",
+        "Result → 'My name is Emily and I am 22 years old.'",
+        "Values are inserted into the placeholders in order."
+      ],
+    },
+
+    {
+      heading: "Checking String Membership",
+
+      paragraphs: [
+        "The in keyword checks whether a character or substring exists inside another string.",
+        "The result is always True or False."
+      ],
+
+      bullets: [
+        "s = 'AI with Shivank'",
+        "'Greetings' in s → False",
+        "'with' in s → True",
+        "Membership testing is useful for searching text."
+      ],
+    },
+
+    {
+      heading: "Converting Strings to Numbers",
+
+      paragraphs: [
+        "Strings that contain valid numeric text can be converted into numbers using functions such as int().",
+        "This is useful when numeric information is received as text, such as input entered by a user."
+      ],
+
+      bullets: [
+        "num = int('42')",
+        "print(num, type(num))",
+        "Output → 42 <class 'int'>",
+        "The string '42' becomes the integer 42.",
+        "The text must contain a valid integer representation for int() to work."
+      ],
+    },
+
+    {
+      heading: "Splitting Strings",
+
+      paragraphs: [
+        "The split() method divides a string into smaller pieces and returns them as a list.",
+        "By default, split() separates text using whitespace."
+      ],
+
+      bullets: [
+        "s = 'Python programming'",
+        "s.split()",
+        "Result → ['Python', 'programming']",
+        "split() is useful when turning a sentence into individual words."
+      ],
+    },
+
+    {
+      heading: "Converting a String to a List of Characters",
+
+      paragraphs: [
+        "The list() function can convert a string into a list containing one element for each character.",
+        "This is useful when you need to work with individual characters as list elements."
+      ],
+
+      bullets: [
+        "list('Python')",
+        "Result → ['P', 'y', 't', 'h', 'o', 'n']",
+        "Each character becomes a separate element in the list."
+      ],
+    },
+
+    {
+      heading: "What is File Handling?",
+
+      paragraphs: [
+        "File handling allows Python programs to communicate with data stored on a computer's disk.",
+        "Python can open files, read their contents, write new information, append data, and safely close files.",
+        "File handling is essential for working with real-world data stored outside a running Python program."
+      ],
+
+      bullets: [
+        "Open files.",
+        "Read file contents.",
+        "Write new information.",
+        "Append information to existing files.",
+        "Work with text and binary files.",
+        "Handle file-related errors safely."
+      ],
+    },
+
+    {
+      heading: "Opening a File",
+
+      paragraphs: [
+        "The open() function connects your Python program to a file and returns a file object.",
+        "The mode determines what you want to do with the file.",
+        "If a file does not exist and you try to open it in read mode, Python raises FileNotFoundError."
+      ],
+
+      bullets: [
+        "open('file.txt', mode)",
+        "Default mode → 'r' for reading.",
+        "open() returns a file object.",
+        "The file object provides methods for reading and writing.",
+        "A missing file in read mode raises FileNotFoundError."
+      ],
+    },
+
+    {
+      heading: "Understanding File Properties",
+
+      paragraphs: [
+        "A file object contains useful properties that tell you about the file and its current state.",
+        "These properties can help you understand which file is open, which mode is being used, and whether the file has been closed."
+      ],
+
+      bullets: [
+        "f.name → File name.",
+        "f.mode → Current file mode.",
+        "f.closed → Whether the file is closed.",
+        "f.closed is False while the file is open.",
+        "f.closed becomes True after the file is closed."
+      ],
+    },
+
+    {
+      heading: "Closing a File",
+
+      paragraphs: [
+        "After working with a file, it should be closed so that system resources are released and pending changes can be saved.",
+        "The close() method explicitly closes an open file."
+      ],
+
+      bullets: [
+        "f = open('File1.txt', 'r')",
+        "print(f.name)",
+        "print(f.mode)",
+        "print(f.closed)",
+        "f.close()",
+        "print(f.closed)",
+        "After close(), f.closed becomes True."
+      ],
+    },
+
+    {
+      heading: "Reading a File",
+
+      paragraphs: [
+        "The read() method reads the contents of a file and returns them as a string.",
+        "When reading an entire text file, read() provides all of the file's contents in one value."
+      ],
+
+      bullets: [
+        "with open('File1.txt', 'r') as file:",
+        "    content = file.read()",
+        "    print(content)",
+        "read() retrieves the file contents as a string.",
+        "The with statement automatically closes the file afterward."
+      ],
+    },
+
+    {
+      heading: "Writing to a File",
+
+      paragraphs: [
+        "The write() method sends text from your Python program to a file.",
+        "When using 'w' mode, existing content is overwritten, so you should use this mode carefully.",
+        "write() does not automatically add a new line, so use \\n when a line break is needed."
+      ],
+
+      bullets: [
+        "with open('File1.txt', 'w') as file:",
+        "    file.write('Hello, Python!\\n')",
+        "    file.write('File handling is easy.')",
+        "'w' creates the file if it does not exist.",
+        "'w' overwrites existing content.",
+        "write() does not automatically add a newline."
+      ],
+    },
+
+    {
+      heading: "The Safe Way: Using with",
+
+      paragraphs: [
+        "The with statement is the recommended way to work with files in Python.",
+        "It automatically closes the file when the indented block finishes, even when an error occurs.",
+        "This means you do not need to remember to call close() manually."
+      ],
+
+      bullets: [
+        "with open('file.txt', 'r') as file:",
+        "    content = file.read()",
+        "The file is automatically closed after the with block.",
+        "No manual file.close() is required.",
+        "Using with makes file-handling code safer and cleaner."
+      ],
+    },
+
+    {
+      heading: "Understanding File Modes",
+
+      paragraphs: [
+        "File modes determine how Python interacts with a file.",
+        "Choosing the correct mode is important because some modes can overwrite existing content while others preserve it."
+      ],
+
+      bullets: [
+        "'r' → Read an existing text file.",
+        "'w' → Write and overwrite existing content or create a new file.",
+        "'a' → Append data to the end without deleting existing content.",
+        "'r+' → Read and write; the file must already exist.",
+        "'w+' → Write and read; existing content is truncated first.",
+        "'rb' → Read binary data.",
+        "'wb' → Write binary data.",
+        "'ab' → Append binary data."
+      ],
+    },
+
+    {
+      heading: "Append Mode",
+
+      paragraphs: [
+        "Append mode is useful when you want to add new information to an existing file without deleting what is already there.",
+        "The 'a' mode places new content at the end of the file."
+      ],
+
+      bullets: [
+        "with open('log.txt', 'a') as file:",
+        "    file.write('New log entry\\n')",
+        "Existing content remains intact.",
+        "New content is added at the end.",
+        "Append mode is useful for logs and continuously growing files."
+      ],
+    },
+
+    {
+      heading: "Binary File Modes",
+
+      paragraphs: [
+        "Binary modes are used for files that should not be treated as ordinary text.",
+        "Images, audio, and other non-text files are examples of data commonly handled using binary modes."
+      ],
+
+      bullets: [
+        "'rb' → Read binary.",
+        "'wb' → Write binary.",
+        "'ab' → Append binary.",
+        "'wb+' → Read and write binary.",
+        "'ab+' → Read and append binary."
+      ],
+    },
+
+    {
+      heading: "Handling File Errors Safely",
+
+      paragraphs: [
+        "File operations can fail for several reasons, such as a missing file or insufficient permissions.",
+        "Python provides try, except, and finally to handle these situations safely instead of allowing the program to crash unexpectedly."
+      ],
+
+      bullets: [
+        "try → Attempt the risky file operation.",
+        "except → Handle a specific error.",
+        "finally → Runs whether an error occurs or not.",
+        "FileNotFoundError → Useful for handling missing files.",
+        "with already handles file closing automatically."
+      ],
+    },
+
+    {
+      heading: "File Handling with try and except",
+
+      paragraphs: [
+        "A try block can contain the file operation that might fail.",
+        "An except block can catch a specific error and provide a useful message to the user."
+      ],
+
+      bullets: [
+        "try:",
+        "    file = open('File2.txt', 'r')",
+        "    content = file.read()",
+        "    print(content)",
+        "except FileNotFoundError as e:",
+        "    print('Error:', e)",
+        "The program can respond gracefully when the file does not exist."
+      ],
+    },
+
+    {
+      heading: "Using finally for Cleanup",
+
+      paragraphs: [
+        "The finally block runs whether the try block succeeds or an exception occurs.",
+        "It can be used to guarantee cleanup operations such as closing a file when manual file management is being used."
+      ],
+
+      bullets: [
+        "finally:",
+        "    file.close()",
+        "finally always executes after the try/except process.",
+        "For modern file handling, using with is generally safer because it manages closing automatically."
+      ],
+    },
+
+    {
+      heading: "Strings and Files Work Together",
+
+      paragraphs: [
+        "Strings and file handling are closely connected because text files are commonly read into strings and written using strings.",
+        "You can read text from a file, clean or transform it using string methods, and then write the processed text back to another file."
+      ],
+
+      bullets: [
+        "Read file → Get text as a string.",
+        "Process string → Use strip(), replace(), split(), upper(), and other methods.",
+        "Transform data → Convert or reorganize the text.",
+        "Write file → Save the processed text back to disk.",
+        "This combination is a foundation for real-world data processing."
+      ],
+    },
+
+    {
+      heading: "Common Beginner Mistakes",
+
+      paragraphs: [
+        "Understanding a few common mistakes makes string and file handling much easier.",
+        "Most problems come from forgetting that strings are immutable, using the wrong file mode, or failing to manage files safely."
+      ],
+
+      bullets: [
+        "Trying to change an individual character in a string.",
+        "Forgetting that string indexes start at 0.",
+        "Using an index outside the valid range.",
+        "Forgetting that slice end positions are excluded.",
+        "Using 'w' mode when you actually wanted to preserve existing content.",
+        "Forgetting to add \\n when writing multiple lines.",
+        "Leaving files open unnecessarily.",
+        "Not handling FileNotFoundError when a file may not exist.",
+        "Using manual close() when a with statement would provide safer cleanup."
+      ],
+    },
+
+    {
+      heading: "Key Idea to Remember",
+
+      paragraphs: [
+        "Strings are Python's basic way of working with text. You can create, index, slice, search, format, transform, and convert strings using Python's built-in features.",
+        "Strings are immutable, so operations such as upper(), replace(), and slicing create new string values rather than modifying the original.",
+        "File handling allows Python programs to work with information stored on disk. The open() function provides access to files, while read() and write() allow data to be transferred between the program and the file.",
+        "For safe file handling, prefer the with statement because it automatically closes files even when something goes wrong."
+      ],
+
+      bullets: [
+        "Strings are sequences of characters.",
+        "String indexing starts at 0.",
+        "Negative indexes access characters from the end.",
+        "Slicing extracts portions of a string.",
+        "Strings are immutable.",
+        "upper(), lower(), strip(), replace(), and split() are useful string methods.",
+        "f-strings provide modern string formatting.",
+        "int() can convert numeric text into an integer.",
+        "open() creates a connection to a file.",
+        "read() retrieves file contents.",
+        "write() writes text to a file.",
+        "'w' overwrites existing content.",
+        "'a' preserves existing content and adds new data.",
+        "Binary modes are used for non-text files.",
+        "with open(...) is the preferred safe pattern.",
+        "try/except can handle file-related errors gracefully."
+      ],
+    },
+
+  ],
+
+},
   /* ===================== LEVEL 2 · MODULE 2: Data ===================== */
   "what-is-data": {
   title: "What is Data?",

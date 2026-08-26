@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { markLabTopicComplete } from "../page";
 import {
   Brain,
   CheckCircle2,
@@ -11,24 +12,21 @@ import {
   Sparkles,
   Play,
   HelpCircle,
-  ChevronRight,
   TrendingUp,
-  BarChart2,
-  Code2,
-  Layers,
-  Terminal,
-  Activity,
-  Award,
-  Zap,
   Info,
+  Code2,
+  Terminal,
+  Award,
   Check,
-  RefreshCw,
   ArrowRight,
   Cpu,
-  Variable,
   BookOpen,
   Sun,
-  Moon
+  Moon,
+  X,
+  MousePointerClick,
+  Trophy,
+  Compass
 } from "lucide-react";
 import {
   LineChart,
@@ -69,6 +67,9 @@ export interface MissionDef {
   icon: string;
   title: string;
   subtitle: string;
+  /** Shown in the intro modal the moment this mission unlocks — explains
+   * the concept in plain language before the learner touches any controls. */
+  intro: string;
   xp: number;
   hints: string[];
   aiConnection: string;
@@ -81,6 +82,8 @@ const MISSIONS: MissionDef[] = [
     icon: "📐",
     title: "Vectors",
     subtitle: "Control the AI coordinate world",
+    intro:
+      "A vector is just an ordered list of numbers that represents a direction and a size — think of it as an arrow on a grid. In this mission you'll control two vectors, watch their sum update live, and learn to calculate a vector's magnitude (the length of that arrow).",
     xp: 50,
     hints: [
       "Think about the relationship between vector components and total distance.",
@@ -95,6 +98,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🔢",
     title: "Matrices",
     subtitle: "Build a transformation machine",
+    intro:
+      "A matrix is a grid of numbers that transforms any vector it's multiplied against — rotating, scaling, shearing, or reflecting it. You'll edit a 2x2 matrix directly and watch a fixed input vector bend into a new output vector in real time.",
     xp: 60,
     hints: [
       "Look at how basis vectors [1,0] and [0,1] transform.",
@@ -109,6 +114,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🧮",
     title: "Linear Algebra",
     subtitle: "Make matrices transform data",
+    intro:
+      "This mission shows the mechanics behind matrix-vector multiplication — the single most common operation inside every neural network layer. You'll edit a matrix and a vector and watch the exact row-by-row arithmetic that produces the result.",
     xp: 70,
     hints: [
       "Multiply row 1 by vector x, then row 2 by vector x.",
@@ -123,6 +130,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🌀",
     title: "Eigenvalues & Eigenvectors",
     subtitle: "Find the special directions",
+    intro:
+      "Most vectors get rotated when multiplied by a matrix — but a special few, called eigenvectors, only get stretched or shrunk, never rotated. You'll test different vectors against a fixed matrix to find which ones keep their original direction, and see the eigenvalue (stretch factor) for each.",
     xp: 80,
     hints: [
       "For a diagonal matrix like [[3,0],[0,2]], axes remain on their line.",
@@ -137,6 +146,8 @@ const MISSIONS: MissionDef[] = [
     icon: "📈",
     title: "Calculus Basics",
     subtitle: "Explore mathematical functions",
+    intro:
+      "Calculus starts with the humble function: every input maps to exactly one output. You'll pick a function, slide an input value along the x-axis, and watch the corresponding output plotted live on a graph — the foundation everything else in this lab builds on.",
     xp: 60,
     hints: [
       "Use the input controls to set the point along the X-axis.",
@@ -151,6 +162,8 @@ const MISSIONS: MissionDef[] = [
     icon: "📉",
     title: "Derivatives",
     subtitle: "Discover how AI learns",
+    intro:
+      "The derivative tells you the instantaneous slope of a function at any point — and that slope is exactly what tells an AI model which direction to adjust its weights. You'll explore the slope at a point, then run real gradient descent steps to minimize a simple loss curve.",
     xp: 100,
     hints: [
       "The derivative f'(x) gives the instantaneous slope of f(x) at point x.",
@@ -165,6 +178,8 @@ const MISSIONS: MissionDef[] = [
     icon: "⛰️",
     title: "Partial Derivatives",
     subtitle: "Navigate a multi-variable loss surface",
+    intro:
+      "Real neural networks have millions of weights, not just one, so we need partial derivatives — the slope with respect to a single variable while holding all the others fixed. You'll navigate a 2D loss surface by adjusting two weights at once, following the gradient toward the minimum.",
     xp: 100,
     hints: [
       "Loss function L(w1, w2) = w1² + w2² reaches minimum at (0,0).",
@@ -179,6 +194,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🎲",
     title: "Probability",
     subtitle: "Teach AI to handle uncertainty",
+    intro:
+      "Probability quantifies uncertainty, and the Law of Large Numbers says your observed (empirical) results converge toward the true probability the more trials you run. You'll flip a simulated coin thousands of times and watch the empirical ratio settle near the theoretical 50%.",
     xp: 80,
     hints: [
       "Law of Large Numbers state that empirical frequency approaches theoretical probability with more trials.",
@@ -193,6 +210,8 @@ const MISSIONS: MissionDef[] = [
     icon: "📊",
     title: "Statistics",
     subtitle: "Understand your dataset",
+    intro:
+      "Statistics like mean and standard deviation summarize how spread out a dataset really is — critical for techniques like batch normalization and feature scaling in deep learning. You'll compare two datasets and identify which one has far greater variation.",
     xp: 90,
     hints: [
       "Standard deviation measures data spread relative to the mean.",
@@ -207,6 +226,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🧠",
     title: "Bayes Theorem",
     subtitle: "Build a simple Bayesian classifier",
+    intro:
+      "Bayes' Theorem lets you update a prior belief using new evidence — exactly the logic behind a spam classifier deciding whether an email is junk. You'll adjust priors and likelihoods with sliders and watch the posterior probability recompute instantly.",
     xp: 100,
     hints: [
       "Bayes Formula: P(Spam|FREE) = [P(FREE|Spam) * P(Spam)] / P(FREE).",
@@ -221,6 +242,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🐍",
     title: "NumPy Operations",
     subtitle: "Code the mathematics",
+    intro:
+      "NumPy is the library that makes all the math you've learned so far fast and practical in real code. You'll write or edit a short NumPy snippet that performs matrix-vector multiplication and run it in a simulated console to see the actual result.",
     xp: 120,
     hints: [
       "Use valid NumPy operations syntax like np.dot(A, x) or A @ x.",
@@ -235,6 +258,8 @@ const MISSIONS: MissionDef[] = [
     icon: "🤖",
     title: "AI Math Challenge",
     subtitle: "Build the engine behind an AI prediction",
+    intro:
+      "This final mission combines everything you've learned — vectors, matrices, and gradient descent — into one real training loop. You'll tune a linear model's weight and bias, run optimization steps, and watch the loss curve fall as the model actually learns to fit the data.",
     xp: 200,
     hints: [
       "Linear prediction equation: y_hat = w * x + b.",
@@ -248,9 +273,38 @@ const MISSIONS: MissionDef[] = [
 // Total XP possible
 const TOTAL_XP = MISSIONS.reduce((acc, m) => acc + m.xp, 0);
 
+const EMPTY_MISSION_RECORD = <T,>(value: T): Record<MissionId, T> => ({
+  vectors: value,
+  matrices: value,
+  linear_algebra: value,
+  eigenvalues: value,
+  calculus: value,
+  derivatives: value,
+  partial_derivatives: value,
+  probability: value,
+  statistics: value,
+  bayes: value,
+  numpy: value,
+  final_ai: value
+});
+
 // ==========================================
-// MATHEMATICAL HELPER FUNCTIONS
+// MATHEMATICAL / SAFE-PARSING HELPER FUNCTIONS
 // ==========================================
+
+/** Approximate equality check — avoids brittle strict float equality. */
+function isApproximately(value: number, target: number, tolerance = 0.01): boolean {
+  if (!Number.isFinite(value) || !Number.isFinite(target)) return false;
+  return Math.abs(value - target) <= tolerance;
+}
+
+/** Parses a numeric string but never returns NaN/Infinity — falls back safely. */
+function safeParseNumber(raw: string, fallback = 0): number {
+  if (raw.trim() === "") return fallback;
+  const parsed = parseFloat(raw);
+  if (!Number.isFinite(parsed)) return fallback;
+  return parsed;
+}
 
 function calcVectorMag(v: [number, number]): number {
   return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -282,6 +336,72 @@ function calcStdDev(arr: number[]): number {
   return Math.sqrt(calcVariance(arr));
 }
 
+/**
+ * Computes total squared-error loss for a linear model y = w*x + b against a
+ * dataset. Used both by the gradient-descent training step AND by the
+ * "Current Loss" display so the two never disagree (previously the display
+ * used a hardcoded placeholder value that didn't match the real starting
+ * loss for the default weight/bias).
+ */
+function calcLinearLoss(weight: number, bias: number, data: Array<{ x: number; y: number }>): number {
+  return data.reduce((acc, pt) => {
+    const pred = weight * pt.x + bias;
+    const err = pred - pt.y;
+    return acc + err * err;
+  }, 0);
+}
+
+// ==========================================
+// REUSABLE NUMERIC INPUT
+// A controlled text field that keeps its own "raw" string while the user is
+// typing (so "-", ".", "-1." etc. are all valid intermediate states) and only
+// commits a safely-parsed number up to the parent on each keystroke, defaulting
+// to 0 for calculations without ever producing NaN/Infinity.
+// ==========================================
+
+interface NumberFieldProps {
+  value: number;
+  onCommit: (n: number) => void;
+  className?: string;
+  ariaLabel: string;
+}
+
+function NumberField({ value, onCommit, className, ariaLabel }: NumberFieldProps) {
+  const [raw, setRaw] = useState<string>(String(value));
+
+  // Keep the field in sync if the value changes externally (e.g. a preset button)
+  useEffect(() => {
+    // Only overwrite if the numeric value actually differs from what's parsed,
+    // so we don't clobber the user mid-keystroke (e.g. typing "1." -> 1).
+    const parsed = safeParseNumber(raw, NaN);
+    if (parsed !== value) {
+      setRaw(String(value));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      aria-label={ariaLabel}
+      value={raw}
+      onChange={(e) => {
+        const next = e.target.value;
+        // Allow intermediate typing states: empty, "-", ".", "-.", digits, decimals
+        if (!/^-?\d*\.?\d*$/.test(next)) return;
+        setRaw(next);
+        onCommit(safeParseNumber(next, 0));
+      }}
+      onBlur={() => {
+        // Normalize display once the user leaves the field
+        setRaw(String(safeParseNumber(raw, 0)));
+      }}
+      className={className}
+    />
+  );
+}
+
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
@@ -297,46 +417,49 @@ export default function AIMathEnginePage() {
 
   // State: Navigation & XP
   const [currentMission, setCurrentMission] = useState<MissionId>("vectors");
-  const [completedMissions, setCompletedMissions] = useState<Record<MissionId, boolean>>({
-    vectors: false,
-    matrices: false,
-    linear_algebra: false,
-    eigenvalues: false,
-    calculus: false,
-    derivatives: false,
-    partial_derivatives: false,
-    probability: false,
-    statistics: false,
-    bayes: false,
-    numpy: false,
-    final_ai: false
-  });
-  const [activeTab, setActiveTab] = useState<"visualization" | "calculator" | "formula" | "code" | "console" | "ai">("visualization");
-  const [hintsUsed, setHintsUsed] = useState<Record<MissionId, number>>({
-    vectors: 0,
-    matrices: 0,
-    linear_algebra: 0,
-    eigenvalues: 0,
-    calculus: 0,
-    derivatives: 0,
-    partial_derivatives: 0,
-    probability: 0,
-    statistics: 0,
-    bayes: 0,
-    numpy: 0,
-    final_ai: 0
-  });
+  const [completedMissions, setCompletedMissions] = useState<Record<MissionId, boolean>>(EMPTY_MISSION_RECORD(false));
+  const [activeTab, setActiveTab] = useState<"visualization" | "formula" | "ai">("visualization");
+  const [hintsUsed, setHintsUsed] = useState<Record<MissionId, number>>(EMPTY_MISSION_RECORD(0));
 
-  // Notifications / Toast
+  // Notifications / Toast — timeout is tracked in a ref so rapid toasts never
+  // stack up multiple pending `setToast(null)` calls (which could otherwise
+  // clear a newer toast early or fire after unmount).
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
   const [showCertificate, setShowCertificate] = useState<boolean>(false);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showToast = (msg: string, type: "success" | "error" | "info" = "info") => {
+  // How-to-Use onboarding modal — shown automatically the first time this
+  // component mounts in a session, and reopenable at any time via the header
+  // help button. No browser storage is used (per artifact constraints), so it
+  // reappears once per fresh session, which is the right behavior here.
+  const [showHowToUse, setShowHowToUse] = useState<boolean>(true);
+
+  // Mission Intro modal — shows automatically the moment a mission becomes
+  // current, whether that's the very first mission on load or a mission
+  // that just got unlocked by completing the previous one. Starts pointed
+  // at "vectors" so the learner gets an intro right after closing the
+  // How-to-Use guide; it's suppressed while that guide is still open so the
+  // two modals never stack.
+  const [introMissionId, setIntroMissionId] = useState<MissionId | null>("vectors");
+
+  const showToast = useCallback((msg: string, type: "success" | "error" | "info" = "info") => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 3500);
+  }, []);
 
-  // Calculated XP
+  // Clean up any pending timers on unmount to avoid setState-after-unmount
+  // warnings and memory leaks.
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+    };
+  }, []);
+
+  // Calculated XP — derived entirely from completedMissions + hintsUsed,
+  // never duplicated into its own piece of state.
   const xp = useMemo(() => {
     return MISSIONS.reduce((acc, m) => {
       if (completedMissions[m.id]) {
@@ -349,27 +472,14 @@ export default function AIMathEnginePage() {
 
   const level = Math.floor(xp / 150) + 1;
 
-  // Unlocked Missions State — driven directly by a simple index counter rather
-  // than re-derived from the completedMissions map every render. This avoids
-  // any stale-closure / recomputation edge cases: the moment a mission is
+  // Unlocked Missions State — driven by a simple index counter rather than
+  // re-derived from the completedMissions map every render. This avoids any
+  // stale-closure / recomputation edge cases: the moment a mission is
   // completed we explicitly bump the unlock frontier by one, full stop.
   const [highestUnlockedIndex, setHighestUnlockedIndex] = useState<number>(0);
 
   const unlockedMissions = useMemo(() => {
-    const unlocked: Record<MissionId, boolean> = {
-      vectors: false,
-      matrices: false,
-      linear_algebra: false,
-      eigenvalues: false,
-      calculus: false,
-      derivatives: false,
-      partial_derivatives: false,
-      probability: false,
-      statistics: false,
-      bayes: false,
-      numpy: false,
-      final_ai: false
-    };
+    const unlocked: Record<MissionId, boolean> = EMPTY_MISSION_RECORD(false);
     MISSIONS.forEach((m, i) => {
       if (i <= highestUnlockedIndex) unlocked[m.id] = true;
     });
@@ -377,62 +487,36 @@ export default function AIMathEnginePage() {
   }, [highestUnlockedIndex]);
 
   // Handle Complete Mission
-  const completeMission = (id: MissionId) => {
-    if (completedMissions[id]) return;
+  const completeMission = useCallback(
+    (id: MissionId) => {
+      setCompletedMissions((prev) => {
+        if (prev[id]) return prev; // already completed — never award XP twice
+        return { ...prev, [id]: true };
+      });
 
-    setCompletedMissions((prev) => ({ ...prev, [id]: true }));
+      const idx = MISSIONS.findIndex((m) => m.id === id);
+      const next = MISSIONS[idx + 1];
 
-    const idx = MISSIONS.findIndex((m) => m.id === id);
-    const next = MISSIONS[idx + 1];
+      // Explicitly advance the unlock frontier — guaranteed to unlock the next
+      // mission regardless of how completedMissions happens to resolve.
+      setHighestUnlockedIndex((prev) => Math.max(prev, idx + 1));
 
-    // Explicitly advance the unlock frontier — guaranteed to unlock the next
-    // mission regardless of how completedMissions happens to resolve.
-    setHighestUnlockedIndex((prev) => Math.max(prev, idx + 1));
-
-    if (next) {
-      showToast(`🎉 Mission Completed! +${MISSIONS[idx].xp} XP · "${next.title}" unlocked!`, "success");
-      // Auto-advance so the newly unlocked mission is immediately visible/selected
-      setTimeout(() => setCurrentMission(next.id), 600);
-    } else {
-      showToast(`🎉 Final Mission Completed! +${MISSIONS[idx].xp} XP`, "success");
-    }
-  };
-
-  // Rest Lab State
-  const resetLab = () => {
-    setCompletedMissions({
-      vectors: false,
-      matrices: false,
-      linear_algebra: false,
-      eigenvalues: false,
-      calculus: false,
-      derivatives: false,
-      partial_derivatives: false,
-      probability: false,
-      statistics: false,
-      bayes: false,
-      numpy: false,
-      final_ai: false
-    });
-    setHintsUsed({
-      vectors: 0,
-      matrices: 0,
-      linear_algebra: 0,
-      eigenvalues: 0,
-      calculus: 0,
-      derivatives: 0,
-      partial_derivatives: 0,
-      probability: 0,
-      statistics: 0,
-      bayes: 0,
-      numpy: 0,
-      final_ai: 0
-    });
-    setCurrentMission("vectors");
-    setHighestUnlockedIndex(0);
-    setShowCertificate(false);
-    showToast("Lab progress reset successfully.", "info");
-  };
+      if (next) {
+        showToast(`🎉 Mission Completed! +${MISSIONS[idx].xp} XP · "${next.title}" unlocked!`, "success");
+        // Auto-advance so the newly unlocked mission is immediately visible/selected,
+        // then pop its intro modal so the learner knows what it's about before
+        // touching any controls.
+        if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+        advanceTimeoutRef.current = setTimeout(() => {
+          setCurrentMission(next.id);
+          setIntroMissionId(next.id);
+        }, 600);
+      } else {
+        showToast(`🎉 Final Mission Completed! +${MISSIONS[idx].xp} XP`, "success");
+      }
+    },
+    [showToast]
+  );
 
   // ==========================================
   // PLAYGROUND STATES FOR MISSIONS
@@ -495,10 +579,10 @@ export default function AIMathEnginePage() {
   const [pFreeNotSpam, setPFreeNotSpam] = useState<number>(0.05);
 
   // M11: NumPy
-  const [numpyCode, setNumpyCode] = useState<string>(
-    `import numpy as np\n\nA = np.array([\n  [2, 1],\n  [1, 3]\n])\nx = np.array([4, 2])\n\n# Calculate matrix-vector product\nresult = A @ x\nprint("Result:", result)`
-  );
+  const DEFAULT_NUMPY_CODE = `import numpy as np\n\nA = np.array([\n  [2, 1],\n  [1, 3]\n])\nx = np.array([4, 2])\n\n# Calculate matrix-vector product\nresult = A @ x\nprint("Result:", result)`;
+  const [numpyCode, setNumpyCode] = useState<string>(DEFAULT_NUMPY_CODE);
   const [numpyOutput, setNumpyOutput] = useState<string>('Click "Run" to evaluate code');
+  const [numpyLastResult, setNumpyLastResult] = useState<[number, number] | null>(null);
 
   // M12: Final AI Challenge
   const [aiWeight, setAiWeight] = useState<number>(2.0);
@@ -531,19 +615,119 @@ export default function AIMathEnginePage() {
     const newW = aiWeight - aiLr * dw;
     const newB = aiBias - aiLr * db;
 
-    setAiWeight(Number(newW.toFixed(2)));
-    setAiBias(Number(newB.toFixed(2)));
+    // Guard against runaway/NaN values from an overly large learning rate.
+    const safeW = Number.isFinite(newW) ? Number(newW.toFixed(2)) : aiWeight;
+    const safeB = Number.isFinite(newB) ? Number(newB.toFixed(2)) : aiBias;
 
-    const currentIter = aiHistory.length + 1;
+    setAiWeight(safeW);
+    setAiBias(safeB);
+
     setAiHistory((prev) => [
       ...prev,
       {
-        iter: currentIter,
-        weight: Number(newW.toFixed(2)),
-        bias: Number(newB.toFixed(2)),
-        loss: Math.round(totalLoss)
+        iter: prev.length + 1,
+        weight: safeW,
+        bias: safeB,
+        loss: Number.isFinite(totalLoss) ? Math.round(totalLoss) : prev[prev.length - 1]?.loss ?? 0
       }
     ]);
+  };
+
+  // ==========================================
+  // RESET LAB — restores every mission's playground state, not just
+  // progress/XP, so "Reset Lab" genuinely returns the app to a fresh start.
+  // ==========================================
+  const resetLab = () => {
+    if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+
+    setCompletedMissions(EMPTY_MISSION_RECORD(false));
+    setHintsUsed(EMPTY_MISSION_RECORD(0));
+    setCurrentMission("vectors");
+    setHighestUnlockedIndex(0);
+    setShowCertificate(false);
+    setActiveTab("visualization");
+    setIntroMissionId("vectors");
+
+    // Reset every mission's playground values back to their defaults.
+    setVecA([3, 2]);
+    setVecB([1, 4]);
+    setMatrixM2([
+      [2, 0],
+      [0, 2]
+    ]);
+    setMatrixM3([
+      [2, 1],
+      [1, 3]
+    ]);
+    setVecM3([4, 2]);
+    setSelectedEigenVec([1, 0]);
+    setSelectedFunction("x2");
+    setSelectedX(1.5);
+    setDerivX(2.0);
+    setGdWeight(4.0);
+    setGdLearningRate(0.1);
+    setW1(3.0);
+    setW2(2.5);
+    setProbHeads(0);
+    setProbTails(0);
+    setSelectedDatasetOption("A");
+    setPSpam(0.2);
+    setPFreeSpam(0.8);
+    setPFreeNotSpam(0.05);
+    setNumpyCode(DEFAULT_NUMPY_CODE);
+    setNumpyOutput('Click "Run" to evaluate code');
+    setNumpyLastResult(null);
+    setAiWeight(2.0);
+    setAiBias(10.0);
+    setAiLr(0.01);
+    setAiHistory([]);
+
+    showToast("Lab progress reset successfully.", "info");
+  };
+
+  // ==========================================
+  // NUMPY MINI-INTERPRETER
+  // A small, deterministic, *safe* (no eval) parser that recognizes the
+  // matrix-vector multiplication pattern the mission teaches, so the output
+  // genuinely reflects the numbers the learner typed rather than a canned
+  // string. Anything it can't confidently parse gets a friendly message
+  // instead of a fabricated "success".
+  // ==========================================
+  const runNumpyCode = () => {
+    try {
+      const matrixMatch = numpyCode.match(/\[\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*,\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*\]/);
+      const vectorMatch = numpyCode.match(/x\s*=\s*np\.array\(\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*\)/);
+      const usesMultiplication = /(@|np\.dot|\.dot\()/.test(numpyCode);
+
+      if (!usesMultiplication) {
+        setNumpyOutput(
+          "No matrix-vector operation detected.\nTry using `A @ x` or `np.dot(A, x)` to multiply a matrix by a vector."
+        );
+        setNumpyLastResult(null);
+        return;
+      }
+
+      if (!matrixMatch || !vectorMatch) {
+        setNumpyOutput(
+          "Couldn't parse a 2x2 matrix `A` and a 2-element vector `x`.\nMake sure they're defined as np.array([[a,b],[c,d]]) and np.array([e,f])."
+        );
+        setNumpyLastResult(null);
+        return;
+      }
+
+      const A: [[number, number], [number, number]] = [
+        [parseFloat(matrixMatch[1]), parseFloat(matrixMatch[2])],
+        [parseFloat(matrixMatch[3]), parseFloat(matrixMatch[4])]
+      ];
+      const x: [number, number] = [parseFloat(vectorMatch[1]), parseFloat(vectorMatch[2])];
+      const result = matrixVectorMult(A, x);
+
+      setNumpyOutput(`Result: [${result[0]} ${result[1]}]\nShape: (2,)\nData type: int64`);
+      setNumpyLastResult(result);
+    } catch (err) {
+      setNumpyOutput("Error: could not evaluate this code. Check your syntax and try again.");
+      setNumpyLastResult(null);
+    }
   };
 
   // ==========================================
@@ -554,7 +738,7 @@ export default function AIMathEnginePage() {
     switch (currentMission) {
       case "vectors": {
         const magA = calcVectorMag(vecA);
-        if (Math.abs(magA - 5.0) < 0.1) {
+        if (isApproximately(magA, 5.0, 0.1)) {
           completeMission("vectors");
         } else {
           showToast(`Vector A magnitude is ${magA.toFixed(2)}. Target is 5.0!`, "error");
@@ -563,7 +747,11 @@ export default function AIMathEnginePage() {
       }
       case "matrices": {
         // Target: 90 deg rotation -> [[0, -1], [1, 0]]
-        const isRot = matrixM2[0][0] === 0 && matrixM2[0][1] === -1 && matrixM2[1][0] === 1 && matrixM2[1][1] === 0;
+        const isRot =
+          isApproximately(matrixM2[0][0], 0) &&
+          isApproximately(matrixM2[0][1], -1) &&
+          isApproximately(matrixM2[1][0], 1) &&
+          isApproximately(matrixM2[1][1], 0);
         if (isRot) {
           completeMission("matrices");
         } else {
@@ -573,7 +761,7 @@ export default function AIMathEnginePage() {
       }
       case "linear_algebra": {
         const res = matrixVectorMult(matrixM3, vecM3);
-        if (res[0] === 10 && res[1] === 10) {
+        if (isApproximately(res[0], 10) && isApproximately(res[1], 10)) {
           completeMission("linear_algebra");
         } else {
           showToast(`Calculated [${res[0]}, ${res[1]}]. Target is [10, 10].`, "error");
@@ -581,7 +769,10 @@ export default function AIMathEnginePage() {
         break;
       }
       case "eigenvalues": {
-        if ((selectedEigenVec[0] === 1 && selectedEigenVec[1] === 0) || (selectedEigenVec[0] === 0 && selectedEigenVec[1] === 1)) {
+        const isAxisVector =
+          (isApproximately(selectedEigenVec[0], 1) && isApproximately(selectedEigenVec[1], 0)) ||
+          (isApproximately(selectedEigenVec[0], 0) && isApproximately(selectedEigenVec[1], 1));
+        if (isAxisVector) {
           completeMission("eigenvalues");
         } else {
           showToast("Selected vector is not an eigenvector of this diagonal matrix.", "error");
@@ -589,7 +780,7 @@ export default function AIMathEnginePage() {
         break;
       }
       case "calculus": {
-        if (Math.abs(selectedX - 2.0) < 0.1) {
+        if (isApproximately(selectedX, 2.0, 0.1)) {
           completeMission("calculus");
         } else {
           showToast(`Selected X is ${selectedX.toFixed(1)}. Move slider to X = 2.0`, "error");
@@ -597,7 +788,7 @@ export default function AIMathEnginePage() {
         break;
       }
       case "derivatives": {
-        if (Math.abs(gdWeight) < 0.5) {
+        if (isApproximately(gdWeight, 0, 0.5)) {
           completeMission("derivatives");
         } else {
           showToast(`Weight is ${gdWeight.toFixed(2)}. Adjust weight closer to 0 for minimum loss!`, "error");
@@ -635,7 +826,9 @@ export default function AIMathEnginePage() {
         break;
       }
       case "numpy": {
-        if (numpyOutput.includes("[10 10]") || numpyOutput.includes("[10, 10]") || numpyOutput.includes("10")) {
+        // Validate against the actual parsed result rather than a loose
+        // substring check, so unrelated output can never accidentally pass.
+        if (numpyLastResult && isApproximately(numpyLastResult[0], 10) && isApproximately(numpyLastResult[1], 10)) {
           completeMission("numpy");
         } else {
           showToast("Run a matrix-vector product resulting in [10, 10]!", "error");
@@ -655,9 +848,13 @@ export default function AIMathEnginePage() {
   };
 
   const activeMissionDef = MISSIONS.find((m) => m.id === currentMission)!;
+  const isCurrentMissionComplete = completedMissions[currentMission];
+  const introMissionDef = introMissionId ? MISSIONS.find((m) => m.id === introMissionId) ?? null : null;
 
-  // Use hint
+  // Use hint — locked once the mission is completed so viewing a hint for
+  // review never retroactively reduces XP already earned.
   const handleUseHint = () => {
+    if (isCurrentMissionComplete) return;
     const currentHints = hintsUsed[currentMission] || 0;
     if (currentHints < activeMissionDef.hints.length) {
       setHintsUsed((prev) => ({
@@ -680,8 +877,9 @@ export default function AIMathEnginePage() {
     }
   }, [allCompleted]);
 
-  // Finish flow: close the certificate and hand the learner back to the curriculum
+
   const handleContinueToCurriculum = () => {
+    markLabTopicComplete("math-ai");
     setShowCertificate(false);
     router.push("/");
   };
@@ -717,24 +915,28 @@ export default function AIMathEnginePage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[10px] text-slate-400">X Component</label>
+                        <label className="text-[10px] text-slate-400" htmlFor="vecA-x">X Component</label>
                         <input
+                          id="vecA-x"
                           type="range"
                           min="-5"
                           max="5"
                           value={vecA[0]}
-                          onChange={(e) => setVecA([parseInt(e.target.value), vecA[1]])}
+                          aria-label="Vector A X component"
+                          onChange={(e) => setVecA([parseInt(e.target.value, 10), vecA[1]])}
                           className="w-full accent-emerald-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-400">Y Component</label>
+                        <label className="text-[10px] text-slate-400" htmlFor="vecA-y">Y Component</label>
                         <input
+                          id="vecA-y"
                           type="range"
                           min="-5"
                           max="5"
                           value={vecA[1]}
-                          onChange={(e) => setVecA([vecA[0], parseInt(e.target.value)])}
+                          aria-label="Vector A Y component"
+                          onChange={(e) => setVecA([vecA[0], parseInt(e.target.value, 10)])}
                           className="w-full accent-emerald-500"
                         />
                       </div>
@@ -750,24 +952,28 @@ export default function AIMathEnginePage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[10px] text-slate-400">X Component</label>
+                        <label className="text-[10px] text-slate-400" htmlFor="vecB-x">X Component</label>
                         <input
+                          id="vecB-x"
                           type="range"
                           min="-5"
                           max="5"
                           value={vecB[0]}
-                          onChange={(e) => setVecB([parseInt(e.target.value), vecB[1]])}
+                          aria-label="Vector B X component"
+                          onChange={(e) => setVecB([parseInt(e.target.value, 10), vecB[1]])}
                           className="w-full accent-cyan-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-400">Y Component</label>
+                        <label className="text-[10px] text-slate-400" htmlFor="vecB-y">Y Component</label>
                         <input
+                          id="vecB-y"
                           type="range"
                           min="-5"
                           max="5"
                           value={vecB[1]}
-                          onChange={(e) => setVecB([vecB[0], parseInt(e.target.value)])}
+                          aria-label="Vector B Y component"
+                          onChange={(e) => setVecB([vecB[0], parseInt(e.target.value, 10)])}
                           className="w-full accent-cyan-500"
                         />
                       </div>
@@ -791,7 +997,7 @@ export default function AIMathEnginePage() {
 
               {/* Visual Grid */}
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[320px] relative overflow-hidden">
-                <svg className="w-full h-72" viewBox="-10 -10 20 20">
+                <svg className="w-full h-72" viewBox="-10 -10 20 20" role="img" aria-label="Vector visualization on a coordinate grid">
                   {/* Grid lines */}
                   {Array.from({ length: 21 }, (_, i) => i - 10).map((tick) => (
                     <React.Fragment key={tick}>
@@ -851,48 +1057,28 @@ export default function AIMathEnginePage() {
                 <h3 className="text-lg font-semibold text-emerald-400">Transformation Matrix</h3>
 
                 <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-center">
-                  <input
-                    type="number"
+                  <NumberField
+                    ariaLabel="Matrix row 1 column 1"
                     value={matrixM2[0][0]}
-                    onChange={(e) =>
-                      setMatrixM2([
-                        [parseFloat(e.target.value) || 0, matrixM2[0][1]],
-                        [matrixM2[1][0], matrixM2[1][1]]
-                      ])
-                    }
+                    onCommit={(n) => setMatrixM2([[n, matrixM2[0][1]], [matrixM2[1][0], matrixM2[1][1]]])}
                     className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                   />
-                  <input
-                    type="number"
+                  <NumberField
+                    ariaLabel="Matrix row 1 column 2"
                     value={matrixM2[0][1]}
-                    onChange={(e) =>
-                      setMatrixM2([
-                        [matrixM2[0][0], parseFloat(e.target.value) || 0],
-                        [matrixM2[1][0], matrixM2[1][1]]
-                      ])
-                    }
+                    onCommit={(n) => setMatrixM2([[matrixM2[0][0], n], [matrixM2[1][0], matrixM2[1][1]]])}
                     className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                   />
-                  <input
-                    type="number"
+                  <NumberField
+                    ariaLabel="Matrix row 2 column 1"
                     value={matrixM2[1][0]}
-                    onChange={(e) =>
-                      setMatrixM2([
-                        [matrixM2[0][0], matrixM2[0][1]],
-                        [parseFloat(e.target.value) || 0, matrixM2[1][1]]
-                      ])
-                    }
+                    onCommit={(n) => setMatrixM2([[matrixM2[0][0], matrixM2[0][1]], [n, matrixM2[1][1]]])}
                     className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                   />
-                  <input
-                    type="number"
+                  <NumberField
+                    ariaLabel="Matrix row 2 column 2"
                     value={matrixM2[1][1]}
-                    onChange={(e) =>
-                      setMatrixM2([
-                        [matrixM2[0][0], matrixM2[0][1]],
-                        [matrixM2[1][0], parseFloat(e.target.value) || 0]
-                      ])
-                    }
+                    onCommit={(n) => setMatrixM2([[matrixM2[0][0], matrixM2[0][1]], [matrixM2[1][0], n]])}
                     className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                   />
                 </div>
@@ -907,7 +1093,7 @@ export default function AIMathEnginePage() {
                           [0, 2]
                         ])
                       }
-                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-slate-300 transition-all"
                     >
                       Scale x2
                     </button>
@@ -918,7 +1104,7 @@ export default function AIMathEnginePage() {
                           [1, 0]
                         ])
                       }
-                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-emerald-400 border border-emerald-500/30"
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-emerald-400 border border-emerald-500/30 transition-all"
                     >
                       Rotate 90°
                     </button>
@@ -929,7 +1115,7 @@ export default function AIMathEnginePage() {
                           [0, 1]
                         ])
                       }
-                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-slate-300 transition-all"
                     >
                       Shear X
                     </button>
@@ -940,7 +1126,7 @@ export default function AIMathEnginePage() {
                           [0, -1]
                         ])
                       }
-                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300"
+                      className="px-2 py-1 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-slate-300 transition-all"
                     >
                       Reflect Y
                     </button>
@@ -950,7 +1136,7 @@ export default function AIMathEnginePage() {
 
               {/* Transformation Visualizer */}
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[320px] relative">
-                <svg className="w-full h-72" viewBox="-10 -10 20 20">
+                <svg className="w-full h-72" viewBox="-10 -10 20 20" role="img" aria-label="Matrix transformation visualization">
                   {/* Grid */}
                   {Array.from({ length: 21 }, (_, i) => i - 10).map((tick) => (
                     <React.Fragment key={tick}>
@@ -997,48 +1183,28 @@ export default function AIMathEnginePage() {
                 <div className="space-y-2">
                   <span className="text-xs text-slate-400">Matrix A (2x2)</span>
                   <div className="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono">
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Matrix A row 1 column 1"
                       value={matrixM3[0][0]}
-                      onChange={(e) =>
-                        setMatrixM3([
-                          [parseFloat(e.target.value) || 0, matrixM3[0][1]],
-                          [matrixM3[1][0], matrixM3[1][1]]
-                        ])
-                      }
+                      onCommit={(n) => setMatrixM3([[n, matrixM3[0][1]], [matrixM3[1][0], matrixM3[1][1]]])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-slate-200"
                     />
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Matrix A row 1 column 2"
                       value={matrixM3[0][1]}
-                      onChange={(e) =>
-                        setMatrixM3([
-                          [matrixM3[0][0], parseFloat(e.target.value) || 0],
-                          [matrixM3[1][0], matrixM3[1][1]]
-                        ])
-                      }
+                      onCommit={(n) => setMatrixM3([[matrixM3[0][0], n], [matrixM3[1][0], matrixM3[1][1]]])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-slate-200"
                     />
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Matrix A row 2 column 1"
                       value={matrixM3[1][0]}
-                      onChange={(e) =>
-                        setMatrixM3([
-                          [matrixM3[0][0], matrixM3[0][1]],
-                          [parseFloat(e.target.value) || 0, matrixM3[1][1]]
-                        ])
-                      }
+                      onCommit={(n) => setMatrixM3([[matrixM3[0][0], matrixM3[0][1]], [n, matrixM3[1][1]]])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-slate-200"
                     />
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Matrix A row 2 column 2"
                       value={matrixM3[1][1]}
-                      onChange={(e) =>
-                        setMatrixM3([
-                          [matrixM3[0][0], matrixM3[0][1]],
-                          [matrixM3[1][0], parseFloat(e.target.value) || 0]
-                        ])
-                      }
+                      onCommit={(n) => setMatrixM3([[matrixM3[0][0], matrixM3[0][1]], [matrixM3[1][0], n]])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-slate-200"
                     />
                   </div>
@@ -1048,16 +1214,16 @@ export default function AIMathEnginePage() {
                 <div className="space-y-2">
                   <span className="text-xs text-slate-400">Vector x (2x1)</span>
                   <div className="grid grid-cols-1 gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono">
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Vector x first component"
                       value={vecM3[0]}
-                      onChange={(e) => setVecM3([parseFloat(e.target.value) || 0, vecM3[1]])}
+                      onCommit={(n) => setVecM3([n, vecM3[1]])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                     />
-                    <input
-                      type="number"
+                    <NumberField
+                      ariaLabel="Vector x second component"
                       value={vecM3[1]}
-                      onChange={(e) => setVecM3([vecM3[0], parseFloat(e.target.value) || 0])}
+                      onCommit={(n) => setVecM3([vecM3[0], n])}
                       className="bg-slate-900 border border-slate-700 rounded p-2 text-center text-emerald-400"
                     />
                   </div>
@@ -1139,7 +1305,7 @@ export default function AIMathEnginePage() {
               </div>
 
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[320px] relative">
-                <svg className="w-full h-72" viewBox="-6 -6 12 12">
+                <svg className="w-full h-72" viewBox="-6 -6 12 12" role="img" aria-label="Eigenvector transformation visualization">
                   <line x1="-6" y1="0" x2="6" y2="0" stroke="#334155" strokeWidth="0.05" />
                   <line x1="0" y1="-6" x2="0" y2="6" stroke="#334155" strokeWidth="0.05" />
 
@@ -1191,8 +1357,9 @@ export default function AIMathEnginePage() {
                 <h3 className="text-lg font-semibold text-emerald-400">Function Explorer</h3>
 
                 <div className="space-y-2">
-                  <label className="text-xs text-slate-400">Select Function f(x)</label>
+                  <label className="text-xs text-slate-400" htmlFor="fn-select">Select Function f(x)</label>
                   <select
+                    id="fn-select"
                     value={selectedFunction}
                     onChange={(e) => setSelectedFunction(e.target.value as any)}
                     className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-slate-200 text-sm"
@@ -1215,6 +1382,7 @@ export default function AIMathEnginePage() {
                     max="3"
                     step="0.1"
                     value={selectedX}
+                    aria-label="Input x value"
                     onChange={(e) => setSelectedX(parseFloat(e.target.value))}
                     className="w-full accent-emerald-500"
                   />
@@ -1227,13 +1395,14 @@ export default function AIMathEnginePage() {
               </div>
 
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-[320px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={280} minWidth={200}>
                   <LineChart data={dataPlot}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="x" stroke="#64748b" />
                     <YAxis stroke="#64748b" />
                     <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
-                    <Line type="monotone" dataKey="y" stroke="#10b981" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="y" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    <ReferenceLine x={Number(selectedX.toFixed(1))} stroke="#f59e0b" strokeDasharray="3 3" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1269,6 +1438,7 @@ export default function AIMathEnginePage() {
                     max="4"
                     step="0.1"
                     value={derivX}
+                    aria-label="Position x"
                     onChange={(e) => setDerivX(parseFloat(e.target.value))}
                     className="w-full accent-emerald-500"
                   />
@@ -1303,8 +1473,26 @@ export default function AIMathEnginePage() {
                       max="5"
                       step="0.1"
                       value={gdWeight}
+                      aria-label="Current weight"
                       onChange={(e) => setGdWeight(parseFloat(e.target.value))}
                       className="w-full accent-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-300">
+                      <span>Learning Rate (η):</span>
+                      <span className="text-cyan-400 font-mono">{gdLearningRate.toFixed(2)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.01"
+                      max="0.9"
+                      step="0.01"
+                      value={gdLearningRate}
+                      aria-label="Learning rate"
+                      onChange={(e) => setGdLearningRate(parseFloat(e.target.value))}
+                      className="w-full accent-cyan-500"
                     />
                   </div>
 
@@ -1312,13 +1500,16 @@ export default function AIMathEnginePage() {
                     <button
                       onClick={() => {
                         const newW = gdWeight - gdLearningRate * gdGrad;
-                        setGdWeight(Number(newW.toFixed(2)));
+                        setGdWeight(Number.isFinite(newW) ? Number(newW.toFixed(2)) : gdWeight);
                       }}
-                      className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 rounded text-amber-300 text-xs font-semibold"
+                      className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500/30 active:scale-[0.98] border border-amber-500/50 rounded text-amber-300 text-xs font-semibold transition-all"
                     >
                       Step Gradient Descent
                     </button>
-                    <button onClick={() => setGdWeight(4.0)} className="px-3 py-2 bg-slate-800 rounded text-xs text-slate-300">
+                    <button
+                      onClick={() => setGdWeight(4.0)}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 transition-all"
+                    >
                       Reset
                     </button>
                   </div>
@@ -1344,6 +1535,7 @@ export default function AIMathEnginePage() {
         const lossVal = w1 * w1 + w2 * w2;
         const gradW1 = 2 * w1;
         const gradW2 = 2 * w2;
+        const distFromMin = Math.sqrt(w1 * w1 + w2 * w2);
 
         return (
           <div className="space-y-6">
@@ -1363,6 +1555,7 @@ export default function AIMathEnginePage() {
                       max="4"
                       step="0.1"
                       value={w1}
+                      aria-label="Weight w1"
                       onChange={(e) => setW1(parseFloat(e.target.value))}
                       className="w-full accent-emerald-500"
                     />
@@ -1379,6 +1572,7 @@ export default function AIMathEnginePage() {
                       max="4"
                       step="0.1"
                       value={w2}
+                      aria-label="Weight w2"
                       onChange={(e) => setW2(parseFloat(e.target.value))}
                       className="w-full accent-cyan-500"
                     />
@@ -1394,6 +1588,10 @@ export default function AIMathEnginePage() {
                     <span>∂L / ∂w₂:</span>
                     <span className="text-cyan-400">{gradW2.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Distance from minimum:</span>
+                    <span className="text-amber-400">{distFromMin.toFixed(2)}</span>
+                  </div>
                   <div className="flex justify-between text-slate-300 font-bold border-t border-slate-800 pt-2">
                     <span>Total Loss L:</span>
                     <span className="text-rose-400">{lossVal.toFixed(2)}</span>
@@ -1403,7 +1601,7 @@ export default function AIMathEnginePage() {
 
               {/* 2D Loss Surface Contour Map */}
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[320px] relative">
-                <svg className="w-full h-72" viewBox="-5 -5 10 10">
+                <svg className="w-full h-72" viewBox="-5 -5 10 10" role="img" aria-label="Loss surface contour visualization">
                   {/* Concentric Loss Circles */}
                   {[1, 2, 3, 4].map((r) => (
                     <circle key={r} cx="0" cy="0" r={r} fill="none" stroke="#1e293b" strokeWidth="0.05" />
@@ -1444,16 +1642,22 @@ export default function AIMathEnginePage() {
                 <div className="space-y-2">
                   <span className="text-xs text-slate-400">Run Trials:</span>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => runProbSimulation(10)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-xs">
+                    <button onClick={() => runProbSimulation(10)} className="p-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-xs transition-all">
                       10 Trials
                     </button>
-                    <button onClick={() => runProbSimulation(100)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-xs">
+                    <button onClick={() => runProbSimulation(100)} className="p-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-xs transition-all">
                       100 Trials
                     </button>
-                    <button onClick={() => runProbSimulation(1000)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-semibold text-emerald-400 border border-emerald-500/30">
+                    <button
+                      onClick={() => runProbSimulation(1000)}
+                      className="p-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-xs font-semibold text-emerald-400 border border-emerald-500/30 transition-all"
+                    >
                       1,000 Trials
                     </button>
-                    <button onClick={() => runProbSimulation(10000)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-semibold text-cyan-400 border border-cyan-500/30">
+                    <button
+                      onClick={() => runProbSimulation(10000)}
+                      className="p-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded text-xs font-semibold text-cyan-400 border border-cyan-500/30 transition-all"
+                    >
                       10,000 Trials
                     </button>
                   </div>
@@ -1467,13 +1671,13 @@ export default function AIMathEnginePage() {
               </div>
 
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-[320px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={280} minWidth={200}>
                   <BarChart data={barData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="name" stroke="#64748b" />
                     <YAxis stroke="#64748b" />
                     <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
-                    <Bar dataKey="Empirical" fill="#10b981" />
+                    <Bar dataKey="Empirical" fill="#10b981" isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1515,18 +1719,19 @@ export default function AIMathEnginePage() {
 
                 <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs font-mono space-y-1">
                   <div>Mean μ: {meanVal.toFixed(1)}</div>
+                  <div>Variance σ²: {calcVariance(activeData).toFixed(2)}</div>
                   <div>Standard Dev σ: {stdVal.toFixed(2)}</div>
                 </div>
               </div>
 
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-[320px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={280} minWidth={200}>
                   <BarChart data={activeData.map((val, idx) => ({ item: `Item ${idx + 1}`, value: val }))}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="item" stroke="#64748b" />
                     <YAxis stroke="#64748b" />
                     <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
-                    <Bar dataKey="value" fill="#06b6d4" />
+                    <Bar dataKey="value" fill="#06b6d4" isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1557,6 +1762,7 @@ export default function AIMathEnginePage() {
                       max="0.95"
                       step="0.05"
                       value={pSpam}
+                      aria-label="Prior probability of spam"
                       onChange={(e) => setPSpam(parseFloat(e.target.value))}
                       className="w-full accent-emerald-500"
                     />
@@ -1573,8 +1779,26 @@ export default function AIMathEnginePage() {
                       max="0.99"
                       step="0.05"
                       value={pFreeSpam}
+                      aria-label="Likelihood of FREE given spam"
                       onChange={(e) => setPFreeSpam(parseFloat(e.target.value))}
                       className="w-full accent-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-slate-300">
+                      <span>Likelihood P(FREE | Not Spam):</span>
+                      <span className="font-mono text-purple-400">{(pFreeNotSpam * 100).toFixed(0)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.01"
+                      max="0.5"
+                      step="0.01"
+                      value={pFreeNotSpam}
+                      aria-label="Likelihood of FREE given not spam"
+                      onChange={(e) => setPFreeNotSpam(parseFloat(e.target.value))}
+                      className="w-full accent-purple-500"
                     />
                   </div>
                 </div>
@@ -1605,30 +1829,25 @@ export default function AIMathEnginePage() {
 
                 <textarea
                   value={numpyCode}
+                  aria-label="NumPy code editor"
                   onChange={(e) => setNumpyCode(e.target.value)}
                   className="w-full h-48 bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
                 />
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      if (numpyCode.includes("@") || numpyCode.includes("dot")) {
-                        setNumpyOutput("Result: [10 10]\nShape: (2,)\nData type: int64");
-                      } else {
-                        setNumpyOutput("Execution completed successfully.\nArray output evaluated.");
-                      }
-                    }}
-                    className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded hover:bg-emerald-400 text-xs flex items-center gap-1"
+                    onClick={runNumpyCode}
+                    className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded hover:bg-emerald-400 active:scale-95 text-xs flex items-center gap-1 transition-all"
                   >
                     <Play className="w-4 h-4" /> Run Simulator
                   </button>
                   <button
-                    onClick={() =>
-                      setNumpyCode(
-                        `import numpy as np\n\nA = np.array([\n  [2, 1],\n  [1, 3]\n])\nx = np.array([4, 2])\n\n# Calculate matrix-vector product\nresult = A @ x\nprint("Result:", result)`
-                      )
-                    }
-                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs"
+                    onClick={() => {
+                      setNumpyCode(DEFAULT_NUMPY_CODE);
+                      setNumpyOutput('Click "Run" to evaluate code');
+                      setNumpyLastResult(null);
+                    }}
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs transition-all"
                   >
                     Reset Code
                   </button>
@@ -1649,7 +1868,13 @@ export default function AIMathEnginePage() {
       }
 
       case "final_ai": {
-        const currentLoss = aiHistory.length > 0 ? aiHistory[aiHistory.length - 1].loss : 3364;
+        // Derived live from current weight/bias whenever no training step has
+        // run yet, instead of a stale hardcoded number, so the displayed loss
+        // always matches what the model would actually compute.
+        const currentLoss =
+          aiHistory.length > 0
+            ? aiHistory[aiHistory.length - 1].loss
+            : Math.round(calcLinearLoss(aiWeight, aiBias, datasetAI));
 
         return (
           <div className="space-y-6">
@@ -1670,6 +1895,7 @@ export default function AIMathEnginePage() {
                       max="20"
                       step="0.5"
                       value={aiWeight}
+                      aria-label="Model weight"
                       onChange={(e) => setAiWeight(parseFloat(e.target.value))}
                       className="w-full accent-amber-500"
                     />
@@ -1686,8 +1912,26 @@ export default function AIMathEnginePage() {
                       max="40"
                       step="1"
                       value={aiBias}
+                      aria-label="Model bias"
                       onChange={(e) => setAiBias(parseFloat(e.target.value))}
                       className="w-full accent-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-300">
+                      <span>Learning Rate (η):</span>
+                      <span className="font-mono text-purple-400">{aiLr.toFixed(3)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.001"
+                      max="0.05"
+                      step="0.001"
+                      value={aiLr}
+                      aria-label="Learning rate"
+                      onChange={(e) => setAiLr(parseFloat(e.target.value))}
+                      className="w-full accent-purple-500"
                     />
                   </div>
                 </div>
@@ -1695,7 +1939,7 @@ export default function AIMathEnginePage() {
                 <div className="flex gap-2">
                   <button
                     onClick={runAiStep}
-                    className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs flex items-center justify-center gap-1"
+                    className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold rounded text-xs flex items-center justify-center gap-1 transition-all"
                   >
                     <Play className="w-4 h-4" /> 1 Optimization Step
                   </button>
@@ -1705,7 +1949,7 @@ export default function AIMathEnginePage() {
                       setAiBias(10.0);
                       setAiHistory([]);
                     }}
-                    className="px-3 py-2 bg-slate-800 text-slate-300 text-xs rounded"
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded transition-all"
                   >
                     Reset
                   </button>
@@ -1721,13 +1965,13 @@ export default function AIMathEnginePage() {
 
               {/* Loss Curve Graph */}
               <div className="lg:col-span-2 bg-slate-950 border border-slate-800 rounded-xl p-4 min-h-[320px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={280} minWidth={200}>
                   <LineChart data={aiHistory}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                     <XAxis dataKey="iter" stroke="#64748b" />
                     <YAxis stroke="#64748b" />
                     <Tooltip contentStyle={{ backgroundColor: "#0f172a", borderColor: "#334155" }} />
-                    <Line type="monotone" dataKey="loss" stroke="#ef4444" strokeWidth={2} />
+                    <Line type="monotone" dataKey="loss" stroke="#ef4444" strokeWidth={2} isAnimationActive={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -1753,6 +1997,8 @@ export default function AIMathEnginePage() {
       {/* Toast Notification */}
       {toast && (
         <div
+          role="status"
+          aria-live="polite"
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg border shadow-xl flex items-center gap-2 text-sm font-semibold transition-all ${
             toast.type === "success"
               ? "bg-emerald-950/90 border-emerald-500 text-emerald-300"
@@ -1796,7 +2042,14 @@ export default function AIMathEnginePage() {
                 </span>
                 <span className="text-emerald-400">{Math.round((xp / TOTAL_XP) * 100)}%</span>
               </div>
-              <div className={`h-2 w-full rounded-full overflow-hidden ${theme === "dark" ? "bg-slate-800" : "bg-slate-200"}`}>
+              <div
+                className={`h-2 w-full rounded-full overflow-hidden ${theme === "dark" ? "bg-slate-800" : "bg-slate-200"}`}
+                role="progressbar"
+                aria-valuenow={xp}
+                aria-valuemin={0}
+                aria-valuemax={TOTAL_XP}
+                aria-label="Experience progress"
+              >
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
                   style={{ width: `${(xp / TOTAL_XP) * 100}%` }}
@@ -1804,9 +2057,24 @@ export default function AIMathEnginePage() {
               </div>
             </div>
 
+            {/* How to Use */}
+            <button
+              onClick={() => setShowHowToUse(true)}
+              aria-label="How to use this lab"
+              className={`p-2 rounded-lg border transition-colors ${
+                theme === "dark"
+                  ? "bg-slate-800 border-slate-700 text-cyan-400 hover:bg-slate-700"
+                  : "bg-slate-200 border-slate-300 text-slate-700 hover:bg-slate-300"
+              }`}
+              title="How to Use"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
+
             {/* Dark / Light Toggle */}
             <button
               onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               className={`p-2 rounded-lg border transition-colors ${
                 theme === "dark"
                   ? "bg-slate-800 border-slate-700 text-yellow-400 hover:bg-slate-700"
@@ -1819,6 +2087,7 @@ export default function AIMathEnginePage() {
 
             <button
               onClick={resetLab}
+              aria-label="Reset lab progress"
               className={`p-2 rounded-lg transition-colors ${
                 theme === "dark"
                   ? "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200"
@@ -1844,7 +2113,7 @@ export default function AIMathEnginePage() {
           </p>
           <button
             onClick={handleContinueToCurriculum}
-            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all"
+            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all"
           >
             Finish &amp; Unlock Next <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -1873,8 +2142,10 @@ export default function AIMathEnginePage() {
                 <button
                   key={m.id}
                   disabled={!isUnlocked}
+                  aria-current={isActive ? "true" : undefined}
+                  aria-label={`${m.title}${isDone ? " (completed)" : isUnlocked ? " (unlocked)" : " (locked)"}`}
                   onClick={() => setCurrentMission(m.id)}
-                  className={`w-full p-2.5 rounded-lg text-left flex items-center justify-between transition-all ${
+                  className={`w-full p-2.5 rounded-lg text-left flex items-center justify-between transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${
                     isActive
                       ? "bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"
                       : isUnlocked
@@ -1927,8 +2198,23 @@ export default function AIMathEnginePage() {
 
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setIntroMissionId(currentMission)}
+                aria-label="Show mission intro"
+                title="What is this mission about?"
+                className={`p-2 rounded-lg text-xs transition-colors ${
+                  theme === "dark"
+                    ? "bg-slate-800 hover:bg-slate-700 text-cyan-400"
+                    : "bg-slate-100 hover:bg-slate-200 text-cyan-600"
+                }`}
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+
+              <button
                 onClick={handleUseHint}
-                className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors ${
+                disabled={isCurrentMissionComplete || (hintsUsed[currentMission] || 0) >= activeMissionDef.hints.length}
+                title={isCurrentMissionComplete ? "Mission already completed — hints no longer affect XP" : undefined}
+                className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                   theme === "dark"
                     ? "bg-slate-800 hover:bg-slate-700 text-slate-300"
                     : "bg-slate-100 hover:bg-slate-200 text-slate-600"
@@ -1939,9 +2225,22 @@ export default function AIMathEnginePage() {
 
               <button
                 onClick={handleValidateChallenge}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"
+                disabled={isCurrentMissionComplete}
+                className={`px-4 py-2 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-lg transition-all ${
+                  isCurrentMissionComplete
+                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 cursor-default shadow-none"
+                    : "bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 shadow-emerald-500/20"
+                }`}
               >
-                <Check className="w-4 h-4" /> Complete Mission
+                {isCurrentMissionComplete ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" /> Completed
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" /> Complete Mission
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -1966,7 +2265,8 @@ export default function AIMathEnginePage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-xs font-semibold border-b-2 capitalize transition-all ${
+                aria-selected={activeTab === tab}
+                className={`px-4 py-2 text-xs font-semibold border-b-2 capitalize transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 ${
                   activeTab === tab
                     ? "border-emerald-500 text-emerald-400"
                     : theme === "dark"
@@ -2033,6 +2333,7 @@ export default function AIMathEnginePage() {
           <div className="max-w-xl w-full bg-slate-900 border-2 border-emerald-500/50 rounded-2xl p-8 text-center space-y-6 shadow-2xl relative">
             <button
               onClick={() => setShowCertificate(false)}
+              aria-label="Close certificate"
               className="absolute top-4 right-4 text-slate-400 hover:text-white"
             >
               ✕
@@ -2064,17 +2365,168 @@ export default function AIMathEnginePage() {
             <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
               <button
                 onClick={() => setShowCertificate(false)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-6 py-2.5 rounded-xl transition-all"
+                className="bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 border border-slate-700 font-bold text-xs px-6 py-2.5 rounded-xl transition-all"
               >
                 Review Playground
               </button>
               <button
                 onClick={handleContinueToCurriculum}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+                className="bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-1.5"
               >
                 Finish &amp; Unlock Next <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOW TO USE MODAL */}
+      {showHowToUse && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="how-to-use-title"
+        >
+          <div className="max-w-lg w-full bg-slate-900 border-2 border-cyan-500/40 rounded-2xl p-6 md:p-8 space-y-5 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button
+              onClick={() => setShowHowToUse(false)}
+              aria-label="Close how-to-use guide"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 shrink-0 bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 rounded-xl flex items-center justify-center">
+                <Compass className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold">
+                  Welcome
+                </span>
+                <h2 id="how-to-use-title" className="text-lg font-bold text-slate-100">
+                  How to Use the AI Math Engine
+                </h2>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
+              <div className="flex gap-3">
+                <Unlock className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <p>
+                  <span className="font-semibold text-slate-100">Getting started —</span> you begin on Mission 1
+                  (Vectors). Missions 2–12 stay locked in the sidebar until you complete the one before them.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <p>
+                  <span className="font-semibold text-slate-100">Track progress —</span> the Level and XP bar in the
+                  header sum up every mission's XP as you complete it.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <MousePointerClick className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-slate-100">Work a mission:</p>
+                  <ol className="list-decimal list-inside space-y-1 mt-1 text-slate-300">
+                    <li>Pick a mission from the sidebar (locked ones show a lock icon).</li>
+                    <li><span className="text-slate-100">Visual Math Lab</span> — interact with sliders, matrix cells, buttons, or code; everything updates live.</li>
+                    <li><span className="text-slate-100">Formula &amp; Math</span> — see the underlying equation.</li>
+                    <li><span className="text-slate-100">AI Connection</span> — see how it's used in real AI/ML systems.</li>
+                    <li>Use <span className="text-slate-100">Hint</span> if stuck (each hint costs 10 XP off that mission, but is free once the mission is already completed).</li>
+                    <li>Click <span className="text-slate-100">Complete Mission</span> once you've hit the target — this awards XP and unlocks the next mission.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <RotateCcw className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <p>
+                  <span className="font-semibold text-slate-100">Other controls —</span> the sun/moon icon toggles
+                  dark/light mode; the reset icon wipes all progress and every playground value back to defaults.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Trophy className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <p>
+                  <span className="font-semibold text-slate-100">Finishing up —</span> completing all 12 missions
+                  automatically shows a certificate. You can keep reviewing missions or finish and move on.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowHowToUse(false)}
+              className="w-full bg-cyan-600 hover:bg-cyan-500 active:scale-[0.98] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
+            >
+              Got it, let's start <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <p className="text-center text-[10px] text-slate-500">
+              You can reopen this guide anytime from the <HelpCircle className="w-3 h-3 inline -mt-0.5" /> icon in the header.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* MISSION INTRO MODAL — pops the moment a mission becomes current
+          (first load, or right after unlocking the next one). Held back
+          while the How-to-Use guide is still open so the two never stack. */}
+      {!showHowToUse && introMissionDef && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mission-intro-title"
+        >
+          <div className="max-w-lg w-full bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-6 md:p-8 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setIntroMissionId(null)}
+              aria-label="Close mission intro"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 shrink-0 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center text-2xl">
+                {introMissionDef.icon}
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold">
+                  Mission {introMissionDef.number} of 12 Unlocked
+                </span>
+                <h2 id="mission-intro-title" className="text-lg font-bold text-slate-100">
+                  {introMissionDef.title}
+                </h2>
+                <p className="text-xs text-slate-400">{introMissionDef.subtitle}</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-300 leading-relaxed">{introMissionDef.intro}</p>
+
+            <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs text-amber-300 flex gap-2 items-start">
+              <Cpu className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                <span className="font-semibold">Where AI uses this:</span> {introMissionDef.aiConnection}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+              <span>+{introMissionDef.xp} XP on completion</span>
+              <span>{introMissionDef.hints.length} hints available</span>
+            </div>
+
+            <button
+              onClick={() => setIntroMissionId(null)}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
+            >
+              Start Mission <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       )}

@@ -96,11 +96,14 @@ export default function DynamicPage() {
   const getSectionImage = (slugStr: string, sectionHeading?: string) => {
     const text = (slugStr + " " + (sectionHeading || "")).toLowerCase();
     if (text.includes("human")|| text.includes("training")) return "/ai.png";
+      if (text.includes(" Python Variables, Input & Output")) return "/variables.jpg";
+      
      if (text.includes("types")) return "/types.png";
        if (text.includes("machines")|| text.includes("examples")) return "/ex.png";
      if (text.includes("history") || text.includes("turn")) return "/hist.png";
  if (text.includes("car")) return "/car.png";
  if (text.includes("classification")) return "/car.png";
+
     if (text.includes("neuron") || text.includes("network") || text.includes("deep") || text.includes("brain") || text.includes("layer") || text.includes("percep")) return "/img_neuron.jpg";
     if (text.includes("data") || text.includes("math") || text.includes("learn") || text.includes("model") || text.includes("overfit") || text.includes("train") || text.includes("eval")) return "/img_data.jpg";
     if (text.includes("robot") || text.includes("ai") || text.includes("machine") || text.includes("agent") )return "/img_robot.jpg";
