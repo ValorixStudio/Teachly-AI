@@ -96,7 +96,7 @@ export default function DynamicPage() {
   const getSectionImage = (slugStr: string, sectionHeading?: string) => {
     const text = (slugStr + " " + (sectionHeading || "")).toLowerCase();
     if (text.includes("human")|| text.includes("training")) return "/ai.png";
-      if (text.includes(" Python Variables, Input & Output")) return "/variables.jpg";
+  
       
      if (text.includes("types")) return "/types.png";
        if (text.includes("machines")|| text.includes("examples")) return "/ex.png";
