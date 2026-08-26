@@ -106,7 +106,6 @@ const curriculum: Level[] = [
       },
       {
         title: "AI Explorer: Your First Mission!! ",
-        videoUrl: "/videos/l1m5.mp4",
         topics: [{
           title: "Try It Yourself ",
           isHandsOn: true,
@@ -122,11 +121,14 @@ const curriculum: Level[] = [
         title: "Module 1: Python Basics",
         videoUrl: "/videos/l2m1.mp4",
         topics: [
-          { title: "Variables" },
-          { title: "Loops" },
-          { title: "Functions" },
-          { title: "Lists" },
-          { title: "Dictionaries" },
+           { title: "Installation" },
+          { title: "Variables, data types, and input/output" },
+          { title: "Operators, expressions, and type conversion " },
+           { title: "Conditional statements " },
+          { title: "Loops: for and while " },
+           { title: "Lists, tuples, sets, and dictionaries" },
+          { title: "Functions, parameters, return values, and scope " },
+          { title: "Strings & File Handling" },
           {
             title: "Python Basics Lab",
             isHandsOn: true,
@@ -201,7 +203,6 @@ const curriculum: Level[] = [
       },
       {
         title: "AI Foundations: Your Second Mission!! ",
-        videoUrl: "/videos/l2m6.mp4",
         topics: [{
           title: "Try It Yourself (Mini Project1) ",
           isHandsOn: true,
@@ -407,7 +408,7 @@ const curriculum: Level[] = [
       },
       {
         title: "AI Engineer: Your Next Mission!! ",
-        videoUrl: "/videos/l3m12.mp4",
+       
         topics: [{
           title: "Try It Yourself (Mini Project 2) ",
           isHandsOn: true,
@@ -557,7 +558,6 @@ const curriculum: Level[] = [
       },
       {
         title: "Advanced AI : Your Last Mission!! ",
-        videoUrl: "/videos/l4m11.mp4",
         topics: [{
           title: "Try It Yourself (Major Project) ",
           isHandsOn: true,
@@ -604,6 +604,7 @@ interface ServerProgressResponse {
   completedTopics?: unknown;
   updatedAt?: unknown;
 }
+
 
 function readTopicKeysFromApi(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -1054,6 +1055,9 @@ function VideoModal({
               objectFit: "contain",
             }}
             controls
+            controlsList="nodownload noremoteplayback"
+            disablePictureInPicture
+            onContextMenu={(e) => e.preventDefault()}
             autoPlay
           >
             <source src={videoUrl} type="video/mp4" />
@@ -1764,12 +1768,15 @@ export default function Home() {
     );
   }
 
-  // Handles the "Watch Video" click for a given level/module.
-  async function handleWatchVideo(level: Level, mod: Module) {
-    const moduleKeyStr = `${level.title}/${mod.title}`;
-    const cleanTitle = stripModulePrefix(mod.title);
+  // Handles the "Watch Video" click for a given level/module, or, when a
+  // topic is provided, for that specific topic within the module.
+  async function handleWatchVideo(level: Level, mod: Module, topic?: Topic) {
+    const keyStr = topic
+      ? `${level.title}/${mod.title}/${topic.title}`
+      : `${level.title}/${mod.title}`;
+    const cleanTitle = topic ? topic.title.trim() : stripModulePrefix(mod.title);
 
-    setVideoLoadingKey(moduleKeyStr);
+    setVideoLoadingKey(keyStr);
     setVideoToast(null);
 
     try {
@@ -1982,6 +1989,7 @@ export default function Home() {
                         const moduleOpen =
                           openModule === moduleKey && !moduleLocked;
                         const isVideoLoading = videoLoadingKey === moduleKey;
+                        const isLevel2Module = levelIndex === 1;
 
                         return (
                           <div
@@ -2037,7 +2045,7 @@ export default function Home() {
                                 )}
                               </button>
 
-                              {mod.videoUrl && !moduleLocked && (
+                              {!isLevel2Module && mod.videoUrl && !moduleLocked && (
                                 <button
                                   onClick={() => handleWatchVideo(level, mod)}
                                   title="Watch video"
@@ -2104,6 +2112,10 @@ export default function Home() {
                                       nextTopicLocation.moduleIndex === modIndex &&
                                       nextTopicLocation.topicIndex === i;
                                     const href = resolveTopicPath(t);
+                                    const isLevel2 = levelIndex === 1;
+                                    const topicVideoKeyStr = `${moduleKey}/${t.title}`;
+                                    const isTopicVideoLoading =
+                                      videoLoadingKey === topicVideoKeyStr;
 
                                     if (tLocked) {
                                       return (
@@ -2135,53 +2147,106 @@ export default function Home() {
                                           topicRefs.current[topicKeyStr] = el;
                                         }}
                                       >
-                                        <Link
-                                          href={href}
-                                          className="al-topic-row al-topic-link"
-                                          style={
-                                            tCompleted
-                                              ? {
-                                                background: "rgba(34, 197, 94, 0.08)",
-                                                border: "1px solid rgba(34, 197, 94, 0.35)",
-                                                borderRadius: "10px",
-                                              }
-                                              : isNextTopic
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "stretch",
+                                            gap: "0.5rem",
+                                          }}
+                                        >
+                                          <Link
+                                            href={href}
+                                            className="al-topic-row al-topic-link"
+                                            style={{
+                                              flex: 1,
+                                              minWidth: 0,
+                                              ...(tCompleted
                                                 ? {
-                                                  background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
-                                                  border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
+                                                  background: "rgba(34, 197, 94, 0.08)",
+                                                  border: "1px solid rgba(34, 197, 94, 0.35)",
                                                   borderRadius: "10px",
                                                 }
-                                                : undefined
-                                          }
-                                        >
-                                          <span className="al-topic-text">
-                                            {t.title}
-                                            {t.isHandsOn && (
-                                              <span className="al-badge">
-                                                <FlaskIcon />
-                                                Hands-on
-                                              </span>
-                                            )}
-                                            {tCompleted && (
-                                              <span className="al-status-badge al-status-complete">
-                                                <CheckIcon />
-                                                Done
-                                              </span>
-                                            )}
-                                            {isNextTopic && !tCompleted && (
-                                              <span
-                                                className="al-status-badge"
-                                                style={{
-                                                  background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}22`,
-                                                  color: (levelThemes[levelIndex] ?? levelThemes[0]).accent,
-                                                }}
-                                              >
-                                                Continue here
-                                              </span>
-                                            )}
-                                          </span>
-                                          <ArrowIcon />
-                                        </Link>
+                                                : isNextTopic
+                                                  ? {
+                                                    background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}14`,
+                                                    border: `1px solid ${(levelThemes[levelIndex] ?? levelThemes[0]).accent}66`,
+                                                    borderRadius: "10px",
+                                                  }
+                                                  : {}),
+                                            }}
+                                          >
+                                            <span className="al-topic-text">
+                                              {t.title}
+                                              {t.isHandsOn && (
+                                                <span className="al-badge">
+                                                  <FlaskIcon />
+                                                  Hands-on
+                                                </span>
+                                              )}
+                                              {tCompleted && (
+                                                <span className="al-status-badge al-status-complete">
+                                                  <CheckIcon />
+                                                  Done
+                                                </span>
+                                              )}
+                                              {isNextTopic && !tCompleted && (
+                                                <span
+                                                  className="al-status-badge"
+                                                  style={{
+                                                    background: `${(levelThemes[levelIndex] ?? levelThemes[0]).accent}22`,
+                                                    color: (levelThemes[levelIndex] ?? levelThemes[0]).accent,
+                                                  }}
+                                                >
+                                                  Continue here
+                                                </span>
+                                              )}
+                                            </span>
+                                            <ArrowIcon />
+                                          </Link>
+
+                                          {isLevel2 && !t.isHandsOn && (
+                                            <button
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleWatchVideo(level, mod, t);
+                                              }}
+                                              title="Watch video"
+                                              disabled={isTopicVideoLoading}
+                                              style={{
+                                                flexShrink: 0,
+                                                alignSelf: "center",
+                                                padding: "0.5rem 0.8rem",
+                                                background: `${theme.accent}14`,
+                                                border: `1px solid ${theme.accent}55`,
+                                                borderRadius: "8px",
+                                                color: theme.accent,
+                                                fontWeight: 700,
+                                                fontSize: "0.75rem",
+                                                cursor: isTopicVideoLoading ? "wait" : "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: "0.35rem",
+                                                whiteSpace: "nowrap",
+                                                transition: "all 0.2s ease",
+                                                opacity: isTopicVideoLoading ? 0.6 : 1,
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                if (isTopicVideoLoading) return;
+                                                e.currentTarget.style.background = `${theme.accent}25`;
+                                                e.currentTarget.style.borderColor = `${theme.accent}88`;
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = `${theme.accent}14`;
+                                                e.currentTarget.style.borderColor = `${theme.accent}55`;
+                                              }}
+                                            >
+                                              <VideoIcon />
+                                              {isTopicVideoLoading ? "Loading..." : "Watch Video"}
+                                            </button>
+                                          )}
+                                        </div>
                                       </li>
                                     );
                                   })}
