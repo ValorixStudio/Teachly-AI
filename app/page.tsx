@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 
 import "./globals.css";
@@ -446,117 +445,117 @@ const curriculum: Level[] = [
           { title: "Learning Rate Scheduling" },
         ]
       },
-      {
-        title: "Module 3: Transformer Architecture",
-        videoUrl: "/videos/l4m3.mp4",
-        topics: [
-          { title: "Self-Attention" },
-          { title: "Multi-Head Attention" },
-          { title: "Positional Encoding" },
-          { title: "Encoder" },
-          { title: "Decoder" },
-          { title: "Cross Attention" },
-          { title: "Feed Forward Networks" },
-          { title: "Layer Normalization" },
-        ]
-      },
-      {
-        title: "Module 4: Large Language Models",
-        videoUrl: "/videos/l4m4.mp4",
-        topics: [
-          { title: "GPT" },
-          { title: "BERT" },
-          { title: "LLaMA" },
-          { title: "Mistral" },
-          { title: "Gemma" },
-          { title: "Tokenizers" },
-          { title: "Scaling Laws" },
-          { title: "Inference Optimization" },
-        ]
-      },
-      {
-        title: "Module 5: LLM Fine-Tuning",
-        videoUrl: "/videos/l4m5.mp4",
-        topics: [
-          { title: "Fine-Tuning" },
-          { title: "LoRA" },
-          { title: "QLoRA" },
-          { title: "PEFT" },
-          { title: "RLHF" },
-          { title: "DPO" },
-          { title: "Model Distillation" },
-          { title: "Quantization" },
-        ]
-      },
-      {
-        title: "Module 6: Retrieval-Augmented Generation (RAG)",
-        videoUrl: "/videos/l4m6.mp4",
-        topics: [
-          { title: "Fine-Tuning" },
-          { title: "Embeddings" },
-          { title: "Chunking" },
-          { title: "Retrieval Strategies" },
-          { title: "Hybrid Search" },
-          { title: "Vector Databases" },
-          { title: "Knowledge Graphs" },
-          { title: "Reranking" },
-          { title: "Evaluation" },
-        ]
-      },
-      {
-        title: "Module 7: AI Agents & Autonomous Systems",
-        videoUrl: "/videos/l4m7.mp4",
-        topics: [
-          { title: "Planning" },
-          { title: "Reasoning" },
-          { title: "Reflection" },
-          { title: "Memory Architectures" },
-          { title: "Agent Communication" },
-          { title: "Multi-Agent Collaboration" },
-          { title: "Tool Use" },
-          { title: "Agent Evaluation" },
-        ]
-      },
-      {
-        title: "Module 8: Multimodal AI",
-        videoUrl: "/videos/l4m8.mp4",
-        topics: [
-          { title: "Planning" },
-          { title: "Vision Transformers" },
-          { title: "Vision-Language Models" },
-          { title: "Image Generation" },
-          { title: "Speech Models" },
-          { title: "Audio Understanding" },
-          { title: "Video Understanding" },
-        ]
-      },
-      {
-        title: "Module 9: AI Infrastructure",
-        videoUrl: "/videos/l4m9.mp4",
-        topics: [
-          { title: "GPU Programming" },
-          { title: "CUDA Basics" },
-          { title: "Distributed Training" },
-          { title: "Parallel Processing" },
-          { title: "Ray" },
-          { title: "DeepSpeed" },
-          { title: "Tensor Parallelism" },
-          { title: "Pipeline Parallelism" },
-        ]
-      },
-      {
-        title: "Module 10: AI Security & Responsible AI",
-        videoUrl: "/videos/l4m10.mp4",
-        topics: [
-          { title: "AI Ethics" },
-          { title: "Explainable AI (XAI)" },
-          { title: "Adversarial Attacks" },
-          { title: "AI Safety" },
-          { title: "Bias Detection" },
-          { title: "Privacy" },
-          { title: "Governance" },
-        ]
-      },
+      // {
+      //   title: "Module 3: Transformer Architecture",
+      //   videoUrl: "/videos/l4m3.mp4",
+      //   topics: [
+      //     { title: "Self-Attention" },
+      //     { title: "Multi-Head Attention" },
+      //     { title: "Positional Encoding" },
+      //     { title: "Encoder" },
+      //     { title: "Decoder" },
+      //     { title: "Cross Attention" },
+      //     { title: "Feed Forward Networks" },
+      //     { title: "Layer Normalization" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 4: Large Language Models",
+      //   videoUrl: "/videos/l4m4.mp4",
+      //   topics: [
+      //     { title: "GPT" },
+      //     { title: "BERT" },
+      //     { title: "LLaMA" },
+      //     { title: "Mistral" },
+      //     { title: "Gemma" },
+      //     { title: "Tokenizers" },
+      //     { title: "Scaling Laws" },
+      //     { title: "Inference Optimization" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 5: LLM Fine-Tuning",
+      //   videoUrl: "/videos/l4m5.mp4",
+      //   topics: [
+      //     { title: "Fine-Tuning" },
+      //     { title: "LoRA" },
+      //     { title: "QLoRA" },
+      //     { title: "PEFT" },
+      //     { title: "RLHF" },
+      //     { title: "DPO" },
+      //     { title: "Model Distillation" },
+      //     { title: "Quantization" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 6: Retrieval-Augmented Generation (RAG)",
+      //   videoUrl: "/videos/l4m6.mp4",
+      //   topics: [
+      //     { title: "Fine-Tuning" },
+      //     { title: "Embeddings" },
+      //     { title: "Chunking" },
+      //     { title: "Retrieval Strategies" },
+      //     { title: "Hybrid Search" },
+      //     { title: "Vector Databases" },
+      //     { title: "Knowledge Graphs" },
+      //     { title: "Reranking" },
+      //     { title: "Evaluation" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 7: AI Agents & Autonomous Systems",
+      //   videoUrl: "/videos/l4m7.mp4",
+      //   topics: [
+      //     { title: "Planning" },
+      //     { title: "Reasoning" },
+      //     { title: "Reflection" },
+      //     { title: "Memory Architectures" },
+      //     { title: "Agent Communication" },
+      //     { title: "Multi-Agent Collaboration" },
+      //     { title: "Tool Use" },
+      //     { title: "Agent Evaluation" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 8: Multimodal AI",
+      //   videoUrl: "/videos/l4m8.mp4",
+      //   topics: [
+      //     { title: "Planning" },
+      //     { title: "Vision Transformers" },
+      //     { title: "Vision-Language Models" },
+      //     { title: "Image Generation" },
+      //     { title: "Speech Models" },
+      //     { title: "Audio Understanding" },
+      //     { title: "Video Understanding" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 9: AI Infrastructure",
+      //   videoUrl: "/videos/l4m9.mp4",
+      //   topics: [
+      //     { title: "GPU Programming" },
+      //     { title: "CUDA Basics" },
+      //     { title: "Distributed Training" },
+      //     { title: "Parallel Processing" },
+      //     { title: "Ray" },
+      //     { title: "DeepSpeed" },
+      //     { title: "Tensor Parallelism" },
+      //     { title: "Pipeline Parallelism" },
+      //   ]
+      // },
+      // {
+      //   title: "Module 10: AI Security & Responsible AI",
+      //   videoUrl: "/videos/l4m10.mp4",
+      //   topics: [
+      //     { title: "AI Ethics" },
+      //     { title: "Explainable AI (XAI)" },
+      //     { title: "Adversarial Attacks" },
+      //     { title: "AI Safety" },
+      //     { title: "Bias Detection" },
+      //     { title: "Privacy" },
+      //     { title: "Governance" },
+      //   ]
+      // },
       {
         title: "Advanced AI : Your Last Mission!! ",
         videoUrl: "/videos/l4m11.mp4",
@@ -586,77 +585,6 @@ export const PROGRESS_STORAGE_KEY = "ai-labs-completed-topics-v2";
 export const ACTIVE_LEVEL_STORAGE_KEY = "ai-labs-active-level-v1";
 export const ACTIVE_MODULE_STORAGE_KEY = "ai-labs-active-module-v1";
 
-export const PENDING_SYNC_STORAGE_KEY = "ai-labs-pending-sync-v1";
-export const RESET_AT_STORAGE_KEY = "ai-labs-reset-at-v1";
-const LOGIN_STORAGE_KEY = "teachly-ai-is-logged-in";
-const LOGIN_TOKEN_KEY = "teachly-ai-token";
-const LOGIN_COOKIE = "teachly_ai_logged_in";
-const TOKEN_COOKIE = "teachly_ai_token";
-
-function getBackendUrl(path: string): string {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_PROGRESS_API_URL ??
-    process.env.NEXT_PUBLIC_LOGIN_API_URL ??
-    "";
-
-  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
-}
-
-interface ServerProgressResponse {
-  completedTopics?: unknown;
-  updatedAt?: unknown;
-}
-
-
-function readTopicKeysFromApi(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-
-  return value.filter(
-    (key): key is string => typeof key === "string" && key.trim().length > 0,
-  );
-}
-
-function formatLastSubmittedAt(value: string | null): string | null {
-  if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function getCookieValue(name: string) {
-  const prefix = `${name}=`;
-  const cookie = document.cookie
-    .split(";")
-    .map((value) => value.trim())
-    .find((value) => value.startsWith(prefix));
-
-  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
-}
-
-function hasLoginCookie() {
-  return getCookieValue(LOGIN_COOKIE) === "true";
-}
-
-function hasStoredAuth() {
-  return hasLoginCookie() && Boolean(getCookieValue(TOKEN_COOKIE));
-}
-
-function clearSavedLogin() {
-  try {
-    window.localStorage.removeItem(LOGIN_STORAGE_KEY);
-    window.localStorage.removeItem(LOGIN_TOKEN_KEY);
-    window.localStorage.removeItem("teachly-ai-user");
-    clearLocalProgressState();
-  } catch {
-    // ignore storage failures
-  }
-}
-
 function readStringArrayFromStorage(key: string): string[] {
   const stored = window.localStorage.getItem(key);
   if (!stored) return [];
@@ -680,83 +608,6 @@ function writeLocalProgressCache(topics: Set<string>): void {
     PROGRESS_STORAGE_KEY,
     JSON.stringify(Array.from(topics)),
   );
-}
-
-function clearLocalProgressState(): void {
-  window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
-  window.localStorage.removeItem(ACTIVE_LEVEL_STORAGE_KEY);
-  window.localStorage.removeItem(ACTIVE_MODULE_STORAGE_KEY);
-  window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
-  window.localStorage.removeItem(RESET_AT_STORAGE_KEY);
-}
-
-function queueTopicForSync(key: string): void {
-  try {
-    const pending = new Set(readStringArrayFromStorage(PENDING_SYNC_STORAGE_KEY));
-    pending.add(key);
-    window.localStorage.setItem(
-      PENDING_SYNC_STORAGE_KEY,
-      JSON.stringify(Array.from(pending)),
-    );
-  } catch {
-    // ignore queue failures; local completion still succeeds
-  }
-}
-
-async function flushPendingProgress(): Promise<void> {
-  try {
-    const pending = readStringArrayFromStorage(PENDING_SYNC_STORAGE_KEY);
-    if (pending.length === 0) return;
-
-    const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
-    if (!token) return;
-
-    const response = await fetch(getBackendUrl("/progress/complete"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ topicKeys: pending }),
-    });
-
-    if (response.ok) {
-      window.localStorage.removeItem(PENDING_SYNC_STORAGE_KEY);
-    }
-  } catch {
-    // keep pending topics queued for a later attempt
-  }
-}
-
-async function fetchServerProgress(): Promise<{
-  completedTopics: string[];
-  updatedAt: string | null;
-} | null> {
-  try {
-    const token = getCookieValue(TOKEN_COOKIE) ?? window.localStorage.getItem(LOGIN_TOKEN_KEY);
-    if (!token) return null;
-
-    const response = await fetch(getBackendUrl("/progress"), {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = (await response.json().catch(() => null)) as ServerProgressResponse | null;
-    if (!response.ok || !data) return null;
-
-    const completedTopics = readTopicKeysFromApi(data.completedTopics);
-    return {
-      completedTopics,
-      updatedAt:
-        completedTopics.length > 0 && typeof data.updatedAt === "string"
-          ? data.updatedAt
-          : null,
-    };
-  } catch {
-    return null;
-  }
 }
 
 export function topicKey(levelIndex: number, moduleIndex: number, topicIndex: number) {
@@ -836,9 +687,6 @@ export function markLabTopicComplete(slug: string): void {
       location.moduleIndex,
       location.topicIndex,
     );
-
-    queueTopicForSync(key);
-    void flushPendingProgress();
   } catch {
     // ignore storage errors — don't block navigation over a progress-save failure
   }
@@ -1127,7 +975,6 @@ function ProgressTrackerWidget({
   onLevelClick,
   nextTopic,
   onContinueClick,
-  lastSubmittedAt,
 }: {
   overallCompleted: number;
   overallTotal: number;
@@ -1141,7 +988,6 @@ function ProgressTrackerWidget({
     accent: string;
   } | null;
   onContinueClick: () => void;
-  lastSubmittedAt: string | null;
 }) {
   const overallPercent =
     overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
@@ -1177,19 +1023,6 @@ function ProgressTrackerWidget({
           </span>
         </span>
       </div>
-
-      {lastSubmittedAt && (
-        <div
-          style={{
-            fontSize: "0.78rem",
-            fontWeight: 700,
-            color: "#64748b",
-            marginBottom: "0.75rem",
-          }}
-        >
-          Last submitted: {lastSubmittedAt}
-        </div>
-      )}
 
       <div
         style={{
@@ -1443,24 +1276,16 @@ async function fetchTutorialByTitle(params: {
 }): Promise<Tutorial | null> {
   const { title, classLevel } = params;
 
-  let userEmail: string | undefined;
-  try {
-    const raw = window.localStorage.getItem("teachly-ai-user");
-    userEmail = raw ? JSON.parse(raw)?.email : undefined;
-  } catch {
-    userEmail = undefined;
-  }
-
-  const encrypted_email_id = userEmail ? btoa(userEmail) : undefined;
-
   const query = new URLSearchParams({
     classLevel,
     status: "published",
-    ...(encrypted_email_id ? { encrypted_email_id } : {}),
   });
 
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_LOGIN_API_URL;
+
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_LOGIN_API_URL}/tutorial/title/${encodeURIComponent(title)}?${query.toString()}`
+    `${apiBaseUrl}/tutorial/title/${encodeURIComponent(title)}?${query.toString()}`
   );
 
   if (!res.ok) {
@@ -1480,7 +1305,6 @@ function stripModulePrefix(title: string): string {
 }
 
 export default function Home() {
-  const router = useRouter();
   const [openLevel, setOpenLevel] = useState<string | null>(null);
   const [openModule, setOpenModule] = useState<string | null>(null);
 
@@ -1493,25 +1317,10 @@ export default function Home() {
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(
     () => new Set(),
   );
-  const [lastSubmittedAt, setLastSubmittedAt] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     try {
-      if (!hasStoredAuth()) {
-        clearSavedLogin();
-        router.replace("/login");
-        return;
-      }
-
-      window.localStorage.setItem(LOGIN_STORAGE_KEY, "true");
-
-      const cookieToken = getCookieValue(TOKEN_COOKIE);
-      if (cookieToken) {
-        window.localStorage.setItem(LOGIN_TOKEN_KEY, cookieToken);
-      }
-
       const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -1520,35 +1329,11 @@ export default function Home() {
         }
       }
     } catch {
-      clearSavedLogin();
-      router.replace("/login");
-      return;
+      // ignore storage failures
     } finally {
       setHydrated(true);
-      setAuthChecked(true);
     }
-  }, [router]);
-
-  useEffect(() => {
-    if (!authChecked) return;
-
-    let cancelled = false;
-
-    async function loadServerProgress() {
-      await flushPendingProgress();
-      const serverProgress = await fetchServerProgress();
-      if (cancelled || !serverProgress) return;
-
-      setCompletedTopics(new Set(serverProgress.completedTopics));
-      setLastSubmittedAt(serverProgress.updatedAt);
-    }
-
-    void loadServerProgress();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [authChecked]);
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -1587,30 +1372,6 @@ export default function Home() {
       // ignore write failures (e.g. storage disabled)
     }
   }, [openModule, hydrated]);
-
-  useEffect(() => {
-    if (!authChecked) return;
-
-    function syncLogoutAcrossLocalhostApps() {
-      if (hasLoginCookie()) return;
-
-      clearSavedLogin();
-      router.replace("/login");
-    }
-
-    const intervalId = window.setInterval(syncLogoutAcrossLocalhostApps, 1500);
-    window.addEventListener("focus", syncLogoutAcrossLocalhostApps);
-    document.addEventListener("visibilitychange", syncLogoutAcrossLocalhostApps);
-
-    return () => {
-      window.clearInterval(intervalId);
-      window.removeEventListener("focus", syncLogoutAcrossLocalhostApps);
-      document.removeEventListener(
-        "visibilitychange",
-        syncLogoutAcrossLocalhostApps,
-      );
-    };
-  }, [authChecked, router]);
 
   function markTopicComplete(
     levelIndex: number,
@@ -1747,15 +1508,17 @@ export default function Home() {
     return isLevelCompleted(levelIndex);
   }
 
+  // Progression locking has been removed — everything is always accessible.
+  // Signatures are kept so existing call sites stay unchanged.
   function isLevelUnlocked(levelIndex: number): boolean {
-    if (levelIndex === 0) return true;
-    return isLevelCompleted(levelIndex - 1);
+    void levelIndex;
+    return true;
   }
 
   function isModuleUnlocked(levelIndex: number, moduleIndex: number): boolean {
-    if (!isLevelUnlocked(levelIndex)) return false;
-    if (moduleIndex === 0) return true;
-    return isModuleCompleted(levelIndex, moduleIndex - 1);
+    void levelIndex;
+    void moduleIndex;
+    return true;
   }
 
   function isTopicUnlocked(
@@ -1763,11 +1526,10 @@ export default function Home() {
     moduleIndex: number,
     topicIndex: number,
   ): boolean {
-    if (!isModuleUnlocked(levelIndex, moduleIndex)) return false;
-    if (topicIndex === 0) return true;
-    return completedTopics.has(
-      topicKey(levelIndex, moduleIndex, topicIndex - 1),
-    );
+    void levelIndex;
+    void moduleIndex;
+    void topicIndex;
+    return true;
   }
 
   // Handles the "Watch Video" click for a given level/module.
@@ -1804,7 +1566,7 @@ export default function Home() {
     }
   }
 
-  if (!authChecked) {
+  if (!hydrated) {
     return (
       <main
         style={{
@@ -1905,7 +1667,6 @@ export default function Home() {
               : null
           }
           onContinueClick={goToNextTopic}
-          lastSubmittedAt={formatLastSubmittedAt(lastSubmittedAt)}
         />
 
         <div className="al-levels">

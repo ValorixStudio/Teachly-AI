@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
-import { ProfileSync } from "@/components/activation-lab/profile-sync";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -22,7 +21,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <ProfileSync />
         <div className="lab-shell">{children}</div>
       </body>
     </html>
