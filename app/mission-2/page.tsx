@@ -873,18 +873,20 @@ function StageShell({ tag, title, subtitle, progressLabel, hero, children }: Sta
 interface NavButtonsProps {
   onBack?: () => void;
   onNext: () => void;
-  backDisabled?: boolean;
-  nextDisabled?: boolean;
   nextLabel?: string;
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
+function NavButtons({ onBack, onNext, nextLabel }: NavButtonsProps) {
   return (
     <div className="acc-nav-row">
-      <button className="acc-nav-back" onClick={onBack} disabled={backDisabled}>
-        <ChevronLeft size={16} /> Back
-      </button>
-      <button className="acc-nav-next" onClick={onNext} disabled={nextDisabled}>
+      {onBack ? (
+        <button className="acc-nav-back" onClick={onBack}>
+          <ChevronLeft size={16} /> Back
+        </button>
+      ) : (
+        <span />
+      )}
+      <button className="acc-nav-next" onClick={onNext}>
         {nextLabel || "Continue"} <ChevronRight size={16} />
       </button>
     </div>
@@ -1074,8 +1076,6 @@ export default function StudentPerformancePredictorGuide() {
     });
   };
 
-  const isPhaseFullyChecked = (idx: number) => PHASES[idx].steps.every((s) => checkedSteps[s.num]);
-
   const markPhaseComplete = (idx: number) => {
     setCompletedPhases((prev) => {
       if (prev[idx]) return prev;
@@ -1142,7 +1142,6 @@ export default function StudentPerformancePredictorGuide() {
 
         {(() => {
           const phase = PHASES[current];
-          const allChecked = isPhaseFullyChecked(current);
           const isLastPhase = current === PHASES.length - 1;
           return (
             <StageShell
@@ -1191,9 +1190,7 @@ export default function StudentPerformancePredictorGuide() {
                 })}
               </div>
               <NavButtons
-                backDisabled={current === 0}
-                onBack={() => setCurrent(current - 1)}
-                nextDisabled={!allChecked}
+                onBack={current === 0 ? undefined : () => setCurrent(current - 1)}
                 nextLabel={isLastPhase ? "Finish & Unlock Next" : "Continue"}
                 onNext={() => {
                   if (isLastPhase) {

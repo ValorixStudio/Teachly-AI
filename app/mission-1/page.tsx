@@ -443,18 +443,20 @@ function StageShell({ tag, title, subtitle, progressLabel, hero, children }: Sta
 interface NavButtonsProps {
   onBack?: () => void;
   onNext: () => void;
-  backDisabled?: boolean;
-  nextDisabled?: boolean;
   nextLabel?: string;
 }
 
-function NavButtons({ onBack, onNext, backDisabled, nextDisabled, nextLabel }: NavButtonsProps) {
+function NavButtons({ onBack, onNext, nextLabel }: NavButtonsProps) {
   return (
     <div className="pel-nav-row">
-      <button className="pel-nav-back" onClick={onBack} disabled={backDisabled}>
-        <ChevronLeft size={16} /> Back
-      </button>
-      <button className="pel-nav-next" onClick={onNext} disabled={nextDisabled}>
+      {onBack ? (
+        <button className="pel-nav-back" onClick={onBack}>
+          <ChevronLeft size={16} /> Back
+        </button>
+      ) : (
+        <span />
+      )}
+      <button className="pel-nav-next" onClick={onNext}>
         {nextLabel || "Next"} <ChevronRight size={16} />
       </button>
     </div>
@@ -668,6 +670,16 @@ export default function PromptEngineeringLab() {
                     <ExternalLink size={15} />
                     Open ChatGPT
                   </a>
+                  <button
+                    className={`pel-pill-btn pel-pill-outline ${openedConfirmed ? "pel-done" : ""}`}
+                    onClick={() => {
+                      setOpenedConfirmed(true);
+                      fireToast();
+                    }}
+                  >
+                    <Check size={15} />
+                    {openedConfirmed ? "Ready" : "I have it open"}
+                  </button>
                 </div>
                 {openedConfirmed && (
                   <div className="pel-feedback">
@@ -678,9 +690,6 @@ export default function PromptEngineeringLab() {
               </div>
             </div>
             <NavButtons
-              backDisabled
-              onBack={() => {}}
-              nextDisabled={!openedConfirmed}
               onNext={() => {
                 markComplete(0);
                 setCurrent(1);
@@ -728,7 +737,6 @@ export default function PromptEngineeringLab() {
             </div>
             <NavButtons
               onBack={() => setCurrent(0)}
-              nextDisabled={!triedA}
               onNext={() => {
                 markComplete(1);
                 setCurrent(2);
@@ -776,7 +784,6 @@ export default function PromptEngineeringLab() {
             </div>
             <NavButtons
               onBack={() => setCurrent(1)}
-              nextDisabled={!triedB}
               onNext={() => {
                 markComplete(2);
                 setCurrent(3);
@@ -806,7 +813,6 @@ export default function PromptEngineeringLab() {
             </div>
             <NavButtons
               onBack={() => setCurrent(2)}
-              nextDisabled={!reflectDone}
               onNext={() => {
                 markComplete(3);
                 fireToast();
